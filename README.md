@@ -1,54 +1,66 @@
-## 📢 5. HỆ THỐNG QUẢN LÝ & THÔNG BÁO CẬP NHẬT (CHANGELOG SYSTEM)
-
-Hệ thống quản lý phiên bản và thông báo cập nhật tự động độc quyền của `CustomWeaponEngine`. Tự động đồng bộ giữa cấu hình `config.yml` và bộ nhớ động trên dữ liệu người chơi (PersistentDataContainer), giúp truyền tải thông tin update trực quan mà không gây phiền nhiễu cho thành viên.
-
-### 🎮 Các Tính Năng Dành Cho Người Chơi
-* **Hệ Thống Trùng Đúc Gacha Mới:**
-    * Sử dụng lệnh `/reforge` hoặc `/rf` để mở giao diện tổng hợp.
-    * Hỗ trợ 2 chế độ: `Normal Reforge` (2,000 Coins) và `Exclusive Reforge` (20,000 Coins).
-    * **Tương thích đồ Vanilla:** Cho phép gạch tên giới hạn cũ, cường hóa được cả trang bị thường (Sắt, Kim Cương...) lên phân hạng **RARE**.
-    * Bổ sung 5 tiền tố đặc quyền tối cao: `ANCIENT`, `NECROTIC`, `GIANT`, `FABLED`, `WITHERED`.
-    * Tiền tố `WITHERED` sở hữu cơ chế đột biến: Cộng Sức mạnh tỉ lệ thuận theo Level hiện tại của người chơi.
-    * **Chống bug chỉ số:** Chỉ số Reforge từ Giáp chỉ kích hoạt khi thực sự mặc trên người (EquipmentSlot), chặn hoàn toàn nếu chỉ cầm trên tay. Giữ nguyên tên đã đổi qua lệnh `/cweie rename`.
-* **Cân Bằng Mana & Kỹ Năng:**
-    * Tích hợp lõi hồi phục Mana tự động: **Hồi 3% Mana tối đa mỗi giây**.
-    * Gậy Cừu (*Astral Shepherd's Wand*) tiêu hao 30 Mana và vá triệt để lỗi chọn mục tiêu lên quái vật.
-* **Mở Rộng Giao Dịch Bazaar:**
-    * Hỗ trợ giao dịch các loại quặng cường hóa thế hệ mới.
-    * Mở rộng danh mục nông sản: Thịt heo, gà, cừu, thỏ, mắt nhện, slime ball và phiên bản nén cường hóa (Enchanted) của chúng.
+<div align="center">
+  <h1>⚔️ CustomWeaponEngine (CWE)</h1>
+  <p><b>Hệ sinh thái vũ khí, giáp, và tính năng nhập vai RPG tối thượng dành cho Minecraft (Paper 1.21).</b></p>
+</div>
 
 ---
 
-### 📡 Cơ Chế Thông Báo Thông Minh (Client-Side Smart Notification)
-* **Lưu trữ ngầm:** Sử dụng thẻ NBT ẩn của Paper API (`cwe_read_changelog_version`) găm trực tiếp vào Player Data.
-* **Hoạt động:** Khi người chơi kết nối vào máy chủ (`PlayerJoinEvent`), hệ thống kiểm tra số phiên bản cập nhật mà người chơi đã đọc:
-    * Nếu `phiên bản người chơi < phiên bản server`: Gửi một tin nhắn tương tác dạng JSON Chat:
-        > `§6§l[NHẤP VÀO ĐÂY] §eađể xem chi tiết cập nhật hoặc gõ §b/cweupdate§e!`
-    * Tin nhắn tích hợp sẵn thuộc tính di chuột hiện Tooltip giải thích và thuộc tính nhấp chuột tự động thực thi lệnh đọc update.
-    * Ngay sau lần gửi đầu tiên, hệ thống lưu trạng thái đã đọc. Người chơi đăng nhập các lần tiếp theo **sẽ không bị nhắc nhở lại** cho đến khi có update mới.
+## 📖 Giới thiệu
+**CustomWeaponEngine (CWE)** là một Plugin Minecraft mang đậm phong cách của *Hypixel Skyblock*. CWE cung cấp một bộ khung (Framework) vô cùng mạnh mẽ cho phép triển khai hàng loạt vũ khí huyền thoại, giáp bộ (Armor Sets), cơ chế cường hóa (Enchant/Reforge), hệ thống kinh tế (Bank/Bazaar/Trade) và các sự kiện thế giới (Meteorite). Toàn bộ được Việt Hóa chuẩn phong cách RPG.
+
+Hệ thống chỉ số cơ bản của trang bị (Damage, Strength, Crit Chance, Crit Damage, Intelligence) được tích hợp trực tiếp qua lõi **AuraSkills**.
 
 ---
 
-### 💻 Lệnh Điều Khiển (Commands)
-* `/cweupdate` (Hoặc viết tắt: `/cwechangelog`): Lệnh công cộng dành cho toàn bộ người chơi để mở bảng tra cứu, xem lại toàn bộ nội dung bản cập nhật bất kỳ lúc nào ngay trong khung chat với định dạng màu sắc rõ ràng.
+## 🚀 Các Tính Năng Nổi Bật
+
+### 1. Kho Vũ Khí Huyền Thoại (Skyblock Weapons)
+Hệ thống vũ khí sở hữu Kỹ Năng (Item Ability) và NBT riêng biệt:
+- **Batch 1 (Siêu phẩm End-game)**: Aspect of the End (Tốc biến), Aspect of the Dragons (Hất văng), Livid Dagger (Đâm lén x2 sát thương), Shadow Fury (Lướt trảm 5 mục tiêu), Giant's Sword (Nện đất), Wither Blades (Hyperion, Valkyrie, Scylla, Astraea - Vụ nổ Wither), Emerald Blade (Sát thương tỷ lệ với tiền ví).
+- **Vũ khí Mid/Early-game**: Pigman Sword, Fel Sword (Cộng dồn sát thương theo số quái giết), Zombie Sword (Hồi máu đồng minh), Golem Sword, Raider Axe (Thợ săn tiền thưởng).
+
+### 2. Kỷ Nguyên Chiến Giáp (Armor Sets & Full Set Bonus)
+Hơn **13 Bộ Giáp (52 món đồ)** với cơ chế nội tại khi mặc đủ bộ (Full Set Bonus):
+- **Wither Armor Series (Bộ Tứ Wither)**: Necron (Đấu sĩ), Storm (Pháp sư), Maxor (Cung thủ/Tốc độ), Goldor (Đỡ đòn). Sở hữu nội tại *Witherborn* (Triệu hồi Wither mini bắn quái vật).
+- **Bát Long Giáp (8 Bộ Rồng)**: Superior, Strong, Wise, Unstable, Young, Old, Protector, Holy (Tất cả đều có nội tại Huyết Mạch Rồng riêng biệt).
+- **Trang bị độc quyền khác**: 
+  - *Tarantula Armor*: Nhảy kép, x2 sát thương đòn thứ 4.
+  - *Shadow Assassin*: Cộng dồn vĩnh viễn Strength sau mỗi lần giết quái.
+  - *Ender Armor*: X2 toàn bộ chỉ số khi xuống The End, giảm sát thương từ Enderman.
+  - *Werewolf, Hardened Diamond, Golem Armor*.
+
+### 3. Giao Diện Quản Lý Thư Viện (`/cwelib`)
+- Nơi lưu trữ an toàn 100% các trang bị tùy chỉnh của máy chủ (Lưu trong `library.yml`).
+- Tách biệt 2 danh mục thông minh: **Vũ Khí (Weapons)** và **Giáp (Armors)**.
+- Mục Giáp được tối ưu hóa: Chỉ hiển thị Mũ (Helmet). Khi Click vào Mũ sẽ tự động phát đủ Bộ 4 Mảnh (Mũ, Áo, Quần, Giày).
+
+### 4. Hệ Thống Chế Tạo & Kinh Tế Toàn Diện
+- **Chế tạo (Crafting)**: Cung cấp API tương tác với `ShapedRecipe` của Bukkit để người chơi tự chế tác đồ Mid/Early-game (Golem Sword, Raider Axe...) ngay trên Bàn chế tạo thường.
+- **Ngân hàng (Bank)**: Gửi tiền, rút tiền, và nhận lãi suất (Interest) định kỳ.
+- **Chợ Đen (Bazaar)**: Mua bán nguyên vật liệu với cơ chế Biến động giá cung-cầu.
+- **Trade An Toàn**: Hệ thống giao dịch (Giao diện GUI) an toàn tuyệt đối giữa 2 người chơi. Tích hợp trao đổi cả Item lẫn Tiền mặt (Pocket Money).
+- **Item Lock**: Khóa vật phẩm rơi ra từ Quái Vật. "Của ai người nấy nhặt", chống hiện tượngKS đồ.
+
+### 5. Cường Hóa & Chế Tác
+- **Reforge System (Tái Tổ Hợp)**: Tiêu thụ tiền để đập thêm tiền tố vào tên vật phẩm (VD: *Spicy* Livid Dagger, *Fierce* Necron's Helmet) giúp cộng dồn chỉ số.
+- **Custom Enchants**: Giao diện cường hóa bằng Lapis (`/cweenchant`) cùng hệ thống Phù phép tối thượng (Ultimate Enchants).
+
+### 6. Sự Kiện Thế Giới: Thiên Thạch (Meteorite)
+- Thỉnh thoảng bầu trời sẽ giáng xuống những quả Thiên Thạch khổng lồ.
+- **Thiết kế địa hình thông minh**: Thay vì đục lỗ phá hỏng map, thiên thạch sẽ tự động san bằng địa hình tạo ra một Đấu Trường Phẳng (Bán kính 25 khối).
+- Tự động triệu hồi các Siêu Boss đặc biệt để người chơi tham gia săn lùng.
+
+### 7. Dashboard Quản Trị (Web Local)
+- Tích hợp một trang Web Local (HTML/JS) đóng vai trò làm Dashboard điều khiển Server.
+- Cung cấp tính năng gửi lệnh Admin, kiểm tra chỉ số quái vật và trạng thái người chơi.
 
 ---
 
-### 🛠️ Quy Trình Phát Hành Bản Cập Nhật Mới (Dành Cho Admin)
-Mỗi khi tiến hành nâng cấp, bảo trì hoặc thêm tính năng mới cho server, Admin thực hiện theo các bước sau để kích nổ thông báo toàn server:
+## 🛠 Hướng Dẫn Cài Đặt
 
-1.  Mở file `config.yml`, tìm đến mục cấu hình `changelog` ở cuối file.
-2.  Chỉnh sửa/Thêm nội dung các dòng cập nhật vào danh sách `lines`.
-3.  Tăng chỉ số `version` lên 1 đơn vị (Ví dụ từ `version: 1` lên `version: 2`).
-4.  Gõ lệnh `/cst reload` trong game để nạp lại cấu hình.
+1. Yêu cầu **Paper 1.21** trở lên.
+2. Yêu cầu cài đặt Plugin phụ thuộc: **Vault**, Plugin Kinh tế (vd: **EssentialsX**), và **AuraSkills** (để tính toán chỉ số).
+3. Đặt file `CustomWeaponEngine.jar` vào thư mục `plugins/`.
+4. Khởi động lại máy chủ và tận hưởng!
 
-**Cấu trúc mẫu trong `config.yml`:**
-```yaml
-changelog:
-  version: 2
-  lines:
-    - "&6&l[UPDATE FABLED] &eHệ Thống Reforge Gacha Mới (/reforge)!"
-    - "&a- Thêm 5 tiền tố đặc quyền: Ancient, Necrotic, Giant, Fabled, Withered."
-    - "&a- Giáp Reforge chỉ kích hoạt chỉ số khi thực sự mặc trên người."
-    - "&b- Hệ thống hồi phục Mana tự động: hồi 3% Mana tối đa/giây."
-    - "&d- Mở rộng giao dịch nông sản nén và quặng mới tại Bazaar."
+> Mọi đóng góp, báo cáo lỗi (Bug) vui lòng tạo Issue trên kho lưu trữ.
