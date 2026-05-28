@@ -1,0 +1,21 @@
+# --- CẤU HÌNH LOẠI BỎ RÁC CHO JAVA/MAVEN ---
+# Đừng bao giờ đẩy mấy thứ này lên server, nặng máy mà lại bẩn code!
+
+# Maven
+target/
+*.jar
+*.war
+*.ear
+
+# IDE & Config
+.idea/
+*.iml
+.metadata/
+bin/
+tmp/
+*.log
+*.class
+
+# Hệ điều hành
+.DS_Store
+Thumbs.db

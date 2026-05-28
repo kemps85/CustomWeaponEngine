@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.example</groupId>
+    <artifactId>CustomWeaponEngine</artifactId>
+    <version>1.2-SNAPSHOT</version> 
+    <packaging>jar</packaging>
+
+    <name>CustomWeaponEngine</name>
+
+    <properties>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        
+        <sftp.host>windy.pikamc.vn</sftp.host>
+        <sftp.port>2022</sftp.port>
+        <sftp.username>usergkweid8c.11504f43</sftp.username>
+        <sftp.password>quyphat85</sftp.password>
+        <sftp.remotedir>/home/container/plugins</sftp.remotedir>
+    </properties>
+
+    <repositories>
+        <repository>
+            <id>luckperms-repo</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+        </repository>
+        <repository>
+            <id>papermc</id>
+            <url>https://repo.papermc.io/repository/maven-public/</url>
+        </repository>
+        <repository>
+            <id>placeholderapi</id>
+            <url>https://repo.extendedclip.com/content/repositories/placeholderapi/</url>
+        </repository>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+        <repository>
+            <id>aurelium-repo</id>
+            <url>https://repo.aurelium.dev/repository/maven-public/</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.papermc.paper</groupId>
+            <artifactId>paper-api</artifactId>
+            <version>1.21-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>me.clip</groupId>
+            <artifactId>placeholderapi</artifactId>
+            <version>2.11.6</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>dev.aurelium</groupId>
+            <artifactId>auraskills-api</artifactId>
+            <version>2.0.5</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/AuraSkills-2.3.12.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>com.github.MilkBowl</groupId>
+            <artifactId>VaultAPI</artifactId>
+            <version>1.7.1</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>net.luckperms</groupId>
+            <artifactId>api</artifactId>
+            <version>5.4</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+    <build>
+        <finalName>CustomWeaponEngine</finalName>
+        <defaultGoal>clean verify</defaultGoal>
+        
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <source>21</source>
+                    <target>21</target>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.ant</groupId>
+                        <artifactId>ant-jsch</artifactId>
+                        <version>1.10.14</version>
+                        <exclusions>
+                            <exclusion>
+                                <groupId>com.jcraft</groupId>
+                                <artifactId>jsch</artifactId>
+                            </exclusion>
+                        </exclusions>
+                    </dependency>
+                    <dependency>
+                        <groupId>com.github.mwiede</groupId>
+                        <artifactId>jsch</artifactId>
+                        <version>0.2.20</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <id>upload-jar</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <echo message="🚀 Sending clean artifact to remote web host... Please wait!"/>
+                                <scp file="${project.build.directory}/${project.build.finalName}.jar"
+                                     todir="${sftp.username}:${sftp.password}@${sftp.host}:${sftp.remotedir}"
+                                     port="${sftp.port}"
+                                     trust="true"
+                                     sftp="true"/>
+                                <echo message="🟩 Upload successful! File deployed to remote plugins folder."/>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

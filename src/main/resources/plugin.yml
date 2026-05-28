@@ -1,0 +1,80 @@
+name: CustomWeaponEngine
+version: 1.2-SNAPSHOT
+main: org.example.core.CustomWeaponEngine
+api-version: 1.21
+authors: [ThangDev]
+description: Plugin he thong vu khi va giap custom RPG cho server net.
+softdepend: [AuraSkills, PlaceholderAPI, LevelledMobs, LuckPerms, Vault]
+commands:
+  cst:
+    description: Lenh quan tri vu khi custom
+    permission: cst.admin
+  bazaar:
+    description: Mo san giao dich chung khoan dong Bazaar AMM
+    aliases: [bz, mkt]
+  orevein:
+    description: Quan ly he thong mo quang
+  adminec:
+    description: Mo giao dien Admin ep bua chu tuy bien cho trang bi dang cam
+    permission: cwe.admin
+    permission-message: "§c[CWE] Ban khong co quyen dung lenh nay!"
+    aliases: [aec]
+  cwestats:
+    description: Mo giao dien Admin chinh sua chi so RPG cua trang bi dang cam
+    permission: cwe.admin
+    permission-message: "§c[CWE] Ban khong co quyen dung lenh nay!"
+    aliases: [is, itemstats]
+  cweie:
+    description: Lenh quan tri chinh sua ten/lore/nbt cua vat pham dang cam
+    permission: cwe.admin
+    permission-message: "§c[CWE] Ban khong co quyen dung lenh nay!"
+    aliases: [itemeditor]
+  reforge:
+    description: Mo giao dien Gacha Reforge cho nguoi choi
+    aliases: [rf]
+  delref:
+    description: Xoa reforge cua vat pham dang cam (Admin)
+    permission: cwe.admin
+    permission-message: "§c[CWE] Ban khong co quyen dung lenh nay!"
+  cweupdate:
+    description: Xem thong tin cap nhat moi nhat cua server
+    aliases: [cwechangelog]
+
+
+  meteorite:
+    description: Quan ly su kien Thien Thach
+    usage: |
+      /meteorite start <loai> - Kich hoat su kien (loai: FIRE | ICE | VOID)
+      /meteorite stop         - Huy su kien dang dien ra
+      /meteorite status       - Xem trang thai su kien hien tai
+    permission: cwe.admin
+    permission-message: "\u00a7c[CWE] Ban khong co quyen dung lenh nay!"
+    aliases: [meteor]
+
+  setrank:
+    description: Thay doi prefix cua nguoi choi qua LuckPerms
+    usage: |
+      /setrank <player> <prefix>
+    permission: cwe.admin
+    permission-message: "\u00a7c[CWE] Ban khong co quyen dung lenh nay!"
+
+  cwegive:
+    description: Cấp phát vật phẩm Custom cho người chơi
+    permission: cwe.admin
+    permission-message: "§c[CWE] Bạn không có quyền dùng lệnh này!"
+
+  cwe:
+    description: Lenh he thong thu vien cwe
+    permission: cwe.admin
+    permission-message: "§c[CWE] Ban khong co quyen dung lenh nay!"
+  bank:
+    description: Mo khoa khoan ngan hang ca nhan Personal Bank Account
+
+  trade:
+    description: Giao dịch với người chơi
+    usage: /trade <tên>
+  cweeco:
+    description: Lệnh cộng tiền Vault cho Admin
+    permission: cwe.admin
+    permission-message: "§c[CWE] Bạn không có quyền dùng lệnh này!"
+    usage: /cweeco <give|set> <người_chơi> <số_tiền>

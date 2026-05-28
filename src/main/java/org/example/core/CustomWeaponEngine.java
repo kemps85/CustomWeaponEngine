@@ -1,0 +1,321 @@
+package org.example.core;
+
+import org.example.weapon.*;
+import org.example.armor.*;
+import org.example.enchant.*;
+import org.example.bazaar.*;
+import org.example.stats.*;
+import org.example.system.*;
+import net.milkbowl.vault.economy.Economy;
+import org.bukkit.NamespacedKey;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.RegisteredServiceProvider;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+import java.io.File;
+import java.io.IOException;
+
+import org.jetbrains.annotations.NotNull;
+import org.example.enchant.EnchantManager;
+
+public final class CustomWeaponEngine extends JavaPlugin implements CommandExecutor {
+
+    private static CustomWeaponEngine instance;
+    private static Economy econ = null;
+    private static EnchantManager enchantManager;
+    private static org.example.system.TradeManager tradeManager;
+    private static org.example.system.LibraryGUI libraryGUI;
+    
+    public static HeavenlySwordListener weaponEngine;
+    public static ShadowAssassinListener assassinEngine;
+    public static BerserkListener berserkEngine;
+    public static MobDeathListener mobDeathEngine;
+    public static org.example.system.MeteoriteManager meteoriteManager;
+    public static org.example.system.MeteorBossManager meteorBossManager;
+    
+    private File libraryFile;
+    private FileConfiguration libraryConfig;
+
+    public FileConfiguration getLibraryConfig() {
+        return libraryConfig;
+    }
+
+    public void saveLibraryConfig() {
+        try {
+            libraryConfig.save(libraryFile);
+        } catch (IOException e) {
+            getLogger().warning("Could not save library.yml!");
+        }
+    }
+
+    public static net.milkbowl.vault.economy.Economy getEconomy() { return econ; }
+    public static org.example.system.MeteorBossManager getMeteorBossManager() { return meteorBossManager; }
+
+    @Override
+    public void onEnable() {
+        tradeManager = new org.example.system.TradeManager();
+        libraryGUI = new org.example.system.LibraryGUI(this);
+
+        instance = this;
+        saveDefaultConfig();
+
+        // Load library.yml
+        libraryFile = new File(getDataFolder(), "library.yml");
+        if (!libraryFile.exists()) {
+            libraryFile.getParentFile().mkdirs();
+            saveResource("library.yml", false);
+        }
+        libraryConfig = YamlConfiguration.loadConfiguration(libraryFile);
+
+    
+        if (!setupEconomy()) {
+            getLogger().severe("🟥 KHÔNG TÌM THẤY VÍ TIỀN VAULT! Chợ Bazaar sẽ bị đóng băng.");
+        }
+
+        enchantManager = new EnchantManager(this);
+
+        // 🟩 Đăng ký công thức chế tạo Mending đặc quyền
+        NamespacedKey recipeKey = new NamespacedKey(this, "custom_mending_book");
+        ItemStack mendingBook = new ItemStack(org.bukkit.Material.ENCHANTED_BOOK);
+        org.bukkit.inventory.meta.EnchantmentStorageMeta mMeta = (org.bukkit.inventory.meta.EnchantmentStorageMeta) mendingBook.getItemMeta();
+        if (mMeta != null) {
+            mMeta.setDisplayName("§d§lMending I");
+            mMeta.addStoredEnchant(org.bukkit.enchantments.Enchantment.getByKey(NamespacedKey.minecraft("mending")), 1, true);
+            mMeta.setLore(java.util.Arrays.asList("§d§lĐẶC QUYỀN CHẾ TẠO"));
+            mMeta.getPersistentDataContainer().set(new NamespacedKey(this, "is_custom_mending"), org.bukkit.persistence.PersistentDataType.INTEGER, 1);
+            mendingBook.setItemMeta(mMeta);
+        }
+        org.bukkit.inventory.ShapedRecipe recipe = new org.bukkit.inventory.ShapedRecipe(recipeKey, mendingBook);
+        recipe.shape(" I ", "IBI", " I ");
+        recipe.setIngredient('I', org.bukkit.Material.IRON_INGOT);
+        recipe.setIngredient('B', org.bukkit.Material.BOOK);
+        try { getServer().removeRecipe(recipeKey); } catch (Exception ignored) {}
+        try { getServer().addRecipe(recipe); } catch (Exception ignored) {}
+
+        // 🟩 Đăng ký công thức vũ khí Custom
+        new org.example.system.CustomRecipeManager(this).registerRecipes();
+
+        getServer().getPluginManager().registerEvents(new org.example.system.ReplenishListener(this), this);
+        org.example.enchant.EnchantGUI enchantGUI = new org.example.enchant.EnchantGUI(this, enchantManager);
+        getServer().getPluginManager().registerEvents(enchantGUI, this);
+        getServer().getPluginManager().registerEvents(new org.example.enchant.CombatEnchantListener(this), this);
+        getServer().getPluginManager().registerEvents(new org.example.enchant.AnvilGUI(this, enchantManager), this);
+        getServer().getPluginManager().registerEvents(new org.example.armor.ArmorEnchantListener(this), this);
+        getServer().getPluginManager().registerEvents(new org.example.enchant.UltimateSystemListener(this, enchantManager), this);
+
+        org.example.bazaar.BazaarGUI bazaarEngine = new org.example.bazaar.BazaarGUI(this, econ);
+        getServer().getPluginManager().registerEvents(bazaarEngine, this);
+        getServer().getPluginManager().registerEvents(new org.example.bazaar.BazaarRecipeListener(this), this);
+        getServer().getPluginManager().registerEvents(new org.example.bazaar.BazaarMobDropListener(this), this);
+
+        // 🟩 Đăng ký OreVeinManager
+        org.example.system.OreVeinManager oreVeinManager = new org.example.system.OreVeinManager(this);
+        getServer().getServicesManager().register(org.example.system.OreVeinManager.class, oreVeinManager, this, org.bukkit.plugin.ServicePriority.Normal);
+        if (getCommand("orevein") != null) {
+            getCommand("orevein").setExecutor(oreVeinManager);
+            getCommand("orevein").setTabCompleter(oreVeinManager);
+        }
+    
+        if (getCommand("bazaar") != null) {
+            getCommand("bazaar").setExecutor(bazaarEngine);
+        }
+
+        // 🟩 Đăng ký lệnh /adminec -> EnchantGUI CommandExecutor
+        if (getCommand("adminec") != null) {
+            getCommand("adminec").setExecutor(enchantGUI);
+        }
+
+        // 🟩 Đăng ký hệ thống Item Custom Stats Engine
+        org.example.stats.ItemStatsGUI itemStatsGUI = new org.example.stats.ItemStatsGUI(this);
+        getServer().getPluginManager().registerEvents(itemStatsGUI, this);
+        if (getCommand("cwestats") != null) {
+            getCommand("cwestats").setExecutor(itemStatsGUI);
+        }
+        getServer().getPluginManager().registerEvents(new org.example.stats.ItemStatsListener(this), this);
+        getServer().getPluginManager().registerEvents(new org.example.stats.VanillaItemUpdater(this), this);
+        
+        meteoriteManager = new org.example.system.MeteoriteManager(this);
+        getServer().getPluginManager().registerEvents(meteoriteManager, this);
+        
+        // 🟩 Đăng ký lệnh /meteorite với Tab-Complete đầy đủ
+        if (getCommand("meteorite") != null) {
+            org.example.system.MeteoriteCommand meteoriteCmd = new org.example.system.MeteoriteCommand();
+            getCommand("meteorite").setExecutor(meteoriteCmd);
+            getCommand("meteorite").setTabCompleter(meteoriteCmd);
+        }
+        meteorBossManager = new org.example.system.MeteorBossManager(this, meteoriteManager);
+        getServer().getPluginManager().registerEvents(meteorBossManager, this);
+
+        // 🟩 Đăng ký lệnh /cweie (Custom Item Editor)
+        if (getCommand("cweie") != null) {
+            getCommand("cweie").setExecutor(new org.example.system.ItemEditorCommand());
+        }
+
+        // 🟩 Đăng ký hệ thống Gacha Reforge
+        ReforgeSystem reforgeSystem = new ReforgeSystem(this, econ);
+        getServer().getPluginManager().registerEvents(reforgeSystem, this);
+        if (getCommand("reforge") != null) {
+            getCommand("reforge").setExecutor(reforgeSystem);
+        }
+        if (getCommand("delref") != null) {
+            getCommand("delref").setExecutor(reforgeSystem);
+        }
+
+        assassinEngine = new ShadowAssassinListener();
+        getServer().getPluginManager().registerEvents(assassinEngine, this);
+    
+        if (getCommand("cst") != null) {
+            getCommand("cst").setExecutor(this);
+            getCommand("cst").setTabCompleter((sender, command, alias, args) -> {
+                if (args.length == 1) {
+                    java.util.List<String> list = new java.util.ArrayList<>();
+                    if ("reload".startsWith(args[0].toLowerCase())) list.add("reload");
+                    if ("help".startsWith(args[0].toLowerCase())) list.add("help");
+                    return list;
+                }
+                return new java.util.ArrayList<>();
+            });
+        }
+
+        weaponEngine = new HeavenlySwordListener();
+        getServer().getPluginManager().registerEvents(weaponEngine, this);
+        getServer().getPluginManager().registerEvents(new RunaanBowListener(this), this);
+        getServer().getPluginManager().registerEvents(new ShortbowListener(this), this);
+
+        berserkEngine = new BerserkListener();
+        getServer().getPluginManager().registerEvents(berserkEngine, this);
+
+        mobDeathEngine = new MobDeathListener();
+        getServer().getPluginManager().registerEvents(mobDeathEngine, this);
+        
+        // 🟩 Đăng ký Cosmic Void & Astral Shepherd
+        getServer().getPluginManager().registerEvents(new org.example.armor.CosmicVoidListener(this), this);
+        getServer().getPluginManager().registerEvents(new org.example.weapon.AstralShepherdListener(this), this);
+        
+        // 🟩 Đăng ký Mana Regen Task
+        new org.example.system.ManaRegenTask(this).start();
+
+        // 🟩 Đăng ký CWEBanking
+        org.example.bank.BankDataManager.getInstance(this);
+        org.example.bank.BankGui bankGui = new org.example.bank.BankGui(this, econ);
+        getServer().getPluginManager().registerEvents(bankGui, this);
+        if (getCommand("bank") != null) {
+            getCommand("bank").setExecutor(new org.example.bank.BankCommand(bankGui));
+        }
+        new org.example.bank.BankInterestTask(this).runTaskTimer(this, 1200L, 1200L); // 1200 ticks = 1 minute interval
+
+        // 🟩 Đăng ký ChangelogManager
+        org.example.system.ChangelogManager changelogManager = new org.example.system.ChangelogManager(this);
+        getServer().getPluginManager().registerEvents(changelogManager, this);
+        if (getCommand("cweupdate") != null) {
+            getCommand("cweupdate").setExecutor(changelogManager);
+        }
+        
+        
+        if (getCommand("cwe") != null) {
+            getCommand("cwe").setExecutor(new org.example.system.CWELibraryCommand(this));
+        }
+
+        if (getCommand("cwegive") != null) {
+            org.example.system.CWEGiveCommand giveCmd = new org.example.system.CWEGiveCommand(this);
+            getCommand("cwegive").setExecutor(giveCmd);
+            getCommand("cwegive").setTabCompleter(giveCmd);
+        }
+    
+        if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            new CooldownExpansion(weaponEngine).register();
+        }
+        
+        // 🟩 Đăng ký lệnh /setrank (LuckPerms prefix)
+        if (getCommand("setrank") != null) {
+            org.example.system.SetRankCommand setRankCmd = new org.example.system.SetRankCommand();
+            getCommand("setrank").setExecutor(setRankCmd);
+            getCommand("setrank").setTabCompleter(setRankCmd);
+        }
+
+        getServer().getPluginManager().registerEvents(new org.example.system.UpdateNotifier(this), this);
+        
+        // 🟩 Đăng ký Chat Listener
+        getServer().getPluginManager().registerEvents(new org.example.system.ChatListener(this), this);
+        
+        getLogger().info("dYYc CustomWeaponEngine Engine v4.0 (Bazaar AMM & Ore Guardians Updated) hoat dong!");
+    }
+
+
+    private boolean setupEconomy() {
+        if (getServer().getPluginManager().getPlugin("Vault") == null) return false;
+        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+        if (rsp == null) return false;
+        econ = rsp.getProvider();
+        return econ != null;
+    }
+
+    @Override
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+        if (!command.getName().equalsIgnoreCase("cst")) return false;
+
+        if (!sender.hasPermission("cst.admin")) {
+            sender.sendMessage("§cYou don't have permission!");
+            return true;
+        }
+
+        if (args.length > 0 && args[0].equalsIgnoreCase("reload")) {
+            reloadConfig();
+            if (org.example.bank.BankDataManager.getInstance() != null) {
+                org.example.bank.BankDataManager.getInstance().reload();
+            }
+            if (weaponEngine != null) weaponEngine.clearCooldowns();
+            if (assassinEngine != null) assassinEngine.clearCooldowns(); 
+            if (berserkEngine != null) berserkEngine.clearCache(); 
+            sender.sendMessage("§a[CustomWeaponEngine] Configuration reloaded!");
+            return true;
+        }
+
+        // Mặc định hoặc /cst help
+        sender.sendMessage("§e====================================================");
+        sender.sendMessage("§6§l    ✦ CUSTOM WEAPON ENGINE - ADMIN COMMANDS ✦");
+        sender.sendMessage("§e====================================================");
+        sender.sendMessage("§a/cst reload §7- Tải lại toàn bộ cấu hình hệ thống.");
+        sender.sendMessage("§a/cst help §7- Hiển thị danh sách các lệnh admin.");
+        sender.sendMessage("§a/cwe save <item_id> §7- Lưu NBT vật phẩm cầm tay vào library.yml.");
+        sender.sendMessage("§a/cwegive <player> <item_id> [amount] §7- Cấp phát vật phẩm custom.");
+        sender.sendMessage("§a/adminec §7- Giao diện Admin cường hóa Enchant/Ultimate tùy chọn.");
+        sender.sendMessage("§a/cwestats §7- Giao diện chỉnh sửa chỉ số RPG đặc biệt.");
+        sender.sendMessage("§a/cweie rename/lore/nbt §7- Biên tập NBT vật phẩm cầm trên tay.");
+        sender.sendMessage("§a/delref §7- Xóa thuộc tính Reforge của trang bị đang cầm.");
+        sender.sendMessage("§a/meteorite start <FIRE|ICE|VOID> §7- Kích hoạt sự kiện Thiên Thạch.");
+        sender.sendMessage("§a/meteorite stop §7- Dừng khẩn cấp sự kiện Thiên Thạch.");
+        sender.sendMessage("§a/setrank <player> <prefix> §7- Đổi prefix LuckPerms trực tiếp.");
+        sender.sendMessage("§a/orevein <create|delete|list|info|mininglvl> §7- Quản lý mỏ quặng.");
+        sender.sendMessage("§e====================================================");
+        return true;
+    }
+
+    @Override
+    public void onDisable() {
+        org.bukkit.event.HandlerList.unregisterAll(this);
+        if (weaponEngine != null) weaponEngine.clearCooldowns();
+        if (assassinEngine != null) assassinEngine.clearCooldowns();
+        if (berserkEngine != null) berserkEngine.clearCache();
+        
+        if (meteoriteManager != null) {
+            meteoriteManager.cleanupChests();
+            meteoriteManager.removeBossBar();
+        }
+        if (meteorBossManager != null) {
+            meteorBossManager.cleanupOnDisable();
+        }
+        
+        getLogger().info("🟥 CustomWeaponEngine đã giải phóng RAM thành công!");
+    }
+
+    public static CustomWeaponEngine getInstance() { return instance; }
+    public static org.example.system.TradeManager getTradeManager() { return tradeManager; }
+    public static org.example.system.LibraryGUI getLibraryGUI() { return libraryGUI; }
+
+    public static EnchantManager getEnchantManager() { return enchantManager; }
+}

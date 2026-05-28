@@ -1,0 +1,107 @@
+# =========================================================================
+#             CẤU HÌNH HỆ THỐNG VŨ KHÍ (CUSTOM WEAPON ENGINE)
+# =========================================================================
+
+weapons:
+  thien_dao:
+    display-name: "&b&lThiên Đạo Kiếm"
+    cooldown: 1
+    mana-cost: 0.0
+    skill-damage-percent: 10.0
+    execute-threshold: 10.0
+    effect: "LIGHTNING"
+
+  hoa_long:
+    display-name: "&c&lHỏa Long Kiếm"
+    cooldown: 1
+    mana-cost: 0.0
+    skill-damage: 25.0
+    execute-threshold: 10.0
+    effect: "EXPLOSION"
+
+  huyet_anh:
+    display-name: "&c&lHuyết Ảnh Kiếm"
+    cooldown: 2.5
+    mana-cost: 0.0
+    skill-damage-percent: 35.0
+    execute-threshold: 15.0
+    effect: "LIGHTNING"
+
+  shadow_fang:
+    display-name: "&9&lĐoản Đao Shadow Fang"
+    cooldown: 3
+    mana-cost: 25.0
+    dash-force: 1.4
+    effect: "DASH"
+
+  fire_staff:
+    display-name: "&c&lFire Staff"
+    cooldown: 3
+    mana-cost: 30.0
+    skill-damage: 10.0
+    range: 12.0
+    effect: "MAGIC_PROJECTILE"
+    element: "FIRE"
+
+  ice_staff:
+    display-name: "&b&lIce Staff"
+    cooldown: 3
+    mana-cost: 30.0
+    skill-damage: 8.0
+    range: 12.0
+    effect: "MAGIC_PROJECTILE"
+    element: "ICE"
+
+# =========================================================================
+#             CẤU HÌNH BỘ GIÁP ĐẶC BIỆT (ARMOR SETS)
+# =========================================================================
+sets:
+  berserk:
+    display-name: "Berserk"
+  shadow_assassin:
+    display-name: "Shadow"
+    crouch-stealth-time: 2
+    stealth-duration: 30
+
+# =========================================================================
+#             CẤU HÌNH THÔNG BÁO CẬP NHẬT (CHANGELOG SYSTEM)
+# =========================================================================
+changelog:
+  version: 2
+  lines:
+    - "&e========================================="
+    - "     &6&l✦ BẢN CẬP NHẬT HỆ THỐNG MỚI (CWE v4.2) ✦"
+    - "&e========================================="
+    - " &fChào mừng bạn trở lại! Dưới đây là các siêu tính năng vừa cập bến:"
+    - ""
+    - " &e1. &a&lHỆ THỐNG NGÂN HÀNG HOÀN CHỈNH (CWEBanking):"
+    - "   &7- Sử dụng lệnh &b/bank &7để mở tài khoản ngân hàng cá nhân &6GUI 36 ô&7."
+    - "   &7- Hỗ trợ gửi/rút nhanh &a25%, 50%, 100% &7hoặc &atự nhập số tiền &7qua khung Chat."
+    - "   &7- &eTự động phát lãi suất 2% &7tiết kiệm định kỳ sau mỗi &b31 giờ ngoài đời&7."
+    - "   &7- &cChống lạm phát:&7 Lãi suất chỉ áp dụng tối đa cho &610.000.000 Coins đầu tiên&7."
+    - "   &7- &cPhạt khi chết:&7 Mất &e50% tiền mặt trên người&7 khi chết nếu không gửi vào Bank"
+    - "     &7hoặc không sở hữu bùa Ultimate &bBANK &7để bảo toàn tài sản!"
+    - ""
+    - " &e2. &b&lBÚA CHÚ TỐI THƯỢNG (17 Ultimate Enchants):"
+    - "   &7- Giao diện đe sắt &6Anvil &7cho phép ép sách Ultimate chuyên nghiệp."
+    - "   &7- **Quy tắc:** Chỉ được phép chứa &eTối đa 1 Ultimate &7trên mỗi trang bị."
+    - "   &7- &dOne For All (OFA):&7 Xóa sạch toàn bộ bùa khác để đổi lấy &a+210% Sát thương cơ bản&7!"
+    - "   &7- Các bùa tối thượng khác như Swarm, Combo, Last Stand, Wisdom... đã sẵn sàng hoạt động."
+    - ""
+    - " &e3. &e&lSIÊU CUNG PHẤN KHÍCH (Juju & Runaan's Bows):"
+    - "   &7- &6Juju Shortbow:&7 Cơ chế Shortbow bắn cung không gồng, xuyên 3 và trúng Enderman."
+    - "   &7- &6Runaan's Bow:&7 Bắn đồng thời 3 mũi tên, tự động bay &ađuổi theo mục tiêu gần nhất&7."
+    - ""
+    - " &e4. &d&lĐỊNH DẠNG SÁT THƯƠNG HYPIXEL ĐỜI MỚI:"
+    - "   &7- Tương thích hoàn toàn với thực thể hiển thị &eTextDisplay&7 cực kỳ mượt mà."
+    - "   &7- Gây sát thương Chí mạng, Phép thuật, Lửa, Ngã, Hồi máu hiển thị siêu lấp lánh và mượt mà."
+    - "&e========================================="
+
+# =========================================================================
+#             DANH SÁCH LỆNH KHẢ DỤNG CHO PLAYER (PLAYER COMMANDS)
+# =========================================================================
+player-commands:
+  - "/bank - Mở giao diện Personal Bank Account cá nhân để gửi/rút tiền, xem lãi suất và lịch sử giao dịch."
+  - "/reforge (hoặc /rf) - Mở giao diện Gacha Reforge nâng cấp chỉ số RPG đặc biệt cho trang bị cầm tay."
+  - "/bazaar (hoặc /bz) - Mở sàn giao dịch Bazaar nông sản và khoáng sản động biến thiên liên tục."
+  - "/cweupdate (hoặc /cwechangelog) - Xem thông tin bản cập nhật mới nhất và hướng dẫn tính năng máy chủ."
