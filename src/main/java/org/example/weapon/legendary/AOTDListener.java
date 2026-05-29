@@ -42,19 +42,32 @@ public class AOTDListener implements Listener {
         Player p = event.getPlayer();
 
         // Kiểm tra mana (100 mana cho Dragon Rage)
-        if (!ManaHelper.consumeMana(p, 100.0, (CustomWeaponEngine) org.bukkit.plugin.java.JavaPlugin.getPlugin(CustomWeaponEngine.class), "Dragon Rage")) {
-            return;
+        try {
+            if (!ManaHelper.consumeMana(p, 100.0, (CustomWeaponEngine) org.bukkit.plugin.java.JavaPlugin.getPlugin(CustomWeaponEngine.class), "Dragon Rage")) {
+                return;
+            }
+        } catch (Throwable t) {
+            // Ignored if AuraSkills API is broken
         }
 
         p.playSound(p.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1.0f, 1.0f);
 
         // Hướng nhìn của player (đã bỏ component Y để tính nón ngang)
-        Vector forward = p.getLocation().getDirection().setY(0).normalize();
-        if (forward.lengthSquared() == 0) forward = new Vector(1, 0, 0); // fallback
+        Vector forward = p.getLocation().getDirection().setY(0);
+        if (forward.lengthSquared() < 0.0001) {
+            forward = new Vector(1, 0, 0); // fallback nếu nhìn thẳng lên/xuống
+        } else {
+            forward.normalize();
+        }
+        
         Vector playerPos = p.getLocation().toVector();
 
         // Spawn particles hình phễu để visualize
-        spawnConeParticles(p, forward);
+        try {
+            spawnConeParticles(p, forward);
+        } catch (Exception ex) {
+            // Bỏ qua lỗi particle
+        }
 
         // Quét entities trong bán kính rộng rồi lọc theo cone
         for (Entity e : p.getNearbyEntities(CONE_RANGE + 1, CONE_RADIUS + 2, CONE_RANGE + 1)) {
@@ -95,8 +108,10 @@ public class AOTDListener implements Listener {
      * Spawn particles hình phễu để visualize vùng tấn công.
      */
     private void spawnConeParticles(Player p, Vector forward) {
+    private void spawnConeParticles(Player p, Vector forward) {
         // Vector vuông góc với forward trên mặt phẳng ngang
-        Vector right = new Vector(-forward.getZ(), 0, forward.getX()).normalize();
+        Vector right = new Vector(-forward.getZ(), 0, forward.getX());
+        if (right.lengthSquared() > 0.0001) right.normalize();
         Vector origin = p.getLocation().add(0, 1.2, 0).toVector(); // Căn ngang ngực
 
         // Vẽ các vòng tròn dọc theo trục phễu

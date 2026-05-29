@@ -27,7 +27,7 @@ public class ManaHelper {
         
         try {
             dev.aurelium.auraskills.api.user.SkillsUser user = dev.aurelium.auraskills.api.AuraSkillsApi.get().getUser(p.getUniqueId());
-            if (user == null) return false;
+            if (user == null) return true; // Let them use it if data is missing
             
             // Check Wise Dragon
             boolean isWise = true;
