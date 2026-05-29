@@ -244,8 +244,17 @@ public class AppraiserGUI implements Listener {
                     item.setItemMeta(meta);
 
                     player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 1f);
+                    
+                    String itemName = item.getType().name();
+                    if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) {
+                        itemName = item.getItemMeta().getDisplayName();
+                    }
+
                     if (rarity.equals("LEGENDARY") || rarity.equals("MYTHIC")) {
-                        Bukkit.broadcastMessage("§6§lCWE §8» §b" + player.getName() + " §7vừa giám định thành công một vật phẩm §c§l" + rarity + "§7!");
+                        String color = rarity.equals("MYTHIC") ? "§d§l" : "§6§l";
+                        Bukkit.broadcastMessage("§6§lCWE §8» §eTuyệt đỉnh! §b" + player.getName() + " §7vừa nâng cấp " + itemName + " §7lên phẩm chất " + color + rarity + "§7!");
+                    } else if (rarity.equals("RARE") && (itemType.equals("TRIDENT") || itemType.equals("ELYTRA") || itemType.equals("MACE") || itemType.contains("NETHERITE_"))) {
+                        Bukkit.broadcastMessage("§6§lCWE §8» §cHaha! §b" + player.getName() + " §7vừa tạch giám định " + itemName + " §7rớt thảm hại xuống §9§lRARE§7! Gà vl =)))");
                     } else {
                         player.sendMessage("§aGiám định hoàn tất! Bậc: " + rarity);
                     }
