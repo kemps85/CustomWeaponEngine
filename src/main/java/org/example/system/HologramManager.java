@@ -90,16 +90,16 @@ public class HologramManager {
             lines.add("#ICON: BOOK");
             lines.add(" ");
             lines.add("&#ffaa00&lC&#ffb111&lW&#ffb721&lE &#ffbe32&lS&#ffc543&lY&#ffcc53&lS&#ffd264&lT&#ffd975&lE&#ffe085&lM &#ffe796&lI&#ffeea7&lN&#fff4b7&lF&#fffbc8&lO");
-            lines.add("§7Danh sách lệnh dành cho người chơi");
+            lines.add("§aDanh sách lệnh dành cho người chơi");
             lines.add(" ");
 
             List<String> cmds = plugin.getConfig().getStringList("player-commands");
             for (String cmd : cmds) {
                 if (cmd.contains(" - ")) {
                     String[] parts = cmd.split(" - ", 2);
-                    lines.add("§b" + parts[0] + " §8» §f" + parts[1]);
+                    lines.add("§e" + parts[0] + " §6» §f" + parts[1]);
                 } else {
-                    lines.add("§f" + cmd);
+                    lines.add("§a" + cmd);
                 }
             }
         } else if (type.equals("guide")) {
