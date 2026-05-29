@@ -127,6 +127,17 @@ public class AppraiserGUI implements Listener {
         Player player = (Player) event.getWhoClicked();
         int slot = event.getRawSlot();
 
+        // Chặn Shift-Click để tránh lọt đồ vào các slot UI kính đen
+        if (event.getAction().name().contains("MOVE_TO_OTHER_INVENTORY")) {
+            event.setCancelled(true);
+            return;
+        }
+
+        // Cho phép click đồ trong túi đồ của người chơi (slot 54+)
+        if (slot >= 54) {
+            return;
+        }
+
         if (slot == ITEM_SLOT) {
             // Let them put/take item
             Bukkit.getScheduler().runTask(plugin, () -> {
@@ -135,6 +146,7 @@ public class AppraiserGUI implements Listener {
             return;
         }
 
+        // Chặn tất cả các tương tác khác trên top GUI
         event.setCancelled(true);
 
         if (slot == BUTTON_SLOT) {
@@ -208,9 +220,16 @@ public class AppraiserGUI implements Listener {
                 }
 
                 event.getInventory().setItem(ITEM_SLOT, null);
-                player.getInventory().addItem(item);
+                safeGiveItem(player, item);
                 updateButton(event.getInventory(), null);
             }
+        }
+    }
+
+    private void safeGiveItem(Player player, ItemStack item) {
+        Map<Integer, ItemStack> leftover = player.getInventory().addItem(item);
+        for (ItemStack left : leftover.values()) {
+            player.getWorld().dropItemNaturally(player.getLocation(), left);
         }
     }
 
@@ -246,7 +265,7 @@ public class AppraiserGUI implements Listener {
         if (event.getView().getTitle().equals(guiTitle)) {
             ItemStack item = event.getInventory().getItem(ITEM_SLOT);
             if (item != null && !item.getType().isAir()) {
-                event.getPlayer().getInventory().addItem(item);
+                safeGiveItem((Player) event.getPlayer(), item);
             }
         }
     }
