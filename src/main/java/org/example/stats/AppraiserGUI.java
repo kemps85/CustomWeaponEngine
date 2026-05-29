@@ -175,79 +175,94 @@ public class AppraiserGUI implements Listener {
                     player.sendMessage("§aĐã thanh toán §6" + cost + "$ §acho phí giám định.");
                 }
 
-                // Gacha Rarity
-                ItemMeta meta = item.getItemMeta();
-                PersistentDataContainer pdc = meta.getPersistentDataContainer();
-                
-                String itemType = item.getType().name();
-                String rarity = rollRarity(itemType);
-
-                // Tăng chỉ số
-                double multiplier = 1.0;
-                if (rarity.equals("UNCOMMON")) multiplier = 1.05;
-                if (rarity.equals("RARE")) multiplier = 1.1;
-                if (rarity.equals("EPIC")) multiplier = 1.25;
-                if (rarity.equals("LEGENDARY")) multiplier = 1.5;
-                if (rarity.equals("MYTHIC")) multiplier = 1.75;
-
-                // Scale base stats if they exist
-                NamespacedKey dmgKey = new NamespacedKey(plugin, "stat_damage");
-                NamespacedKey strKey = new NamespacedKey(plugin, ItemStatsGUI.KEY_STRENGTH);
-                NamespacedKey defKey = new NamespacedKey(plugin, ItemStatsGUI.KEY_DEFENSE);
-                NamespacedKey hpKey = new NamespacedKey(plugin, ItemStatsGUI.KEY_HEALTH);
-
-                // Add base stats for raw vanilla items if they don't exist yet
-                if (!pdc.has(dmgKey, PersistentDataType.DOUBLE) && !pdc.has(defKey, PersistentDataType.DOUBLE)) {
-                    double base = 20.0;
-                    if (itemType.contains("DIAMOND_")) base = 50.0;
-                    if (itemType.contains("NETHERITE_")) base = 80.0;
-                    if (itemType.contains("IRON_")) base = 30.0;
+                try {
+                    // Gacha Rarity
+                    ItemMeta meta = item.getItemMeta();
+                    if (meta == null) {
+                        player.sendMessage("§cCó lỗi xảy ra: Vật phẩm không hợp lệ!");
+                        return;
+                    }
+                    PersistentDataContainer pdc = meta.getPersistentDataContainer();
                     
-                    if (itemType.contains("SWORD") || itemType.contains("AXE") || itemType.contains("BOW") || itemType.contains("CROSSBOW")) {
-                        pdc.set(dmgKey, PersistentDataType.DOUBLE, base);
-                        pdc.set(strKey, PersistentDataType.DOUBLE, base / 2);
-                    } else if (itemType.contains("HELMET") || itemType.contains("CHESTPLATE") || itemType.contains("LEGGINGS") || itemType.contains("BOOTS")) {
-                        pdc.set(defKey, PersistentDataType.DOUBLE, base / 1.5);
-                        pdc.set(hpKey, PersistentDataType.DOUBLE, base);
+                    String itemType = item.getType().name();
+                    String rarity = rollRarity(itemType);
+
+                    // Tăng chỉ số
+                    double multiplier = 1.0;
+                    if (rarity.equals("UNCOMMON")) multiplier = 1.05;
+                    if (rarity.equals("RARE")) multiplier = 1.1;
+                    if (rarity.equals("EPIC")) multiplier = 1.25;
+                    if (rarity.equals("LEGENDARY")) multiplier = 1.5;
+                    if (rarity.equals("MYTHIC")) multiplier = 1.75;
+
+                    // Scale base stats if they exist
+                    NamespacedKey dmgKey = new NamespacedKey(plugin, "stat_damage");
+                    NamespacedKey strKey = new NamespacedKey(plugin, ItemStatsGUI.KEY_STRENGTH);
+                    NamespacedKey defKey = new NamespacedKey(plugin, ItemStatsGUI.KEY_DEFENSE);
+                    NamespacedKey hpKey = new NamespacedKey(plugin, ItemStatsGUI.KEY_HEALTH);
+
+                    // Add base stats for raw vanilla items if they don't exist yet
+                    if (!pdc.has(dmgKey, PersistentDataType.DOUBLE) && !pdc.has(defKey, PersistentDataType.DOUBLE)) {
+                        double base = 20.0;
+                        if (itemType.contains("DIAMOND_")) base = 50.0;
+                        if (itemType.contains("NETHERITE_")) base = 80.0;
+                        if (itemType.contains("IRON_")) base = 30.0;
+                        
+                        if (itemType.contains("SWORD") || itemType.contains("AXE") || itemType.contains("BOW") || itemType.contains("CROSSBOW")) {
+                            pdc.set(dmgKey, PersistentDataType.DOUBLE, base);
+                            pdc.set(strKey, PersistentDataType.DOUBLE, base / 2.0);
+                        } else if (itemType.contains("HELMET") || itemType.contains("CHESTPLATE") || itemType.contains("LEGGINGS") || itemType.contains("BOOTS")) {
+                            pdc.set(defKey, PersistentDataType.DOUBLE, base / 1.5);
+                            pdc.set(hpKey, PersistentDataType.DOUBLE, base);
+                        }
+                    }
+
+                    if (pdc.has(dmgKey, PersistentDataType.DOUBLE)) {
+                        double val = pdc.getOrDefault(dmgKey, PersistentDataType.DOUBLE, 0.0);
+                        pdc.set(dmgKey, PersistentDataType.DOUBLE, val * multiplier);
+                    }
+                    if (pdc.has(strKey, PersistentDataType.DOUBLE)) {
+                        double val = pdc.getOrDefault(strKey, PersistentDataType.DOUBLE, 0.0);
+                        pdc.set(strKey, PersistentDataType.DOUBLE, val * multiplier);
+                    }
+                    if (pdc.has(defKey, PersistentDataType.DOUBLE)) {
+                        double val = pdc.getOrDefault(defKey, PersistentDataType.DOUBLE, 0.0);
+                        pdc.set(defKey, PersistentDataType.DOUBLE, val * multiplier);
+                    }
+                    if (pdc.has(hpKey, PersistentDataType.DOUBLE)) {
+                        double val = pdc.getOrDefault(hpKey, PersistentDataType.DOUBLE, 0.0);
+                        pdc.set(hpKey, PersistentDataType.DOUBLE, val * multiplier);
+                    }
+
+                    pdc.set(new NamespacedKey(plugin, ItemStatsGUI.KEY_RARITY), PersistentDataType.STRING, rarity);
+                    pdc.set(new NamespacedKey(plugin, "cwe_appraised"), PersistentDataType.INTEGER, 1);
+                    
+                    // Force updater to rebuild lore
+                    pdc.remove(new NamespacedKey(plugin, "cwe_item_updated"));
+                    
+                    meta.setUnbreakable(true);
+                    item.setItemMeta(meta);
+
+                    player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 1f);
+                    if (rarity.equals("LEGENDARY") || rarity.equals("MYTHIC")) {
+                        Bukkit.broadcastMessage("§6§lCWE §8» §b" + player.getName() + " §7vừa giám định thành công một vật phẩm §c§l" + rarity + "§7!");
+                    } else {
+                        player.sendMessage("§aGiám định hoàn tất! Bậc: " + rarity);
+                    }
+
+                    event.getInventory().setItem(ITEM_SLOT, null);
+                    safeGiveItem(player, item);
+                    updateButton(event.getInventory(), null);
+                } catch (Exception e) {
+                    player.sendMessage("§cLỗi hệ thống khi giám định! Báo cáo Admin ngay! Lỗi: " + e.getMessage());
+                    e.printStackTrace();
+                    
+                    // Trả lại tiền
+                    if (CustomWeaponEngine.getEconomy() != null) {
+                        CustomWeaponEngine.getEconomy().depositPlayer(player, plugin.getConfig().getInt("appraiser.cost", 1000));
+                        player.sendMessage("§aĐã hoàn tiền giám định do lỗi hệ thống.");
                     }
                 }
-
-                if (pdc.has(dmgKey, PersistentDataType.DOUBLE)) {
-                    double val = pdc.get(dmgKey, PersistentDataType.DOUBLE);
-                    pdc.set(dmgKey, PersistentDataType.DOUBLE, val * multiplier);
-                }
-                if (pdc.has(strKey, PersistentDataType.DOUBLE)) {
-                    double val = pdc.get(strKey, PersistentDataType.DOUBLE);
-                    pdc.set(strKey, PersistentDataType.DOUBLE, val * multiplier);
-                }
-                if (pdc.has(defKey, PersistentDataType.DOUBLE)) {
-                    double val = pdc.get(defKey, PersistentDataType.DOUBLE);
-                    pdc.set(defKey, PersistentDataType.DOUBLE, val * multiplier);
-                }
-                if (pdc.has(hpKey, PersistentDataType.DOUBLE)) {
-                    double val = pdc.get(hpKey, PersistentDataType.DOUBLE);
-                    pdc.set(hpKey, PersistentDataType.DOUBLE, val * multiplier);
-                }
-
-                pdc.set(new NamespacedKey(plugin, ItemStatsGUI.KEY_RARITY), PersistentDataType.STRING, rarity);
-                pdc.set(new NamespacedKey(plugin, "cwe_appraised"), PersistentDataType.INTEGER, 1);
-                
-                // Force updater to rebuild lore
-                pdc.remove(new NamespacedKey(plugin, "cwe_item_updated"));
-                
-                meta.setUnbreakable(true);
-                item.setItemMeta(meta);
-
-                player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 1f);
-                if (rarity.equals("LEGENDARY") || rarity.equals("MYTHIC")) {
-                    Bukkit.broadcastMessage("§6§lCWE §8» §b" + player.getName() + " §7vừa giám định thành công một vật phẩm §c§l" + rarity + "§7!");
-                } else {
-                    player.sendMessage("§aGiám định hoàn tất! Bậc: " + rarity);
-                }
-
-                event.getInventory().setItem(ITEM_SLOT, null);
-                safeGiveItem(player, item);
-                updateButton(event.getInventory(), null);
             }
         }
     }
