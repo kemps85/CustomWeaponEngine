@@ -63,7 +63,13 @@ public class CWELibraryCommand implements CommandExecutor, TabCompleter {
 
             plugin.getLibraryConfig().set("items." + id, item);
             plugin.saveLibraryConfig();
-            player.sendMessage("§a[CWE] Đã lưu trữ vật phẩm trên tay vào thư viện với ID: §e" + id);
+            player.sendMessage("§a[CWE] Đã lưu / cập nhật vật phẩm §e" + id + " §avào thư viện!");
+            return true;
+        }
+
+        if (args[0].equalsIgnoreCase("appraise")) {
+            org.example.stats.AppraiserGUI gui = new org.example.stats.AppraiserGUI(plugin);
+            gui.openGUI(player);
             return true;
         }
 
@@ -145,7 +151,7 @@ public class CWELibraryCommand implements CommandExecutor, TabCompleter {
         if (!sender.hasPermission("cwe.admin")) return completions;
 
         if (args.length == 1) {
-            List<String> subCommands = Arrays.asList("save", "delete", "remove", "lib", "library", "chest", "furniture");
+            List<String> subCommands = Arrays.asList("save", "delete", "remove", "lib", "library", "chest", "furniture", "appraise");
             for (String sub : subCommands) {
                 if (sub.startsWith(args[0].toLowerCase())) completions.add(sub);
             }

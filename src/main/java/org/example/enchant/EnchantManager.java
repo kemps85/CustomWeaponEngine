@@ -222,6 +222,13 @@ public class EnchantManager {
             case THORNS: key = "thorns"; break;
             case FEATHER_FALLING: key = "feather_falling"; break;
             case MENDING: key = "mending"; break;
+            case IMPALING: key = "impaling"; break;
+            case LOYALTY: key = "loyalty"; break;
+            case RIPTIDE: key = "riptide"; break;
+            case CHANNELING: key = "channeling"; break;
+            case DENSITY: key = "density"; break;
+            case BREACH: key = "breach"; break;
+            case WIND_BURST: key = "wind_burst"; break;
             default: return null;
         }
         if (key == null) return null;

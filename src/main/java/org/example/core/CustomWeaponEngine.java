@@ -148,6 +148,7 @@ public final class CustomWeaponEngine extends JavaPlugin implements CommandExecu
         getServer().getPluginManager().registerEvents(new org.example.stats.ItemStatsListener(this), this);
         getServer().getPluginManager().registerEvents(new org.example.stats.VanillaItemUpdater(this), this);
         getServer().getPluginManager().registerEvents(new org.example.stats.CritTagger(this), this);
+        getServer().getPluginManager().registerEvents(new org.example.stats.AppraiserGUI(this), this);
         
         regionBossManager = new org.example.system.RegionBossManager(this);
         getServer().getPluginManager().registerEvents(regionBossManager, this);

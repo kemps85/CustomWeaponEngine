@@ -94,4 +94,49 @@ player-commands:
   - "/bank - Mở giao diện Personal Bank Account cá nhân để gửi/rút tiền, xem lãi suất và lịch sử giao dịch."
   - "/reforge (hoặc /rf) - Mở giao diện Gacha Reforge nâng cấp chỉ số RPG đặc biệt cho trang bị cầm tay."
   - "/bazaar (hoặc /bz) - Mở sàn giao dịch Bazaar nông sản và khoáng sản động biến thiên liên tục."
-  - "/cweupdate (hoặc /cwechangelog) - Xem thông tin bản cập nhật mới nhất và hướng dẫn tính năng máy chủ."
+  - "/cweupdate (hoặc /cwechangelog) - Xem thông tin bản cập nhật mới nhất và hướng dẫn tính năng máy chủ."
+  - "/cwe appraise - Máy Giám Định Gacha độ hiếm và sức mạnh cho vũ khí Vanilla."
+
+# =========================================================================
+#             HỆ THỐNG MÁY GIÁM ĐỊNH (RARITY APPRAISER)
+# =========================================================================
+appraiser:
+  cost: 1000 # Chi phí Vault để giám định
+  
+  # Cấu hình tỷ lệ ra Rarity theo từng loại (Tổng = 100)
+  pools:
+    TRIDENT:
+      RARE: 60
+      EPIC: 30
+      LEGENDARY: 10
+    MACE:
+      RARE: 30
+      EPIC: 50
+      LEGENDARY: 20
+    ELYTRA:
+      RARE: 40
+      EPIC: 45
+      LEGENDARY: 15
+    NETHERITE_SWORD:
+      RARE: 65
+      EPIC: 30
+      LEGENDARY: 5
+    NETHERITE_AXE:
+      RARE: 65
+      EPIC: 30
+      LEGENDARY: 5
+    DIAMOND_SWORD:
+      RARE: 90
+      EPIC: 9
+      LEGENDARY: 1
+    CROSSBOW:
+      RARE: 85
+      EPIC: 14
+      LEGENDARY: 1
+    BOW:
+      RARE: 85
+      EPIC: 14
+      LEGENDARY: 1
+    default:
+      COMMON: 70
+      UNCOMMON: 30

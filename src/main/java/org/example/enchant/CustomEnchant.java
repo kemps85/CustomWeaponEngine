@@ -30,6 +30,17 @@ public enum CustomEnchant {
     SNIPER("sniper", "Thần Tiễn", 5, ItemGroup.BOW, "Lực bắn xé gió, sát thương tiễn bay càng xa uy lực càng khủng khiếp."),
     FLAME("flame", "Hỏa Tiễn", 1, ItemGroup.BOW, "Gia trì hỏa ấn, biến mũi tên thành ngọn lửa tử thần thiêu đốt mục tiêu."),
 
+    // 🔱 TRIDENT ENCHANTMENTS
+    IMPALING("impaling", "Xiên Thấu", 5, ItemGroup.TRIDENT, "Ngũ lôi oanh đỉnh, đâm xuyên lớp vảy cứng cáp của quái vật dưới đáy biển sâu."),
+    LOYALTY("loyalty", "Trung Thành", 3, ItemGroup.TRIDENT, "Gắn kết huyết mạch, Đinh Ba sau khi phóng ra sẽ tự động quay trở về tay chủ nhân."),
+    RIPTIDE("riptide", "Trực Chỉ", 3, ItemGroup.TRIDENT, "Mượn lực phong ba, phóng người bay đi trong mưa bão hoặc khi ngập mình dưới dòng nước."),
+    CHANNELING("channeling", "Triệu Lôi", 1, ItemGroup.TRIDENT, "Dẫn động thiên lôi, gọi sấm sét giáng thẳng xuống mục tiêu trong cơn dông bão."),
+
+    // 🔨 MACE ENCHANTMENTS
+    DENSITY("density", "Trọng Lực", 5, ItemGroup.MACE, "Ngưng tụ khối lượng, rơi từ càng cao sức ép giáng xuống càng mang tính hủy diệt."),
+    BREACH("breach", "Phá Giáp", 4, ItemGroup.MACE, "Lực đập rung trời, nghiền nát và phớt lờ hoàn toàn lớp giáp kiên cố của kẻ thù."),
+    WIND_BURST("wind_burst", "Bùng Nổ Gió", 3, ItemGroup.MACE, "Khống chế luồng phong, dội ngược người lên không trung sau mỗi cú nện trúng đích."),
+
     // 🛡️ ARMOR ENCHANTMENTS
     GROWTH("growth", "Sinh Lực", 7, ItemGroup.ARMOR, "Cải biến thể chất, khuếch đại giới hạn sinh mệnh (HP) lên mức tối đa."),
     PROTECTION("protection", "Kim Chung Tráo", 7, ItemGroup.ARMOR, "Ngưng tụ cương khí hộ thể, gia tăng độ cứng cáp và cản phá mọi sát thương."),
@@ -72,7 +83,7 @@ public enum CustomEnchant {
     public String getDescription() { return description; }
 
     public enum ItemGroup {
-        SWORD, BOW, ARMOR, HELMET, CHESTPLATE, LEGGINGS, BOOTS, TOOL, FARMING, ALL;
+        SWORD, BOW, ARMOR, HELMET, CHESTPLATE, LEGGINGS, BOOTS, TOOL, FARMING, TRIDENT, MACE, ALL;
 
         public boolean canApply(Material material) {
             if (material == Material.BOOK || material == Material.ENCHANTED_BOOK) {
@@ -100,6 +111,10 @@ public enum CustomEnchant {
                     return name.contains("PICKAXE") || isActualAxe || name.contains("SHOVEL") || name.contains("HOE");
                 case FARMING:
                     return name.contains("HOE") || isActualAxe;
+                case TRIDENT:
+                    return material == Material.TRIDENT;
+                case MACE:
+                    return material == Material.MACE;
                 case ALL:
                     return true;
                 default:
