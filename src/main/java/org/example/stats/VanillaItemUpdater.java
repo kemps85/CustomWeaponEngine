@@ -118,8 +118,22 @@ public class VanillaItemUpdater implements Listener {
             String bD2 = pdc.has(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_SETBONUS_DESC2), PersistentDataType.STRING) ? pdc.get(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_SETBONUS_DESC2), PersistentDataType.STRING) : "";
             String click = pdc.has(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_ABILITY_CLICK), PersistentDataType.STRING) ? pdc.get(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_ABILITY_CLICK), PersistentDataType.STRING) : "RIGHT CLICK";
             
+            double[] stats = new double[7];
+            stats[0] = pdc.has(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_STRENGTH), PersistentDataType.DOUBLE) ? pdc.get(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_STRENGTH), PersistentDataType.DOUBLE) : 0.0;
+            stats[1] = pdc.has(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_CRIT_CHANCE), PersistentDataType.DOUBLE) ? pdc.get(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_CRIT_CHANCE), PersistentDataType.DOUBLE) : 0.0;
+            stats[2] = pdc.has(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_CRIT_DAMAGE), PersistentDataType.DOUBLE) ? pdc.get(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_CRIT_DAMAGE), PersistentDataType.DOUBLE) : 0.0;
+            stats[3] = pdc.has(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_HEALTH), PersistentDataType.DOUBLE) ? pdc.get(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_HEALTH), PersistentDataType.DOUBLE) : 0.0;
+            stats[4] = pdc.has(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_DEFENSE), PersistentDataType.DOUBLE) ? pdc.get(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_DEFENSE), PersistentDataType.DOUBLE) : 0.0;
+            stats[5] = pdc.has(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_INTELLIGENCE), PersistentDataType.DOUBLE) ? pdc.get(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_INTELLIGENCE), PersistentDataType.DOUBLE) : 0.0;
+            stats[6] = pdc.has(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_SPEED), PersistentDataType.DOUBLE) ? pdc.get(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_SPEED), PersistentDataType.DOUBLE) : 0.0;
+            
+            double damage = pdc.has(new NamespacedKey(plugin, "stat_damage"), PersistentDataType.DOUBLE) ? pdc.get(new NamespacedKey(plugin, "stat_damage"), PersistentDataType.DOUBLE) : 0.0;
+            if (damage == 0.0) {
+                damage = pdc.has(new NamespacedKey(plugin, "cwe_damage"), PersistentDataType.DOUBLE) ? pdc.get(new NamespacedKey(plugin, "cwe_damage"), PersistentDataType.DOUBLE) : 0.0;
+            }
+
             boolean isWeapon = name.contains("SWORD") || name.contains("AXE") || name.contains("BOW") || name.contains("CROSSBOW") || item.getType() == Material.TRIDENT;
-            org.example.stats.ItemStatsGUI.rebuildLore(item, meta, new double[7], 0.0, rEnum, bTitle, bD1, bD2, click, isWeapon);
+            org.example.stats.ItemStatsGUI.rebuildLore(item, meta, stats, damage, rEnum, bTitle, bD1, bD2, click, isWeapon);
             
             item.setItemMeta(meta);
             

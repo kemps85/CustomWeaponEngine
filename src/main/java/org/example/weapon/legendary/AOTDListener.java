@@ -129,11 +129,13 @@ public class AOTDListener implements Listener {
                 
                 org.bukkit.Location loc = origin.clone().add(offset).toLocation(p.getWorld());
                 
-                // Mix giữa Flame và Dragon Breath
+                // Mix particles for extreme visibility
                 if (i % 3 == 0) {
-                    p.getWorld().spawnParticle(Particle.DRAGON_BREATH, loc, 1, 0, 0, 0, 0);
+                    p.getWorld().spawnParticle(Particle.LAVA, loc, 1, 0, 0, 0, 0);
+                } else if (i % 3 == 1) {
+                    p.getWorld().spawnParticle(Particle.FLAME, loc, 3, 0.1, 0.1, 0.1, 0.05);
                 } else {
-                    p.getWorld().spawnParticle(Particle.FLAME, loc, 2, 0.1, 0.1, 0.1, 0.02);
+                    p.getWorld().spawnParticle(Particle.CAMPFIRE_COSY_SMOKE, loc, 1, 0.1, 0.1, 0.1, 0.01);
                 }
             }
         }
