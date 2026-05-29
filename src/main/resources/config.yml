@@ -67,27 +67,24 @@ sets:
 #             CẤU HÌNH THÔNG BÁO CẬP NHẬT (CHANGELOG SYSTEM)
 # =========================================================================
 changelog:
-  version: 3
+  version: 4
   lines:
     - "&e========================================="
-    - "     &6&l✦ BẢN CẬP NHẬT HỆ THỐNG MỚI (CWE v4.5) ✦"
+    - "     &6&l✦ BẢN CẬP NHẬT HỆ THỐNG MỚI (CWE v4.6) ✦"
     - "&e========================================="
-    - " &fCập nhật phong cách Genshin Impact - Đề cao xây dựng và khám phá:"
+    - " &fCập nhật hệ thống chống lỗi và nâng cấp cốt lõi:"
     - ""
-    - " &e1. &a&lRƯƠNG THÁM HIỂM & NỘI THẤT (Khám Phá Bản Đồ):"
-    - "   &7- Bổ sung &6Rương Ẩn Thám Hiểm&7 giấu rải rác khắp thế giới."
-    - "   &7- Mở rương rơi Xu và &dĐồ Trang Trí Nội Thất&7 siêu xịn (Bonsai, Tách Trà, Bánh Kem...)."
-    - "   &7- &cĐặc biệt:&7 Giống Genshin, mỗi người chơi chỉ được mở rương một lần duy nhất!"
+    - " &e1. &a&lBảo Tồn Chỉ Số (PDC Backup):"
+    - "   &7- Sửa lỗi hệ thống quét đồ vô tình xóa sạch Item Ability và Full Set Bonus."
+    - "   &7- Khôi phục tính năng giữ nguyên chỉ số RPG khi hệ thống làm mới trang bị."
     - ""
-    - " &e2. &b&lTÂN TRANG HỆ THỐNG GIÁP & VŨ KHÍ:"
-    - "   &7- Toàn bộ Giáp Rồng và Vũ Khí Custom nay sẽ ở trạng thái &cKhông Thể Phá Hủy (Unbreakable)&7."
-    - "   &7- Đã ẩn dòng chữ Unbreakable để làm sạch thẻ vật phẩm (Item Lore)."
-    - "   &7- Giáp Rồng đã được làm bằng Đồ Da và &eNhuộm màu chuẩn Hypixel Skyblock&7."
-    - "   &7- &cNgăn chặn ép Mending/Unbreaking&7 vào đồ Custom bằng Vanilla Anvil để tránh lãng phí level."
+    - " &e2. &a&lVá Lỗi Kỹ Năng Vũ Khí:"
+    - "   &7- Gậy Cừu (Shepherd Wand) không còn rớt lông cừu/thịt cừu khi nổ."
+    - "   &7- AOTD (Aspect of the Dragons) thay đổi hiệu ứng: LAVA + FLAME hoành tráng hơn."
     - ""
-    - " &e3. &e&lSỬA CHỮA (REPAIR) & TINH LUYỆN (REFORGE):"
-    - "   &7- &aRepair Anvil:&7 Nay có thể sửa chữa đồ Custom bị hỏng bằng khoáng sản cơ bản (Sắt, Vàng, Netherite, Da) với giá cố định 5 Level."
-    - "   &7- &dReforge Thông Minh:&7 Tự động đổi tên nếu tiền tố trùng lặp (VD: Ép bùa Wise lên Wise Dragon Armor sẽ thành &cVery Wise Dragon Armor&7)."
+    - " &e3. &a&lHệ Thống Máu & Tốc Độ:"
+    - "   &7- Fix triệt để bug kẹt Máu (Health) do Attribute Modifier Vanilla không được dọn sạch."
+    - "   &7- Xóa sổ lượng máu/tốc độ dư thừa do kẹt lag server."
     - "&e========================================="
 
 # =========================================================================
