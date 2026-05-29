@@ -113,8 +113,13 @@ public class VanillaItemUpdater implements Listener {
             org.example.stats.ItemStatsGUI.Rarity rEnum = org.example.stats.ItemStatsGUI.Rarity.COMMON;
             try { rEnum = org.example.stats.ItemStatsGUI.Rarity.valueOf(rarityStr); } catch (Exception ignored) {}
             
+            String bTitle = pdc.has(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_SETBONUS_TITLE), PersistentDataType.STRING) ? pdc.get(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_SETBONUS_TITLE), PersistentDataType.STRING) : "";
+            String bD1 = pdc.has(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_SETBONUS_DESC1), PersistentDataType.STRING) ? pdc.get(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_SETBONUS_DESC1), PersistentDataType.STRING) : "";
+            String bD2 = pdc.has(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_SETBONUS_DESC2), PersistentDataType.STRING) ? pdc.get(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_SETBONUS_DESC2), PersistentDataType.STRING) : "";
+            String click = pdc.has(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_ABILITY_CLICK), PersistentDataType.STRING) ? pdc.get(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_ABILITY_CLICK), PersistentDataType.STRING) : "RIGHT CLICK";
+            
             boolean isWeapon = name.contains("SWORD") || name.contains("AXE") || name.contains("BOW") || name.contains("CROSSBOW") || item.getType() == Material.TRIDENT;
-            org.example.stats.ItemStatsGUI.rebuildLore(item, meta, new double[7], 0.0, rEnum, "", "", "", "", isWeapon);
+            org.example.stats.ItemStatsGUI.rebuildLore(item, meta, new double[7], 0.0, rEnum, bTitle, bD1, bD2, click, isWeapon);
             
             item.setItemMeta(meta);
             
