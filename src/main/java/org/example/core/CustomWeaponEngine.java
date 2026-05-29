@@ -14,6 +14,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import java.io.File;
@@ -37,6 +38,8 @@ public final class CustomWeaponEngine extends JavaPlugin implements CommandExecu
     public static org.example.system.RegionBossManager regionBossManager;
     public static org.example.system.MeteorBossManager meteorBossManager;
     
+    private org.example.system.HologramManager hologramManager;
+    
     private File libraryFile;
     private FileConfiguration libraryConfig;
 
@@ -54,6 +57,7 @@ public final class CustomWeaponEngine extends JavaPlugin implements CommandExecu
 
     public static net.milkbowl.vault.economy.Economy getEconomy() { return econ; }
     public static org.example.system.MeteorBossManager getMeteorBossManager() { return meteorBossManager; }
+    public org.example.system.HologramManager getHologramManager() { return hologramManager; }
 
     @Override
     public void onEnable() {
@@ -285,6 +289,12 @@ public final class CustomWeaponEngine extends JavaPlugin implements CommandExecu
             getLogger().info("PlaceholderAPI tim thay! Da dang ky %cwe_actionbar_mana%.");
         }
         
+        // Khoi tao Hologram Manager
+        hologramManager = new org.example.system.HologramManager(this);
+        Bukkit.getScheduler().runTaskLater(this, () -> {
+            hologramManager.updateHologram();
+        }, 40L); // Delay 2s de cho DecentHolograms hoat dong truoc
+        
         getLogger().info("🟩 CustomWeaponEngine Engine v4.0 (Bazaar AMM & Ore Guardians Updated) hoat dong!");
     }
 
@@ -314,6 +324,7 @@ public final class CustomWeaponEngine extends JavaPlugin implements CommandExecu
             if (weaponEngine != null) weaponEngine.clearCooldowns();
             if (assassinEngine != null) assassinEngine.clearCooldowns(); 
             if (berserkEngine != null) berserkEngine.clearCache(); 
+            if (hologramManager != null) hologramManager.updateHologram();
             sender.sendMessage("§a[CustomWeaponEngine] Configuration reloaded!");
             return true;
         }

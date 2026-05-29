@@ -72,6 +72,16 @@ public class CWELibraryCommand implements CommandExecutor, TabCompleter {
             gui.openGUI(player);
             return true;
         }
+        
+        if (args[0].equalsIgnoreCase("hologram")) {
+            if (plugin.getHologramManager() != null) {
+                plugin.getHologramManager().setLocation(player.getLocation());
+                player.sendMessage("§a[CWE] Đã đặt Bảng Lệnh Thông Tin tại vị trí của bạn!");
+            } else {
+                player.sendMessage("§c[CWE] DecentHolograms chưa được cài đặt trên server!");
+            }
+            return true;
+        }
 
         if (args[0].equalsIgnoreCase("delete") || args[0].equalsIgnoreCase("remove")) {
             if (args.length < 2) {
@@ -151,7 +161,7 @@ public class CWELibraryCommand implements CommandExecutor, TabCompleter {
         if (!sender.hasPermission("cwe.admin")) return completions;
 
         if (args.length == 1) {
-            List<String> subCommands = Arrays.asList("save", "delete", "remove", "lib", "library", "chest", "furniture", "appraise");
+            List<String> subCommands = Arrays.asList("save", "delete", "remove", "lib", "library", "chest", "furniture", "appraise", "hologram");
             for (String sub : subCommands) {
                 if (sub.startsWith(args[0].toLowerCase())) completions.add(sub);
             }
