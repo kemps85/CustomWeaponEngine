@@ -289,12 +289,18 @@ public class AppraiserGUI implements Listener {
         
         // Fallback in case pools were left completely empty or invalid in config
         if (pools.isEmpty()) {
-            pools.put("COMMON", 50);
-            pools.put("UNCOMMON", 25);
-            pools.put("RARE", 15);
-            pools.put("EPIC", 7);
-            pools.put("LEGENDARY", 2);
-            pools.put("MYTHIC", 1);
+            if (type.equals("TRIDENT") || type.equals("ELYTRA") || type.equals("MACE") || type.contains("NETHERITE_")) {
+                pools.put("RARE", 60);
+                pools.put("EPIC", 30);
+                pools.put("LEGENDARY", 10);
+            } else {
+                pools.put("COMMON", 50);
+                pools.put("UNCOMMON", 25);
+                pools.put("RARE", 15);
+                pools.put("EPIC", 7);
+                pools.put("LEGENDARY", 2);
+                pools.put("MYTHIC", 1);
+            }
         }
 
         int totalWeight = 0;
@@ -303,12 +309,18 @@ public class AppraiserGUI implements Listener {
         // Failsafe: if weight is somehow 0 or negative
         if (totalWeight <= 0) {
             pools.clear();
-            pools.put("COMMON", 50);
-            pools.put("UNCOMMON", 25);
-            pools.put("RARE", 15);
-            pools.put("EPIC", 7);
-            pools.put("LEGENDARY", 2);
-            pools.put("MYTHIC", 1);
+            if (type.equals("TRIDENT") || type.equals("ELYTRA") || type.equals("MACE") || type.contains("NETHERITE_")) {
+                pools.put("RARE", 60);
+                pools.put("EPIC", 30);
+                pools.put("LEGENDARY", 10);
+            } else {
+                pools.put("COMMON", 50);
+                pools.put("UNCOMMON", 25);
+                pools.put("RARE", 15);
+                pools.put("EPIC", 7);
+                pools.put("LEGENDARY", 2);
+                pools.put("MYTHIC", 1);
+            }
             
             totalWeight = 0;
             for (int w : pools.values()) totalWeight += w;
