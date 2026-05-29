@@ -108,7 +108,6 @@ public class AOTDListener implements Listener {
      * Spawn particles hình phễu để visualize vùng tấn công.
      */
     private void spawnConeParticles(Player p, Vector forward) {
-    private void spawnConeParticles(Player p, Vector forward) {
         // Vector vuông góc với forward trên mặt phẳng ngang
         Vector right = new Vector(-forward.getZ(), 0, forward.getX());
         if (right.lengthSquared() > 0.0001) right.normalize();
