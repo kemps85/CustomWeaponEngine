@@ -24,11 +24,6 @@ public class CWELibraryCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!sender.hasPermission("cwe.admin")) {
-            sender.sendMessage("§cBạn không có quyền dùng lệnh này!");
-            return true;
-        }
-
         if (!(sender instanceof Player)) {
             sender.sendMessage("§cChỉ người chơi mới có thể dùng lệnh này!");
             return true;
@@ -37,11 +32,13 @@ public class CWELibraryCommand implements CommandExecutor, TabCompleter {
         Player player = (Player) sender;
 
         if (args.length == 0 || args[0].equalsIgnoreCase("lib") || args[0].equalsIgnoreCase("library")) {
+            if (!player.hasPermission("cwe.admin")) { player.sendMessage("§cBạn không có quyền dùng lệnh này!"); return true; }
             CustomWeaponEngine.getLibraryGUI().openMainMenu(player);
             return true;
         }
 
         if (args[0].equalsIgnoreCase("save")) {
+            if (!player.hasPermission("cwe.admin")) { player.sendMessage("§cBạn không có quyền dùng lệnh này!"); return true; }
             if (args.length < 2) {
                 player.sendMessage("§cSử dụng: /cwe save <id>");
                 return true;
@@ -74,6 +71,7 @@ public class CWELibraryCommand implements CommandExecutor, TabCompleter {
         }
         
         if (args[0].equalsIgnoreCase("hologram")) {
+            if (!player.hasPermission("cwe.admin")) { player.sendMessage("§cBạn không có quyền dùng lệnh này!"); return true; }
             if (plugin.getHologramManager() != null) {
                 if (args.length < 2) {
                     player.sendMessage("§cSử dụng: /cwe hologram <command|guide>");
@@ -110,6 +108,7 @@ public class CWELibraryCommand implements CommandExecutor, TabCompleter {
         }
 
         if (args[0].equalsIgnoreCase("delete") || args[0].equalsIgnoreCase("remove")) {
+            if (!player.hasPermission("cwe.admin")) { player.sendMessage("§cBạn không có quyền dùng lệnh này!"); return true; }
             if (args.length < 2) {
                 player.sendMessage("§cSử dụng: /cwe delete <id>");
                 return true;
@@ -127,6 +126,7 @@ public class CWELibraryCommand implements CommandExecutor, TabCompleter {
         }
 
         if (args[0].equalsIgnoreCase("chest")) {
+            if (!player.hasPermission("cwe.admin")) { player.sendMessage("§cBạn không có quyền dùng lệnh này!"); return true; }
             if (args.length < 2) {
                 player.sendMessage("§cSử dụng: /cwe chest <create <id> <type>|delete <id>>");
                 return true;
@@ -163,6 +163,7 @@ public class CWELibraryCommand implements CommandExecutor, TabCompleter {
         }
 
         if (args[0].equalsIgnoreCase("furniture")) {
+            if (!player.hasPermission("cwe.admin")) { player.sendMessage("§cBạn không có quyền dùng lệnh này!"); return true; }
             if (args.length < 2) {
                 player.sendMessage("§cSử dụng: /cwe furniture <bonsai|teacup|globe|cake|treasure>");
                 return true;

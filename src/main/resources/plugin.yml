@@ -65,8 +65,6 @@ commands:
 
   cwe:
     description: Lenh he thong thu vien cwe
-    permission: cwe.admin
-    permission-message: "§c[CWE] Ban khong co quyen dung lenh nay!"
     aliases: [cwelib]
   bank:
     description: Mo khoa khoan ngan hang ca nhan Personal Bank Account
