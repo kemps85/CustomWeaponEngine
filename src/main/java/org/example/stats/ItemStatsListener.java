@@ -606,7 +606,7 @@ public class ItemStatsListener implements Listener {
         
         // Quét và dọn sạch mọi modifier rác kẹt lại do crash server
         for (org.bukkit.attribute.AttributeModifier mod : new java.util.ArrayList<>(attr.getModifiers())) {
-            if (mod.getName().startsWith("cwe_")) {
+            if (mod.getKey().getNamespace().equalsIgnoreCase(plugin.getName()) || mod.getKey().getKey().startsWith("cwe_")) {
                 attr.removeModifier(mod);
             }
         }
@@ -627,7 +627,7 @@ public class ItemStatsListener implements Listener {
         
         // Dọn sạch rác speed
         for (org.bukkit.attribute.AttributeModifier mod : new java.util.ArrayList<>(speedAttr.getModifiers())) {
-            if (mod.getName().startsWith("cwe_")) {
+            if (mod.getKey().getNamespace().equalsIgnoreCase(plugin.getName()) || mod.getKey().getKey().startsWith("cwe_")) {
                 speedAttr.removeModifier(mod);
             }
         }
@@ -677,14 +677,14 @@ public class ItemStatsListener implements Listener {
         AttributeInstance attr = player.getAttribute(Attribute.GENERIC_MAX_HEALTH);
         if (attr != null) {
             for (org.bukkit.attribute.AttributeModifier mod : new java.util.ArrayList<>(attr.getModifiers())) {
-                if (mod.getName().startsWith("cwe_")) attr.removeModifier(mod);
+                if (mod.getKey().getNamespace().equalsIgnoreCase(plugin.getName()) || mod.getKey().getKey().startsWith("cwe_")) attr.removeModifier(mod);
             }
         }
         // Reset speed modifier mạnh tay
         AttributeInstance speedAttr = player.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
         if (speedAttr != null) {
             for (org.bukkit.attribute.AttributeModifier mod : new java.util.ArrayList<>(speedAttr.getModifiers())) {
-                if (mod.getName().startsWith("cwe_")) speedAttr.removeModifier(mod);
+                if (mod.getKey().getNamespace().equalsIgnoreCase(plugin.getName()) || mod.getKey().getKey().startsWith("cwe_")) speedAttr.removeModifier(mod);
             }
         }
         // Reset attack speed modifier
