@@ -77,8 +77,25 @@ public class CWELibraryCommand implements CommandExecutor, TabCompleter {
             if (plugin.getHologramManager() != null) {
                 if (args.length < 2) {
                     player.sendMessage("§cSử dụng: /cwe hologram <command|guide>");
+                    player.sendMessage("§cHoặc xóa: /cwe hologram remove <command|guide>");
                     return true;
                 }
+                
+                if (args[1].equalsIgnoreCase("remove")) {
+                    if (args.length < 3) {
+                        player.sendMessage("§cSử dụng: /cwe hologram remove <command|guide>");
+                        return true;
+                    }
+                    String type = args[2].toLowerCase();
+                    if (type.equals("command") || type.equals("guide")) {
+                        plugin.getHologramManager().removeHologram(type);
+                        player.sendMessage("§a[CWE] Đã xóa Bảng Thông Tin (" + type + ") vĩnh viễn!");
+                    } else {
+                        player.sendMessage("§cLoại bảng không hợp lệ! Hãy dùng 'command' hoặc 'guide'.");
+                    }
+                    return true;
+                }
+                
                 String type = args[1].toLowerCase();
                 if (type.equals("command") || type.equals("guide")) {
                     plugin.getHologramManager().setLocation(type, player.getLocation());

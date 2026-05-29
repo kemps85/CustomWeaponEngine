@@ -55,6 +55,18 @@ public class HologramManager {
         updateHolograms();
     }
 
+    public void removeHologram(String type) {
+        // Xóa tọa độ khỏi config
+        plugin.getConfig().set("hologram." + type, null);
+        plugin.saveConfig();
+
+        String name = type.equals("command") ? CMD_HOLO : GUIDE_HOLO;
+        Hologram holo = DHAPI.getHologram(name);
+        if (holo != null) {
+            holo.delete();
+        }
+    }
+
     private Location getSavedLocation(String type) {
         if (!plugin.getConfig().contains("hologram." + type + ".world")) return null;
         
