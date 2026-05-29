@@ -277,7 +277,7 @@ public class EnchantGUI implements Listener, CommandExecutor {
                name.contains("SHOVEL") || name.contains("HOE") || name.contains("BOW") ||
                name.contains("CROSSBOW") || name.contains("HELMET") || name.contains("CHESTPLATE") ||
                name.contains("LEGGINGS") || name.contains("BOOTS") || name.contains("FISHING_ROD") ||
-               mat == Material.STICK || mat == Material.BLAZE_ROD;
+               mat == Material.STICK || mat == Material.BLAZE_ROD || mat == Material.TRIDENT || mat == Material.MACE;
     }
 
     // =========================================================
