@@ -88,15 +88,18 @@ changelog:
     - "&e========================================="
 
 # =========================================================================
-#             DANH SÁCH LỆNH KHẢ DỤNG CHO PLAYER (PLAYER COMMANDS)
+#             DANH SÁCH LỆNH DÀNH CHO NGƯỜI CHƠI (PLAYER COMMANDS)
 # =========================================================================
+# Danh sách này sẽ được hiển thị trên Bảng Điện Tử (Hologram)
 player-commands:
-  - "/bank - Mở giao diện Personal Bank Account cá nhân để gửi/rút tiền, xem lãi suất và lịch sử giao dịch."
-  - "/reforge (hoặc /rf) - Mở giao diện Gacha Reforge nâng cấp chỉ số RPG đặc biệt cho trang bị cầm tay."
-  - "/bazaar (hoặc /bz) - Mở sàn giao dịch Bazaar nông sản và khoáng sản động biến thiên liên tục."
-  - "/cweupdate (hoặc /cwechangelog) - Xem thông tin bản cập nhật mới nhất và hướng dẫn tính năng máy chủ."
-  - "/cwe appraise - Máy Giám Định Gacha độ hiếm và sức mạnh cho vũ khí Vanilla."
-
+  - "/bank - Mở tài khoản Ngân hàng cá nhân (Gửi/Rút tiền an toàn)"
+  - "/reforge - Mở lò rèn Gacha (Tẩy luyện lại chỉ số trang bị)"
+  - "/bazaar - Mở sàn giao dịch Chợ Đen (Mua bán vật phẩm)"
+  - "/recipes - Xem sách hướng dẫn chế tạo vũ khí & đồ Custom"
+  - "/cweupdate - Xem danh sách các bản cập nhật mới nhất của Server"
+  - "(Mẹo: Click chuột phải vào Đe để sửa chữa/ép bùa)"
+  - "(Mẹo: Tìm NPC Máy Giám Định để mở khóa sức mạnh trang bị)"
+  
 # =========================================================================
 #             HỆ THỐNG MÁY GIÁM ĐỊNH (RARITY APPRAISER)
 # =========================================================================
