@@ -302,7 +302,16 @@ public class AppraiserGUI implements Listener {
 
         // Failsafe: if weight is somehow 0 or negative
         if (totalWeight <= 0) {
-            return "COMMON";
+            pools.clear();
+            pools.put("COMMON", 50);
+            pools.put("UNCOMMON", 25);
+            pools.put("RARE", 15);
+            pools.put("EPIC", 7);
+            pools.put("LEGENDARY", 2);
+            pools.put("MYTHIC", 1);
+            
+            totalWeight = 0;
+            for (int w : pools.values()) totalWeight += w;
         }
 
         int randomVal = random.nextInt(totalWeight);
