@@ -221,9 +221,12 @@ public class ItemStatsGUI implements Listener, CommandExecutor {
     // Rarity values
     public enum Rarity {
         NONE("§7NONE", "§7"),
+        COMMON("§fCOMMON", "§f"),
+        UNCOMMON("§aUNCOMMON", "§a"),
         RARE("§9RARE", "§9"),
         EPIC("§5EPIC", "§5"),
-        LEGENDARY("§6LEGENDARY", "§6");
+        LEGENDARY("§6LEGENDARY", "§6"),
+        MYTHIC("§dMYTHIC", "§d");
 
         public final String display;
         public final String color;

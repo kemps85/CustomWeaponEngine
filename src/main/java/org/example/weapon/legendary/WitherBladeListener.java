@@ -35,6 +35,11 @@ public class WitherBladeListener implements Listener {
         if (id.equals("cwe_hyperion") || id.equals("cwe_valkyrie") || id.equals("cwe_scylla") || id.equals("cwe_astraea")) {
             Player p = event.getPlayer();
             
+            // Check mana cost (250 mana for Wither Impact)
+            if (!ManaHelper.consumeMana(p, 250.0, (CustomWeaponEngine) org.bukkit.plugin.java.JavaPlugin.getPlugin(CustomWeaponEngine.class), "Wither Impact")) {
+                return;
+            }
+            
             // 1. Wither Impact - Teleport 10 blocks
             Block target = p.getTargetBlock(Set.of(org.bukkit.Material.AIR, org.bukkit.Material.CAVE_AIR, org.bukkit.Material.VOID_AIR), 10);
             Location loc = target.getLocation().clone();
@@ -49,7 +54,7 @@ public class WitherBladeListener implements Listener {
             
             for (Entity e : p.getNearbyEntities(10, 5, 10)) {
                 if (e instanceof LivingEntity && e != p) {
-                    ((LivingEntity) e).damage(10000, p);
+                    ((LivingEntity) e).damage(500, p);
                 }
             }
             

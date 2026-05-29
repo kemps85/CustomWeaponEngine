@@ -7,6 +7,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.entity.LivingEntity;
 import org.example.core.CustomWeaponEngine;
 import org.bukkit.World.Environment;
 
@@ -39,11 +40,25 @@ public class ArmorSetListener implements Listener {
         if (!(event.getEntity() instanceof Player)) return;
         Player p = (Player) event.getEntity();
         
-        // Ender Armor (x2 in The End, reduce Enderman damage)
         if (isWearingFullSet(p, "cwe_ender")) {
             if (event.getDamager() instanceof org.bukkit.entity.Enderman) {
                 event.setDamage(event.getDamage() * 0.5); // Giảm 50% sát thương từ Enderman
                 p.sendMessage("§d[CWE] Giáp Ender đã chặn bớt sát thương từ Enderman!");
+            }
+        }
+    }
+    
+    @EventHandler
+    public void onWitherbornHit(EntityDamageByEntityEvent event) {
+        if (!(event.getEntity() instanceof LivingEntity)) return;
+        if (event.getDamager() instanceof org.bukkit.entity.WitherSkull) {
+            org.bukkit.entity.WitherSkull skull = (org.bukkit.entity.WitherSkull) event.getDamager();
+            NamespacedKey wKey = new NamespacedKey(org.bukkit.plugin.java.JavaPlugin.getPlugin(CustomWeaponEngine.class), "witherborn_damage");
+            if (skull.getPersistentDataContainer().has(wKey, PersistentDataType.DOUBLE)) {
+                double customDmg = skull.getPersistentDataContainer().get(wKey, PersistentDataType.DOUBLE);
+                event.setDamage(customDmg);
+                
+                // Show damage indicator if needed, but the custom damage indicator plugin will pick it up since the shooter is a Player
             }
         }
     }

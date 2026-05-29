@@ -34,7 +34,7 @@ import java.util.*;
 public class MeteorBossManager implements Listener {
 
     private final CustomWeaponEngine plugin;
-    private final MeteoriteManager meteoriteManager;
+    private final RegionBossManager regionBossManager;
     private static final Random random = new Random();
     
     public UUID activeBossId = null;
@@ -78,9 +78,9 @@ public class MeteorBossManager implements Listener {
     // Hồi sinh tạm thời
     private Set<UUID> eventParticipants = new HashSet<>();
 
-    public MeteorBossManager(CustomWeaponEngine plugin, MeteoriteManager meteoriteManager) {
+    public MeteorBossManager(CustomWeaponEngine plugin, RegionBossManager regionBossManager) {
         this.plugin = plugin;
-        this.meteoriteManager = meteoriteManager;
+        this.regionBossManager = regionBossManager;
     }
 
     public static void spawnBoss(Location loc, String type) {
@@ -113,14 +113,14 @@ public class MeteorBossManager implements Listener {
         } 
         else if ("ICE".equals(type)) {
             Zombie boss = (Zombie) loc.getWorld().spawnEntity(spawnLoc, EntityType.ZOMBIE);
-            setupBossStats(boss, "§b§lBăng Giá Cổ Thần", 1500, type);
+            setupBossStats(boss, "§b§lBăng Giá Cổ Thần", 15000, type);
             spawnGuards(loc, EntityType.STRAY, 4, type, 500);
         } 
         else if ("VOID".equals(type)) {
             Enderman boss = (Enderman) loc.getWorld().spawnEntity(spawnLoc, EntityType.ENDERMAN);
-            setupBossStats(boss, "§5§lChúa Tể Hư Không", 3000, type);
-            spawnGuards(loc, EntityType.ENDERMITE, 3, type, 200);
-            spawnGuards(loc, EntityType.ENDERMAN, 2, type, 200);
+            setupBossStats(boss, "§5§lChúa Tể Hư Không", 300000, type);
+            spawnGuards(loc, EntityType.ENDERMITE, 3, type, 15000);
+            spawnGuards(loc, EntityType.ENDERMAN, 2, type, 15000);
         }
 
         startBossLogic();
@@ -189,12 +189,7 @@ public class MeteorBossManager implements Listener {
             }
             
             // Cập nhật Boss Bar
-            if (MeteoriteManager.eventBossBar != null) {
-                double progress = activeBoss.getHealth() / maxBossHealth;
-                if (progress < 0) progress = 0;
-                if (progress > 1) progress = 1;
-                MeteoriteManager.eventBossBar.setProgress(progress);
-            }
+            
 
             if ("FIRE".equals(activeType)) tickFireBoss(activeBoss);
             else if ("ICE".equals(activeType)) tickIceBoss(activeBoss);
@@ -563,7 +558,7 @@ public class MeteorBossManager implements Listener {
             Entity activeBoss = Bukkit.getEntity(activeBossId);
             if (activeBoss == null) return;
             if ("FIRE".equals(activeType)) {
-                event.setDamage(20.0);
+                  event.setDamage(500.0);
                 if (event.getEntity() instanceof Player) {
                     ((Player) event.getEntity()).addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 100, 1));
                 }
@@ -577,10 +572,10 @@ public class MeteorBossManager implements Listener {
                     double dot = pDir.dot(bossDir);
                     // Nếu cùng hướng (dot > 0.5) tức là Boss chém từ sau lưng
                     if (dot > 0.5) {
-                        event.setDamage(25.0);
+                        event.setDamage(2000.0);
                         p.sendMessage("§5§lBẠN BỊ ĐÂM LÉN!");
                     } else {
-                        event.setDamage(10.0);
+                        event.setDamage(800.0);
                     }
                 }
             }
@@ -675,7 +670,7 @@ public class MeteorBossManager implements Listener {
             }
             
             activeBossId = null;
-            meteoriteManager.onBossDeath();
+            regionBossManager.onBossDeath(activeType);
         }
     }
 

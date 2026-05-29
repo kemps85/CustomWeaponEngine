@@ -190,8 +190,8 @@ public class BazaarMobDropListener implements Listener {
             }
 
             double levelMultiplier = 1.0 + (calculatedLevel * 0.015); 
-            double baseHp = 50.0 * levelMultiplier * statMultiplier;
-            double baseDmg = 6.0 * levelMultiplier * statMultiplier;
+            double baseHp = (150.0 + (calculatedLevel * 100.0)) * statMultiplier;
+            double baseDmg = (30.0 + (calculatedLevel * 5.0)) * statMultiplier;
 
             if (guardian.getAttribute(Attribute.GENERIC_MAX_HEALTH) != null) {
                 guardian.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(baseHp);

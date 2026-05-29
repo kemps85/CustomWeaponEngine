@@ -29,7 +29,23 @@ public class AOTEListener implements Listener {
         String id = event.getItem().getItemMeta().getPersistentDataContainer().get(idKey, PersistentDataType.STRING);
         if ("cwe_aote".equalsIgnoreCase(id)) {
             Player p = event.getPlayer();
-            Block target = p.getTargetBlock(Set.of(org.bukkit.Material.AIR, org.bukkit.Material.CAVE_AIR, org.bukkit.Material.VOID_AIR), 8);
+            
+            // Check mana cost (50 mana for AOTE teleport)
+            if (!ManaHelper.consumeMana(p, 50.0, (CustomWeaponEngine) org.bukkit.plugin.java.JavaPlugin.getPlugin(CustomWeaponEngine.class), "Instant Transmission")) {
+                return;
+            }
+            
+            boolean isStrong = true;
+            org.bukkit.inventory.ItemStack[] armors = p.getInventory().getArmorContents();
+            for (int i = 0; i < 4; i++) {
+                org.bukkit.inventory.ItemStack armor = armors[i];
+                if (armor == null || !armor.hasItemMeta()) { isStrong = false; break; }
+                String aid = armor.getItemMeta().getPersistentDataContainer().get(idKey, PersistentDataType.STRING);
+                if (aid == null || !aid.startsWith("cwe_strong_")) { isStrong = false; break; }
+            }
+            int tpDistance = isStrong ? 10 : 8;
+            
+            Block target = p.getTargetBlock(Set.of(org.bukkit.Material.AIR, org.bukkit.Material.CAVE_AIR, org.bukkit.Material.VOID_AIR), tpDistance);
             Location loc = target.getLocation().clone();
             loc.setPitch(p.getLocation().getPitch());
             loc.setYaw(p.getLocation().getYaw());

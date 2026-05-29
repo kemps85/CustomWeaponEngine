@@ -63,8 +63,8 @@ public class ShadowFuryListener implements Listener {
         Location back = target.getLocation().clone().subtract(target.getLocation().getDirection().multiply(1.5));
         back.setYaw(target.getLocation().getYaw()); // Face the back
         p.teleport(back);
-        p.playSound(p.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.5f);
-        target.damage(25000, p);
+        p.playSound(p.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+        target.damage(600, p);
         
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             executeShadowFury(p, targets, index + 1);

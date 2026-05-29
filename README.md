@@ -19,6 +19,19 @@ Hệ thống vũ khí sở hữu Kỹ Năng (Item Ability) và NBT riêng biệt
 - **Batch 1 (Siêu phẩm End-game)**: Aspect of the End (Tốc biến), Aspect of the Dragons (Hất văng), Livid Dagger (Đâm lén x2 sát thương), Shadow Fury (Lướt trảm 5 mục tiêu), Giant's Sword (Nện đất), Wither Blades (Hyperion, Valkyrie, Scylla, Astraea - Vụ nổ Wither), Emerald Blade (Sát thương tỷ lệ với tiền ví).
 - **Vũ khí Mid/Early-game**: Pigman Sword, Fel Sword (Cộng dồn sát thương theo số quái giết), Zombie Sword (Hồi máu đồng minh), Golem Sword, Raider Axe (Thợ săn tiền thưởng).
 
+## ⚡ Tính Năng Chính (Core Features)
+
+### 🌿 Khám Phá & Xây Dựng (Phong cách Genshin Impact)
+*   **Rương Ẩn Thám Hiểm (Exploration Chests):** Hệ thống rương ẩn giấu trên bản đồ, mỗi người chơi chỉ được mở 1 lần duy nhất để nhận Xu và phần thưởng ngẫu nhiên.
+*   **Hệ Thống Đồ Nội Thất (Cosmetic Furniture):** Cung cấp các vật phẩm trang trí như Cây Bonsai, Tách Trà, Bánh Kem, Quả Địa Cầu... bằng hệ thống Base64 Texture Player Heads siêu đẹp.
+*   **Tương thích tối đa AuraSkills:** Khuyến khích người chơi trồng trọt, khai thác và xây dựng để nhận chỉ số thụ động.
+
+### ⚔️ Vũ Khí & Giáp (Weapons & Armor)
+*   **Trang Bị Không Thể Phá Hủy (Unbreakable):** Toàn bộ Vũ khí và Giáp xịn đều có thuộc tính Unbreakable ẩn, không bao giờ hỏng. Mending và Unbreaking Vanilla sẽ tự động bị từ chối ép vào đồ Custom.
+*   **Sửa Chữa (Repair Anvil):** Sửa đồ bằng khoáng sản cơ bản (Sắt, Vàng, Da) với chi phí cố định 5 Level tại đe ép Custom.
+*   **Reforge Thông Minh:** Tính năng Gacha đúc lại chỉ số. Tự động đổi tiền tố tránh trùng lặp tên ngớ ngẩn (VD: *Wise Wise Dragon Armor* -> *Very Wise Dragon Armor*).
+*   **Hệ thống Runaan & Juju Shortbow:** Cơ chế bắn không gồng, xuyên thủng mục tiêu, tên tự động đuổi (Homing Arrows).
+
 ### 2. Kỷ Nguyên Chiến Giáp (Armor Sets & Full Set Bonus)
 Hơn **13 Bộ Giáp (52 món đồ)** với cơ chế nội tại khi mặc đủ bộ (Full Set Bonus):
 - **Wither Armor Series (Bộ Tứ Wither)**: Necron (Đấu sĩ), Storm (Pháp sư), Maxor (Cung thủ/Tốc độ), Goldor (Đỡ đòn). Sở hữu nội tại *Witherborn* (Triệu hồi Wither mini bắn quái vật).

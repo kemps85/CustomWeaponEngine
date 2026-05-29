@@ -227,6 +227,7 @@ public class ArmorEnchantListener implements Listener {
     private final Map<UUID, Integer> cachedToughness = new HashMap<>();
     private final Map<UUID, Integer> cachedGrowth = new HashMap<>();
     private final Map<UUID, Integer> cachedSugarRush = new HashMap<>();
+    private final Map<UUID, Boolean> cachedIsOldDragon = new HashMap<>();
 
     public ArmorEnchantListener(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -329,6 +330,7 @@ public class ArmorEnchantListener implements Listener {
         cachedToughness.remove(uuid);
         cachedGrowth.remove(uuid);
         cachedSugarRush.remove(uuid);
+        cachedIsOldDragon.remove(uuid);
     }
 
     private void updateArmorStats(Player player) {
@@ -357,6 +359,19 @@ public class ArmorEnchantListener implements Listener {
             if (name.contains("BOOTS") && container.has(sugarKey, PersistentDataType.INTEGER)) totalSugarRush += container.get(sugarKey, PersistentDataType.INTEGER);
         }
 
+        // Kiểm tra Old Dragon
+        boolean isOldDragon = true;
+        ItemStack[] armors = player.getInventory().getArmorContents();
+        for (int i = 0; i < 4; i++) {
+            ItemStack armor = armors[i];
+            if (armor == null || !armor.hasItemMeta()) { isOldDragon = false; break; }
+            String id = armor.getItemMeta().getPersistentDataContainer().get(new NamespacedKey(plugin, "cwe_id"), PersistentDataType.STRING);
+            if (id == null || !id.startsWith("cwe_old_")) { isOldDragon = false; break; }
+        }
+        
+        double growthMult = isOldDragon ? 6.0 : 4.0;
+        double protMult = isOldDragon ? 2.0 : 1.0;
+
         // Apply health modifier fallback
         boolean auraEnabled = Bukkit.getPluginManager().isPluginEnabled("AuraSkills");
         AttributeInstance maxHealthAttr = player.getAttribute(Attribute.GENERIC_MAX_HEALTH);
@@ -366,7 +381,7 @@ public class ArmorEnchantListener implements Listener {
             if (!auraEnabled && totalGrowth > 0) {
                 maxHealthAttr.addModifier(new org.bukkit.attribute.AttributeModifier(
                     growthKeyMod,
-                    totalGrowth * 4.0,
+                    totalGrowth * growthMult,
                     org.bukkit.attribute.AttributeModifier.Operation.ADD_NUMBER
                 ));
             }
@@ -388,7 +403,7 @@ public class ArmorEnchantListener implements Listener {
 
         // ⚡ CẬP NHẬT CHỈ SỐ TOUGHNESS THỰC (GENERIC_ARMOR_TOUGHNESS)
         // Smarty Pants: +2 Toughness/cấp | Protection: +1 Toughness/cấp
-        double targetToughness = (totalSmartyPants * 2.0) + (totalProtection * 1.0);
+        double targetToughness = (totalSmartyPants * 2.0) + (totalProtection * protMult);
         AttributeInstance toughnessAttr = player.getAttribute(Attribute.GENERIC_ARMOR_TOUGHNESS);
         if (toughnessAttr != null) {
             NamespacedKey toughnessKeyMod = new NamespacedKey(plugin, "cwe_growth_toughness");
@@ -408,10 +423,14 @@ public class ArmorEnchantListener implements Listener {
             if (user != null) {
                 // -- Xử lý Growth (Health) --
                 int oldGrowth = cachedGrowth.getOrDefault(uuid, 0);
-                if (totalGrowth != oldGrowth) {
-                    if (oldGrowth > 0) user.removeStatModifier("cwe_growth");
-                    if (totalGrowth > 0) user.addStatModifier(new StatModifier("cwe_growth", Stats.HEALTH, totalGrowth * 4.0, Operation.ADD));
+                boolean oldIsOldDragon = cachedIsOldDragon.getOrDefault(uuid, false);
+                // BUG FIX: Luôn remove trước khi re-apply để tránh stat stack
+                // Cache cả isOldDragon để chỉ re-apply khi state thực sự thay đổi.
+                if (totalGrowth != oldGrowth || isOldDragon != oldIsOldDragon) {
+                    user.removeStatModifier("cwe_growth"); // Luôn remove bất kể oldGrowth có > 0 hay không
+                    if (totalGrowth > 0) user.addStatModifier(new StatModifier("cwe_growth", Stats.HEALTH, totalGrowth * growthMult, Operation.ADD));
                     cachedGrowth.put(uuid, totalGrowth);
+                    cachedIsOldDragon.put(uuid, isOldDragon);
                 }
 
                 // -- Xử lý Sugar Rush (Speed) --
@@ -422,45 +441,37 @@ public class ArmorEnchantListener implements Listener {
                     cachedSugarRush.put(uuid, totalSugarRush);
                 }
 
-                // -- Xử lý Wisdom (Big Brain) --
+                // -- Xử lý Wisdom (Big Brain + Smarty Pants) --
+                int combinedWisdom = (int) ((totalBigBrain * 15.0) + (totalSmartyPants * 15.0));
                 int oldWis = cachedWisdom.getOrDefault(uuid, 0);
-                if (totalBigBrain != oldWis) {
+                if (combinedWisdom != oldWis) {
                     if (oldWis > 0) {
                         user.removeStatModifier("cwe_wisdom");
                     }
-                    if (totalBigBrain > 0) {
-                        user.addStatModifier(new StatModifier("cwe_wisdom", Stats.WISDOM, totalBigBrain * 15.0, Operation.ADD));
+                    if (combinedWisdom > 0) {
+                        user.addStatModifier(new StatModifier("cwe_wisdom", Stats.WISDOM, combinedWisdom, Operation.ADD));
                     }
-                    cachedWisdom.put(uuid, totalBigBrain);
+                    cachedWisdom.put(uuid, combinedWisdom);
                 }
 
-                // -- Xử lý Defense (Smarty Pants) --
-                int oldDef = cachedDefense.getOrDefault(uuid, 0);
-                if (totalSmartyPants != oldDef) {
-                    if (oldDef > 0) {
-                        user.removeStatModifier("cwe_defense");
-                    }
-                    if (totalSmartyPants > 0) {
-                        user.addStatModifier(new StatModifier("cwe_defense", Stats.TOUGHNESS, totalSmartyPants * 8.0, Operation.ADD));
-                    }
-                    cachedDefense.put(uuid, totalSmartyPants);
-                }
-
-                // -- Xử lý Toughness (Smarty Pants + Protection) → AuraSkills --
-                int combinedToughness = (totalSmartyPants * 2) + (totalProtection * 1);
+                // -- Xử lý Toughness (Protection) → AuraSkills --
+                int combinedToughness = (int) (totalProtection * protMult);
                 int oldTough = cachedToughness.getOrDefault(uuid, 0);
                 if (combinedToughness != oldTough) {
                     if (oldTough > 0) {
-                        user.removeStatModifier("cwe_toughness");
+                        user.removeStatModifier("cwe_toughness_total");
+                        user.removeStatModifier("cwe_defense"); // cleanup old
+                        user.removeStatModifier("cwe_toughness"); // cleanup old
                     }
                     if (combinedToughness > 0) {
-                        user.addStatModifier(new StatModifier("cwe_toughness", Stats.TOUGHNESS, combinedToughness, Operation.ADD));
+                        user.addStatModifier(new StatModifier("cwe_toughness_total", Stats.TOUGHNESS, combinedToughness, Operation.ADD));
                     }
                     cachedToughness.put(uuid, combinedToughness);
+                    
                     // Đồng bộ hiển thị profile AuraSkills qua console command
                     if (combinedToughness > 0) {
                         Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
-                            "sk armor modifier add " + player.getName() + " cwe_toughness toughness " + combinedToughness);
+                            "sk armor modifier add " + player.getName() + " cwe_toughness_total toughness " + combinedToughness);
                     }
                 }
 

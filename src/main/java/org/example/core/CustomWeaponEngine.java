@@ -34,7 +34,7 @@ public final class CustomWeaponEngine extends JavaPlugin implements CommandExecu
     public static ShadowAssassinListener assassinEngine;
     public static BerserkListener berserkEngine;
     public static MobDeathListener mobDeathEngine;
-    public static org.example.system.MeteoriteManager meteoriteManager;
+    public static org.example.system.RegionBossManager regionBossManager;
     public static org.example.system.MeteorBossManager meteorBossManager;
     
     private File libraryFile;
@@ -59,6 +59,7 @@ public final class CustomWeaponEngine extends JavaPlugin implements CommandExecu
     public void onEnable() {
         tradeManager = new org.example.system.TradeManager();
         libraryGUI = new org.example.system.LibraryGUI(this);
+        getServer().getPluginManager().registerEvents(libraryGUI, this);
 
         instance = this;
         saveDefaultConfig();
@@ -71,7 +72,12 @@ public final class CustomWeaponEngine extends JavaPlugin implements CommandExecu
         }
         libraryConfig = YamlConfiguration.loadConfiguration(libraryFile);
 
-    
+        // 🟩 Đăng ký đồ vào thư viện mỗi lần khởi động để đảm bảo đủ item
+        org.example.weapon.legendary.LegendarySwords.registerSwords(this);
+        org.example.weapon.legendary.LegendaryArmor.registerArmors(this);
+        org.example.weapon.legendary.RareEpicItems.registerItems(this);
+        saveLibraryConfig();
+
         if (!setupEconomy()) {
             getLogger().severe("🟥 KHÔNG TÌM THẤY VÍ TIỀN VAULT! Chợ Bazaar sẽ bị đóng băng.");
         }
@@ -109,6 +115,10 @@ public final class CustomWeaponEngine extends JavaPlugin implements CommandExecu
 
         org.example.bazaar.BazaarGUI bazaarEngine = new org.example.bazaar.BazaarGUI(this, econ);
         getServer().getPluginManager().registerEvents(bazaarEngine, this);
+        org.example.system.RecipeGUI recipeGui = new org.example.system.RecipeGUI(this);
+        getCommand("recipes").setExecutor(recipeGui);
+        getServer().getPluginManager().registerEvents(recipeGui, this);
+        
         getServer().getPluginManager().registerEvents(new org.example.bazaar.BazaarRecipeListener(this), this);
         getServer().getPluginManager().registerEvents(new org.example.bazaar.BazaarMobDropListener(this), this);
 
@@ -137,17 +147,18 @@ public final class CustomWeaponEngine extends JavaPlugin implements CommandExecu
         }
         getServer().getPluginManager().registerEvents(new org.example.stats.ItemStatsListener(this), this);
         getServer().getPluginManager().registerEvents(new org.example.stats.VanillaItemUpdater(this), this);
+        getServer().getPluginManager().registerEvents(new org.example.stats.CritTagger(this), this);
         
-        meteoriteManager = new org.example.system.MeteoriteManager(this);
-        getServer().getPluginManager().registerEvents(meteoriteManager, this);
+        regionBossManager = new org.example.system.RegionBossManager(this);
+        getServer().getPluginManager().registerEvents(regionBossManager, this);
         
         // 🟩 Đăng ký lệnh /meteorite với Tab-Complete đầy đủ
-        if (getCommand("meteorite") != null) {
-            org.example.system.MeteoriteCommand meteoriteCmd = new org.example.system.MeteoriteCommand();
-            getCommand("meteorite").setExecutor(meteoriteCmd);
-            getCommand("meteorite").setTabCompleter(meteoriteCmd);
+                if (getCommand("cweboss") != null) {
+            org.example.system.RegionBossCommand bossCmd = new org.example.system.RegionBossCommand();
+            getCommand("cweboss").setExecutor(bossCmd);
+            getCommand("cweboss").setTabCompleter(bossCmd);
         }
-        meteorBossManager = new org.example.system.MeteorBossManager(this, meteoriteManager);
+        meteorBossManager = new org.example.system.MeteorBossManager(this, regionBossManager);
         getServer().getPluginManager().registerEvents(meteorBossManager, this);
 
         // 🟩 Đăng ký lệnh /cweie (Custom Item Editor)
@@ -198,6 +209,9 @@ public final class CustomWeaponEngine extends JavaPlugin implements CommandExecu
         
         // 🟩 Đăng ký Mana Regen Task
         new org.example.system.ManaRegenTask(this).start();
+        
+        // 🟩 Đăng ký Health Regen Task
+        new org.example.system.HealthRegenTask(this).start();
 
         // 🟩 Đăng ký CWEBanking
         org.example.bank.BankDataManager.getInstance(this);
@@ -213,6 +227,10 @@ public final class CustomWeaponEngine extends JavaPlugin implements CommandExecu
         getServer().getPluginManager().registerEvents(changelogManager, this);
         if (getCommand("cweupdate") != null) {
             getCommand("cweupdate").setExecutor(changelogManager);
+        }
+
+        if (getCommand("cweeco") != null) {
+            getCommand("cweeco").setExecutor(new org.example.system.EconomyAdminCommand());
         }
         
         
@@ -242,7 +260,31 @@ public final class CustomWeaponEngine extends JavaPlugin implements CommandExecu
         // 🟩 Đăng ký Chat Listener
         getServer().getPluginManager().registerEvents(new org.example.system.ChatListener(this), this);
         
-        getLogger().info("dYYc CustomWeaponEngine Engine v4.0 (Bazaar AMM & Ore Guardians Updated) hoat dong!");
+        // 🟩 Đăng ký Khám Phá Rương
+        getServer().getPluginManager().registerEvents(new org.example.system.ExplorationChest(this), this);
+
+        // Đăng ký các Legendary Listeners
+        getServer().getPluginManager().registerEvents(new org.example.weapon.legendary.AOTDListener(this), this);
+        getServer().getPluginManager().registerEvents(new org.example.weapon.legendary.AOTEListener(this), this);
+        getServer().getPluginManager().registerEvents(new org.example.weapon.legendary.LividDaggerListener(this), this);
+        getServer().getPluginManager().registerEvents(new org.example.weapon.legendary.EmeraldBladeListener(this), this);
+        getServer().getPluginManager().registerEvents(new org.example.weapon.legendary.ShadowFuryListener(this), this);
+        getServer().getPluginManager().registerEvents(new org.example.weapon.legendary.GiantsSwordListener(this), this);
+        getServer().getPluginManager().registerEvents(new org.example.weapon.legendary.WitherBladeListener(this), this);
+        getServer().getPluginManager().registerEvents(new org.example.weapon.legendary.EpicWeaponListeners(this), this);
+        getServer().getPluginManager().registerEvents(new org.example.weapon.legendary.ArmorSetListener(this), this);
+        getServer().getPluginManager().registerEvents(new org.example.weapon.legendary.SlayerDungeonListener(this), this);
+        
+        // Bật các Task ngầm cho Set Giáp
+        new org.example.weapon.legendary.WitherbornTask(this).runTaskTimer(this, 0L, 2L);
+        new org.example.weapon.legendary.DragonTask(this).runTaskTimer(this, 0L, 20L); // 1 giay
+        
+        if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            new org.example.system.CWEExpansion(this).register();
+            getLogger().info("PlaceholderAPI tim thay! Da dang ky %cwe_actionbar_mana%.");
+        }
+        
+        getLogger().info("🟩 CustomWeaponEngine Engine v4.0 (Bazaar AMM & Ore Guardians Updated) hoat dong!");
     }
 
 
@@ -302,9 +344,9 @@ public final class CustomWeaponEngine extends JavaPlugin implements CommandExecu
         if (assassinEngine != null) assassinEngine.clearCooldowns();
         if (berserkEngine != null) berserkEngine.clearCache();
         
-        if (meteoriteManager != null) {
-            meteoriteManager.cleanupChests();
-            meteoriteManager.removeBossBar();
+        if (regionBossManager != null) {
+            regionBossManager.cleanupOnDisable();
+            
         }
         if (meteorBossManager != null) {
             meteorBossManager.cleanupOnDisable();

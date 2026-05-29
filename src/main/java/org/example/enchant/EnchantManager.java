@@ -249,7 +249,7 @@ public class EnchantManager {
             if (container.has(key, PersistentDataType.INTEGER)) {
                 int lvl = container.get(key, PersistentDataType.INTEGER);
                 if (lvl > 0) {
-                    ultEnchantsStr.add("§d§lULTIMATE " + uEnc.getDisplayName().toUpperCase() + " " + toRoman(lvl));
+                    ultEnchantsStr.add("§d§l" + uEnc.getDisplayName().toUpperCase() + " " + toRoman(lvl));
                 }
             }
         }
@@ -316,7 +316,7 @@ public class EnchantManager {
         int insertIndex = lore.size();
         for (int i = 0; i < lore.size(); i++) {
             String line = lore.get(i);
-            if (line.contains("Full Set Bonus") || line.contains("RARE") || line.contains("EPIC") || line.contains("LEGENDARY")) {
+            if (line.contains("Full Set Bonus") || line.contains("COMMON") || line.contains("UNCOMMON") || line.contains("RARE") || line.contains("EPIC") || line.contains("LEGENDARY")) {
                 insertIndex = i;
                 break;
             }

@@ -246,16 +246,16 @@ public class BazaarRecipeListener implements Listener {
         if (matrix == null || matrix.length < 9) return;
 
         if (matrix[4] != null && (matrix[4].getType() == Material.GLASS_BOTTLE || matrix[4].getType() == Material.POTION)) {
-            if (checkXpMatrixPattern(matrix, Material.LAPIS_LAZULI, null, 32)) {
-                event.getInventory().setResult(createCustomXpBottle(1, "§aExperience Bottle", 5));
+            if (checkXpMatrixPattern(matrix, Material.LAPIS_LAZULI, null, 1)) {
+                event.getInventory().setResult(createCustomXpBottle(1, "§fExperience Bottle", 250, "COMMON"));
                 return;
             }
-            if (checkXpMatrixPattern(matrix, Material.LAPIS_LAZULI, "ENCHANTED_LAPIS", 32)) {
-                event.getInventory().setResult(createCustomXpBottle(2, "§eLarge Experience Bottle", 15));
+            if (checkXpMatrixPattern(matrix, Material.LAPIS_LAZULI, "ENCHANTED_LAPIS", 1)) {
+                event.getInventory().setResult(createCustomXpBottle(2, "§aGrand Experience Bottle", 3000, "UNCOMMON"));
                 return;
             }
-            if (checkXpMatrixPattern(matrix, Material.LAPIS_BLOCK, "ENCHANTED_LAPIS_BLOCK", 16)) {
-                event.getInventory().setResult(createCustomXpBottle(3, "§6§lEnormous Experience Bottle", 50));
+            if (checkXpMatrixPattern(matrix, Material.LAPIS_BLOCK, "ENCHANTED_LAPIS_BLOCK", 1)) {
+                event.getInventory().setResult(createCustomXpBottle(3, "§9Titanic Experience Bottle", 15000, "RARE"));
                 return;
             }
         }
@@ -342,7 +342,7 @@ public class BazaarRecipeListener implements Listener {
                 int[] crossSlots = {1, 3, 4, 5, 7};
                 for (int slot : crossSlots) { if (currentMatrix[slot] != null) { int amt = currentMatrix[slot].getAmount() - 32; currentMatrix[slot] = amt <= 0 ? null : currentMatrix[slot]; if(currentMatrix[slot]!=null) currentMatrix[slot].setAmount(amt); } }
             } else if (finalIsXp) {
-                int deductAmount = finalXpId.equals("CWE_XP_BOTTLE_T3") ? 16 : 32;
+                int deductAmount = 1;
                 int[] outerSlots = {1, 3, 5, 6, 7, 8};
                 for (int slot : outerSlots) { if (currentMatrix[slot] != null) { int amt = currentMatrix[slot].getAmount() - deductAmount; currentMatrix[slot] = amt <= 0 ? null : currentMatrix[slot]; if(currentMatrix[slot]!=null) currentMatrix[slot].setAmount(amt); } }
                 if (currentMatrix[4] != null) { int amt = currentMatrix[4].getAmount() - 1; currentMatrix[4] = amt <= 0 ? null : currentMatrix[4]; if(currentMatrix[4]!=null) currentMatrix[4].setAmount(amt); }
@@ -357,37 +357,31 @@ public class BazaarRecipeListener implements Listener {
     }
 
     @EventHandler
-    public void onCustomXpBottleConsume(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+    public void onExpBottleLaunch(org.bukkit.event.entity.ProjectileLaunchEvent event) {
+        if (!(event.getEntity() instanceof org.bukkit.entity.ThrownExpBottle)) return;
+        org.bukkit.entity.ThrownExpBottle bottle = (org.bukkit.entity.ThrownExpBottle) event.getEntity();
         
-        ItemStack item = event.getItem();
-        if (item == null || item.getType() != Material.EXPERIENCE_BOTTLE || !item.hasItemMeta()) return;
+        ItemStack item = bottle.getItem();
+        if (item == null || !item.hasItemMeta()) return;
 
         PersistentDataContainer container = item.getItemMeta().getPersistentDataContainer();
         NamespacedKey idKey = new NamespacedKey(plugin, "bazaar_id");
-        NamespacedKey lvlKey = new NamespacedKey(plugin, "xp_levels_payout");
+        NamespacedKey xpKey = new NamespacedKey(plugin, "xp_payout");
 
         if (container.has(idKey, PersistentDataType.STRING) && container.get(idKey, PersistentDataType.STRING).startsWith("CWE_XP_BOTTLE_T")) {
-            event.setCancelled(true);
-            
-            Player player = event.getPlayer();
-            int levelsToAdd = container.getOrDefault(lvlKey, PersistentDataType.INTEGER, 0);
-
-            if (levelsToAdd > 0) {
-                player.setLevel(player.getLevel() + levelsToAdd);
-
-                int currentAmount = item.getAmount();
-                if (currentAmount <= 1) {
-                    player.getInventory().setItem(event.getHand(), null);
-                } else {
-                    item.setAmount(currentAmount - 1);
-                    player.getInventory().setItem(event.getHand(), item);
-                }
-
-                player.sendMessage("§a🟩 Bạn đã tiêu thụ ma pháp bình và nhận được §e+" + levelsToAdd + " Exp Levels§a.");
-                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
-                player.updateInventory();
+            int xpToAdd = container.getOrDefault(xpKey, PersistentDataType.INTEGER, 0);
+            if (xpToAdd > 0) {
+                bottle.setMetadata("cwe_custom_xp", new org.bukkit.metadata.FixedMetadataValue(plugin, xpToAdd));
             }
+        }
+    }
+
+    @EventHandler
+    public void onExpBottleSplash(org.bukkit.event.entity.ExpBottleEvent event) {
+        org.bukkit.entity.ThrownExpBottle bottle = event.getEntity();
+        if (bottle.hasMetadata("cwe_custom_xp")) {
+            int xp = bottle.getMetadata("cwe_custom_xp").get(0).asInt();
+            event.setExperience(xp);
         }
     }
 
@@ -416,19 +410,22 @@ public class BazaarRecipeListener implements Listener {
         return true;
     }
 
-    private ItemStack createCustomXpBottle(int tier, String displayName, int levelsPayout) {
+    private ItemStack createCustomXpBottle(int tier, String displayName, int xpPayout, String rarity) {
         ItemStack item = new ItemStack(Material.EXPERIENCE_BOTTLE, 1);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             meta.setDisplayName(displayName);
             meta.setLore(Arrays.asList(
-                "§7Cấp bậc ma pháp: §eTier " + tier,
-                "§7Tiêu thụ gia tăng lập tức: §a+" + levelsPayout + " Cấp Độ (Levels)",
+                "§7Grants §3" + String.format("%,d", xpPayout) + " §7Experience",
+                "§7when thrown.",
                 "",
-                "§eCầm trên tay và Chuột Phải để hấp thụ ma thuật!"
+                "§eRight-click to throw!",
+                "§f",
+                org.example.stats.ItemStatsGUI.Rarity.valueOf(rarity).display
             ));
             meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "bazaar_id"), PersistentDataType.STRING, "CWE_XP_BOTTLE_T" + tier);
-            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "xp_levels_payout"), PersistentDataType.INTEGER, levelsPayout);
+            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "xp_payout"), PersistentDataType.INTEGER, xpPayout);
+            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_RARITY), PersistentDataType.STRING, rarity);
             
             try {
                 meta.addEnchant(Enchantment.getByKey(NamespacedKey.minecraft("luck_of_the_sea")), 1, true);

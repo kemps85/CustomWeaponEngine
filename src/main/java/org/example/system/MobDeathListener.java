@@ -132,11 +132,11 @@ public class MobDeathListener implements Listener {
             ItemStack relic = null;
             String biomeName = mob.getLocation().getBlock().getBiome().name();
             if (biomeName.contains("DESERT") || biomeName.contains("BADLANDS") || biomeName.contains("NETHER")) {
-                relic = createRelic(Material.MAGMA_CREAM, "§c§lLõi Dung Nham", "§7Nguyên liệu rèn đúc.", "§7Thu thập bằng cách đánh bại quái vật", "§7tại vùng đất nóng bức (Desert, Nether...)");
+                relic = createCraftMaterial(Material.MAGMA_CREAM, "§9Lõi Dung Nham", "RARE");
             } else if (biomeName.contains("ICE") || biomeName.contains("SNOW") || biomeName.contains("FROZEN") || biomeName.contains("TAIGA")) {
-                relic = createRelic(Material.PRISMARINE_CRYSTALS, "§b§lBăng Tinh Cổ Đại", "§7Nguyên liệu rèn đúc.", "§7Thu thập bằng cách đánh bại quái vật", "§7tại vùng đất băng giá.");
+                relic = createCraftMaterial(Material.DRAGON_BREATH, "§5Băng Tinh Cổ Đại", "EPIC");
             } else if (biomeName.contains("DARK") || biomeName.contains("DEEP") || biomeName.contains("END")) {
-                relic = createRelic(Material.ECHO_SHARD, "§8§lMảnh Vỡ Hắc Ám", "§7Nguyên liệu rèn đúc.", "§7Thu thập bằng cách đánh bại quái vật", "§7tại vùng đất tăm tối (Deep Dark, End...)");
+                relic = createCraftMaterial(Material.BEACON, "§6§lLõi Năng Lượng Cao Cấp", "LEGENDARY");
             }
 
             if (relic != null) {
@@ -145,7 +145,8 @@ public class MobDeathListener implements Listener {
         }
 
         if (mobLevel > 1) {
-            double bonusXp = mobLevel * 20.0;
+            // Đã giảm AuraSkills XP Requirement đi một nửa, nên tăng nhẹ XP này lên 6.0 để tạo cảm giác cày cuốc thỏa mãn
+            double bonusXp = mobLevel * 6.0;
             AuraSkillsApi auraApi = AuraSkillsApi.get();
             SkillsUser user = auraApi.getUser(player.getUniqueId());
 
@@ -193,7 +194,8 @@ public class MobDeathListener implements Listener {
         }
 
         if (mobLevel > 1) {
-            double defenseXp = mobLevel * 4.0;
+            // Tăng nhẹ lên 1.0 cho cân bằng
+            double defenseXp = mobLevel * 1.0;
             AuraSkillsApi auraApi = AuraSkillsApi.get();
             SkillsUser user = auraApi.getUser(player.getUniqueId());
 
@@ -204,13 +206,14 @@ public class MobDeathListener implements Listener {
         }
     }
     
-    private ItemStack createRelic(Material mat, String name, String... lore) {
+    private ItemStack createCraftMaterial(Material mat, String name, String rarity) {
         ItemStack item = new ItemStack(mat);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             meta.setDisplayName(name);
-            meta.setLore(Arrays.asList(lore));
-            meta.getPersistentDataContainer().set(new org.bukkit.NamespacedKey("customweaponengine", "cwe_relic"), PersistentDataType.INTEGER, 1);
+            meta.setLore(Arrays.asList("§7Nguyên liệu chế tạo thần khí."));
+            org.bukkit.plugin.java.JavaPlugin plugin = org.example.core.CustomWeaponEngine.getPlugin(org.example.core.CustomWeaponEngine.class);
+            meta.getPersistentDataContainer().set(new org.bukkit.NamespacedKey(plugin, "cwe_tier"), PersistentDataType.STRING, rarity);
             item.setItemMeta(meta);
         }
         return item;

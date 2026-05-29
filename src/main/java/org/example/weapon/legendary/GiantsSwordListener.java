@@ -28,13 +28,20 @@ public class GiantsSwordListener implements Listener {
         String id = event.getItem().getItemMeta().getPersistentDataContainer().get(idKey, PersistentDataType.STRING);
         if ("cwe_giants_sword".equalsIgnoreCase(id)) {
             Player p = event.getPlayer();
+
+            // Thêm tiêu hao Mana (100) cho Giant's Slam
+            if (!ManaHelper.consumeMana(p, 100.0, (CustomWeaponEngine) org.bukkit.plugin.java.JavaPlugin.getPlugin(CustomWeaponEngine.class), "Giant's Slam")) {
+                return;
+            }
+
             p.playSound(p.getLocation(), Sound.ENTITY_IRON_GOLEM_DEATH, 1.0f, 0.5f);
             p.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, p.getLocation(), 2);
             p.getWorld().spawnParticle(Particle.BLOCK, p.getLocation(), 100, 4, 0.1, 4, 1, org.bukkit.Material.DIRT.createBlockData());
             
             for (Entity e : p.getNearbyEntities(8, 4, 8)) {
                 if (e instanceof LivingEntity && e != p) {
-                    ((LivingEntity) e).damage(100000, p);
+                    ((LivingEntity) e).setNoDamageTicks(0);
+                    ((LivingEntity) e).damage(250, p);
                 }
             }
         }

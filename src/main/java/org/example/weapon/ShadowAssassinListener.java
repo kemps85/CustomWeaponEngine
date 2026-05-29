@@ -268,4 +268,34 @@ public class ShadowAssassinListener implements Listener {
 
         sneakTasks.put(uuid, task);
     }
+
+    @EventHandler
+    public void onEntityDeath(org.bukkit.event.entity.EntityDeathEvent event) {
+        if (event.getEntity().getKiller() != null) {
+            Player p = event.getEntity().getKiller();
+            if (countAssassinPieces(p) == 4) {
+                // Heal 1% max health
+                double maxHp = p.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue();
+                p.setHealth(Math.min(maxHp, p.getHealth() + (maxHp * 0.01)));
+                
+                // Add 1 SA strength
+                try {
+                    if (Bukkit.getPluginManager().isPluginEnabled("AuraSkills")) {
+                        dev.aurelium.auraskills.api.user.SkillsUser user = dev.aurelium.auraskills.api.AuraSkillsApi.get().getUser(p.getUniqueId());
+                        if (user != null) {
+                            org.bukkit.NamespacedKey saKey = new org.bukkit.NamespacedKey(CustomWeaponEngine.getInstance(), "sa_kills");
+                            int currentKills = p.getPersistentDataContainer().getOrDefault(saKey, org.bukkit.persistence.PersistentDataType.INTEGER, 0);
+                            if (currentKills < 100) {
+                                currentKills++;
+                                p.getPersistentDataContainer().set(saKey, org.bukkit.persistence.PersistentDataType.INTEGER, currentKills);
+                                
+                                user.removeStatModifier("sa_strength");
+                                user.addStatModifier(new dev.aurelium.auraskills.api.stat.StatModifier("sa_strength", dev.aurelium.auraskills.api.stat.Stats.STRENGTH, currentKills, dev.aurelium.auraskills.api.util.AuraSkillsModifier.Operation.ADD));
+                            }
+                        }
+                    }
+                } catch (Exception e) {}
+            }
+        }
+    }
 }

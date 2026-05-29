@@ -265,7 +265,7 @@ public class AstralShepherdListener implements Listener {
             return;
         }
         
-        final double explosionDamage = playerStrength * 1.5;
+        final double explosionDamage = 250.0 + (playerStrength * 1.0);
 
         // Sinh ra cừu tại mắt người chơi
         Location spawnLoc = player.getEyeLocation();

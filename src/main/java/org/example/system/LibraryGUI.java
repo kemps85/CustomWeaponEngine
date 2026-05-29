@@ -166,15 +166,23 @@ public class LibraryGUI implements Listener {
             ItemStack leggings = config.getItemStack("items." + baseId + "_leggings");
             ItemStack boots = config.getItemStack("items." + baseId + "_boots");
             
-            if (helmet != null) player.getInventory().addItem(helmet);
-            if (chestplate != null) player.getInventory().addItem(chestplate);
-            if (leggings != null) player.getInventory().addItem(leggings);
-            if (boots != null) player.getInventory().addItem(boots);
+            if (helmet != null) player.getInventory().addItem(helmet.clone());
+            if (chestplate != null) player.getInventory().addItem(chestplate.clone());
+            if (leggings != null) player.getInventory().addItem(leggings.clone());
+            if (boots != null) player.getInventory().addItem(boots.clone());
             
             player.sendMessage("§a[CWE] Đã nhận Full Set Giáp " + baseId + "!");
         } else {
-            player.getInventory().addItem(clickedItem.clone());
-            player.sendMessage("§a[CWE] Đã lấy " + id + " thành công!");
+            // BUG FIX: Đọc lại item từ config bằng ID thay vì clone clickedItem trong GUI
+            // clickedItem trong GUI chỉ là item để hiển thị, đọc từ config mới giữ nguyên toàn bộ data (lore, stat, PDC)
+            FileConfiguration config = plugin.getLibraryConfig();
+            ItemStack fromConfig = config.getItemStack("items." + id);
+            if (fromConfig != null) {
+                player.getInventory().addItem(fromConfig.clone());
+                player.sendMessage("§a[CWE] Đã lấy " + id + " thành công!");
+            } else {
+                player.sendMessage("§c[CWE] Không tìm thấy vật phẩm " + id + " trong thư viện!");
+            }
         }
     }
 }

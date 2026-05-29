@@ -86,9 +86,17 @@ public class VanillaItemUpdater implements Listener {
 
         boolean needsUpdate = false;
 
-        // Auto-tag RARE for vanilla items without rarity
+        // Auto-tag rarity for vanilla items without rarity
         if (!pdc.has(rarityKey, PersistentDataType.STRING)) {
-            pdc.set(rarityKey, PersistentDataType.STRING, "RARE");
+            String rarity = "COMMON";
+            if (name.startsWith("IRON_") || name.startsWith("CHAINMAIL_") || name.startsWith("GOLDEN_")) {
+                rarity = "UNCOMMON";
+            } else if (name.startsWith("DIAMOND_")) {
+                rarity = "RARE";
+            } else if (name.startsWith("NETHERITE_")) {
+                rarity = "EPIC";
+            }
+            pdc.set(rarityKey, PersistentDataType.STRING, rarity);
             needsUpdate = true;
         }
 
@@ -100,6 +108,14 @@ public class VanillaItemUpdater implements Listener {
         }
 
         if (needsUpdate) {
+            // Apply rarity to lore via ItemStatsGUI
+            String rarityStr = pdc.get(rarityKey, PersistentDataType.STRING);
+            org.example.stats.ItemStatsGUI.Rarity rEnum = org.example.stats.ItemStatsGUI.Rarity.COMMON;
+            try { rEnum = org.example.stats.ItemStatsGUI.Rarity.valueOf(rarityStr); } catch (Exception ignored) {}
+            
+            boolean isWeapon = name.contains("SWORD") || name.contains("AXE") || name.contains("BOW") || name.contains("CROSSBOW") || item.getType() == Material.TRIDENT;
+            org.example.stats.ItemStatsGUI.rebuildLore(item, meta, new double[7], 0.0, rEnum, "", "", "", "", isWeapon);
+            
             item.setItemMeta(meta);
             
             // Rewrite lore and stats using EnchantManager

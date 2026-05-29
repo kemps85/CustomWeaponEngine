@@ -10,6 +10,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -33,8 +34,7 @@ public class CustomRecipeManager {
         registerShadowAssassinSet();
         registerCosmicVoidSet();
         
-        
-        
+        registerLegendarySwords();
     }
 
     private ItemStack getCraftMaterial(Material mat, String name, String rarity) {
@@ -42,8 +42,20 @@ public class CustomRecipeManager {
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             meta.setDisplayName(name);
-            meta.setUnbreakable(true);
-            meta.setLore(Arrays.asList("§7Nguyên liệu chế tạo thần khí."));
+            List<String> lore = new ArrayList<>();
+            lore.add("§7Nguyên liệu chế tạo thần khí.");
+            lore.add("§f");
+            if (name.contains("Lõi Dung Nham")) {
+                lore.add("§eNguồn gốc: §fRơi ra từ Quái vật ở Nether/Sa mạc");
+                lore.add("§fhoặc từ Sự kiện Thiên thạch Lửa (FIRE).");
+            } else if (name.contains("Băng Tinh Cổ Đại")) {
+                lore.add("§eNguồn gốc: §fRơi ra từ Quái vật ở Vùng Băng Tuyết");
+                lore.add("§fhoặc từ Sự kiện Thiên thạch Băng (ICE).");
+            } else if (name.contains("Lõi Năng Lượng Cao Cấp")) {
+                lore.add("§eNguồn gốc: §fRơi ra từ Quái vật ở The End / Deep Dark");
+                lore.add("§fhoặc từ Sự kiện Thiên thạch Hư Không (VOID).");
+            }
+            meta.setLore(lore);
             meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "cwe_tier"), PersistentDataType.STRING, rarity);
             item.setItemMeta(meta);
         }
@@ -52,29 +64,8 @@ public class CustomRecipeManager {
 
     private void registerHoaLongKiem() {
         NamespacedKey key = new NamespacedKey(plugin, "cwe_hoa_long_kiem");
-        ItemStack result = new ItemStack(Material.GOLDEN_SWORD);
-        ItemMeta meta = result.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName("§c§lHỏa Long Kiếm");
-            meta.setUnbreakable(true);
-            meta.setLore(Arrays.asList(
-                "§7Damage: §c+25",
-                "§7Strength: §c+10",
-                "§f",
-                "§6Item Ability: Hỏa Long Phẫn Nộ §e§l[RIGHT CLICK]",
-                "§7Phóng ra một quả cầu lửa khổng lồ",
-                "§7gây sát thương diện rộng.",
-                "§9Mana Cost: §30",
-                "§9Cooldown: §a1s",
-                "§f",
-                "§5§lEPIC SWORD"
-            ));
-            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "cwe_damage"), PersistentDataType.DOUBLE, 25.0);
-            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_strength"), PersistentDataType.DOUBLE, 10.0);
-            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_has_stats"), PersistentDataType.INTEGER, 1);
-            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "cwe_is_weapon"), PersistentDataType.INTEGER, 1);
-            result.setItemMeta(meta);
-        }
+        ItemStack result = ((org.example.core.CustomWeaponEngine)plugin).getLibraryConfig().getItemStack("items.cwe_hoa_long_kiem");
+        if (result == null) { result = new ItemStack(Material.GOLDEN_SWORD); }
         ShapedRecipe recipe = new ShapedRecipe(key, result);
         recipe.shape(" L ", " L ", " S ");
         recipe.setIngredient('L', new RecipeChoice.ExactChoice(getCraftMaterial(Material.MAGMA_CREAM, "§9Lõi Dung Nham", "RARE")));
@@ -85,29 +76,8 @@ public class CustomRecipeManager {
 
     private void registerIceStaff() {
         NamespacedKey key = new NamespacedKey(plugin, "cwe_ice_staff");
-        ItemStack result = new ItemStack(Material.DIAMOND_HOE);
-        ItemMeta meta = result.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName("§b§lIce Staff");
-            meta.setUnbreakable(true);
-            meta.setLore(Arrays.asList(
-                "§7Damage: §c+8",
-                "§7Intelligence: §a+50",
-                "§f",
-                "§6Item Ability: Bão Tuyết §e§l[RIGHT CLICK]",
-                "§7Bắn ra tia băng giá làm chậm",
-                "§7và sát thương kẻ địch.",
-                "§9Mana Cost: §330",
-                "§9Cooldown: §a3s",
-                "§f",
-                "§5§lEPIC WAND"
-            ));
-            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "cwe_damage"), PersistentDataType.DOUBLE, 8.0);
-            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_intelligence"), PersistentDataType.DOUBLE, 50.0);
-            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_has_stats"), PersistentDataType.INTEGER, 1);
-            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "cwe_is_weapon"), PersistentDataType.INTEGER, 1);
-            result.setItemMeta(meta);
-        }
+        ItemStack result = ((org.example.core.CustomWeaponEngine)plugin).getLibraryConfig().getItemStack("items.cwe_ice_staff");
+        if (result == null) { result = new ItemStack(Material.GOLDEN_SWORD); }
         ShapedRecipe recipe = new ShapedRecipe(key, result);
         recipe.shape(" B ", " S ", " S ");
         recipe.setIngredient('B', new RecipeChoice.ExactChoice(getCraftMaterial(Material.DRAGON_BREATH, "§5Băng Tinh Cổ Đại", "EPIC")));
@@ -118,28 +88,8 @@ public class CustomRecipeManager {
 
     private void registerThienDaoKiem() {
         NamespacedKey key = new NamespacedKey(plugin, "cwe_thien_dao_kiem");
-        ItemStack result = new ItemStack(Material.DIAMOND_SWORD);
-        ItemMeta meta = result.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName("§b§lThiên Đạo Kiếm");
-            meta.setUnbreakable(true);
-            meta.setLore(Arrays.asList(
-                "§7Damage: §c+30",
-                "§7Strength: §c+15",
-                "§f",
-                "§6Item Ability: Thiên Phạt §e§l[RIGHT CLICK]",
-                "§7Giáng tia sét xuống đầu kẻ thù.",
-                "§9Mana Cost: §30",
-                "§9Cooldown: §a1s",
-                "§f",
-                "§5§lEPIC SWORD"
-            ));
-            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "cwe_damage"), PersistentDataType.DOUBLE, 30.0);
-            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_strength"), PersistentDataType.DOUBLE, 15.0);
-            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_has_stats"), PersistentDataType.INTEGER, 1);
-            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "cwe_is_weapon"), PersistentDataType.INTEGER, 1);
-            result.setItemMeta(meta);
-        }
+        ItemStack result = ((org.example.core.CustomWeaponEngine)plugin).getLibraryConfig().getItemStack("items.cwe_thien_dao_kiem");
+        if (result == null) { result = new ItemStack(Material.GOLDEN_SWORD); }
         ShapedRecipe recipe = new ShapedRecipe(key, result);
         recipe.shape(" D ", " D ", " S ");
         recipe.setIngredient('D', Material.DIAMOND_BLOCK);
@@ -150,26 +100,8 @@ public class CustomRecipeManager {
 
     private void registerHuyetAnhKiem() {
         NamespacedKey key = new NamespacedKey(plugin, "cwe_huyet_anh_kiem");
-        ItemStack result = new ItemStack(Material.NETHERITE_SWORD);
-        ItemMeta meta = result.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName("§c§lHuyết Ảnh Kiếm");
-            meta.setUnbreakable(true);
-            meta.setLore(Arrays.asList(
-                "§7Damage: §c+35",
-                "§7Crit Damage: §c+50",
-                "§f",
-                "§6Item Ability: Huyết Lôi §e§l[RIGHT CLICK]",
-                "§7Gây sát thương sét đỏ kinh hoàng.",
-                "§f",
-                "§6§lLEGENDARY SWORD"
-            ));
-            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "cwe_damage"), PersistentDataType.DOUBLE, 35.0);
-            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_crit_damage"), PersistentDataType.DOUBLE, 50.0);
-            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_has_stats"), PersistentDataType.INTEGER, 1);
-            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "cwe_is_weapon"), PersistentDataType.INTEGER, 1);
-            result.setItemMeta(meta);
-        }
+        ItemStack result = ((org.example.core.CustomWeaponEngine)plugin).getLibraryConfig().getItemStack("items.cwe_huyet_anh_kiem");
+        if (result == null) { result = new ItemStack(Material.GOLDEN_SWORD); }
         ShapedRecipe recipe = new ShapedRecipe(key, result);
         recipe.shape(" R ", " N ", " S ");
         recipe.setIngredient('R', new RecipeChoice.ExactChoice(getCraftMaterial(Material.BEACON, "§6§lLõi Năng Lượng Cao Cấp", "LEGENDARY")));
@@ -181,26 +113,8 @@ public class CustomRecipeManager {
 
     private void registerShadowFang() {
         NamespacedKey key = new NamespacedKey(plugin, "cwe_shadow_fang");
-        ItemStack result = new ItemStack(Material.IRON_SWORD);
-        ItemMeta meta = result.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName("§9§lĐoản Đao Shadow Fang");
-            meta.setUnbreakable(true);
-            meta.setLore(Arrays.asList(
-                "§7Damage: §c+20",
-                "§7Speed: §a+20",
-                "§f",
-                "§6Item Ability: Tốc Biến §e§l[RIGHT CLICK]",
-                "§7Lướt nhanh về phía trước.",
-                "§f",
-                "§9§lRARE SWORD"
-            ));
-            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "cwe_damage"), PersistentDataType.DOUBLE, 20.0);
-            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_speed"), PersistentDataType.DOUBLE, 20.0);
-            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_has_stats"), PersistentDataType.INTEGER, 1);
-            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "cwe_is_weapon"), PersistentDataType.INTEGER, 1);
-            result.setItemMeta(meta);
-        }
+        ItemStack result = ((org.example.core.CustomWeaponEngine)plugin).getLibraryConfig().getItemStack("items.cwe_shadow_fang");
+        if (result == null) { result = new ItemStack(Material.GOLDEN_SWORD); }
         ShapedRecipe recipe = new ShapedRecipe(key, result);
         recipe.shape(" E ", " I ", " S ");
         recipe.setIngredient('E', Material.ENDER_PEARL);
@@ -212,26 +126,8 @@ public class CustomRecipeManager {
 
     private void registerFireStaff() {
         NamespacedKey key = new NamespacedKey(plugin, "cwe_fire_staff");
-        ItemStack result = new ItemStack(Material.BLAZE_ROD);
-        ItemMeta meta = result.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName("§c§lFire Staff");
-            meta.setUnbreakable(true);
-            meta.setLore(Arrays.asList(
-                "§7Damage: §c+5",
-                "§7Intelligence: §a+50",
-                "§f",
-                "§6Item Ability: Cầu Lửa §e§l[RIGHT CLICK]",
-                "§7Bắn ra quả cầu lửa đốt cháy mục tiêu.",
-                "§f",
-                "§5§lEPIC WAND"
-            ));
-            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "cwe_damage"), PersistentDataType.DOUBLE, 5.0);
-            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_intelligence"), PersistentDataType.DOUBLE, 50.0);
-            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_has_stats"), PersistentDataType.INTEGER, 1);
-            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "cwe_is_weapon"), PersistentDataType.INTEGER, 1);
-            result.setItemMeta(meta);
-        }
+        ItemStack result = ((org.example.core.CustomWeaponEngine)plugin).getLibraryConfig().getItemStack("items.cwe_fire_staff");
+        if (result == null) { result = new ItemStack(Material.GOLDEN_SWORD); }
         ShapedRecipe recipe = new ShapedRecipe(key, result);
         recipe.shape(" B ", " S ", " S ");
         recipe.setIngredient('B', Material.BLAZE_POWDER);
@@ -242,27 +138,8 @@ public class CustomRecipeManager {
 
     private void registerAstralShepherdWand() {
         NamespacedKey key = new NamespacedKey(plugin, "cwe_astral_shepherd_wand");
-        ItemStack result = new ItemStack(Material.STICK);
-        ItemMeta meta = result.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName("§5§lAstral Shepherd Wand");
-            meta.setMaxStackSize(1);
-            meta.setUnbreakable(true);
-            meta.setLore(Arrays.asList(
-                "§7Damage: §c+10",
-                "§7Intelligence: §a+100",
-                "§f",
-                "§6Item Ability: Triệu Hồi Cừu §e§l[RIGHT CLICK]",
-                "§7Gọi bầy cừu phép thuật nổ tung.",
-                "§f",
-                "§5§lEPIC WAND"
-            ));
-            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "cwe_damage"), PersistentDataType.DOUBLE, 10.0);
-            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_intelligence"), PersistentDataType.DOUBLE, 100.0);
-            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_has_stats"), PersistentDataType.INTEGER, 1);
-            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "cwe_is_weapon"), PersistentDataType.INTEGER, 1);
-            result.setItemMeta(meta);
-        }
+        ItemStack result = ((org.example.core.CustomWeaponEngine)plugin).getLibraryConfig().getItemStack("items.cwe_astral_shepherd_wand");
+        if (result == null) { result = new ItemStack(Material.GOLDEN_SWORD); }
         ShapedRecipe recipe = new ShapedRecipe(key, result);
         recipe.shape(" E ", " S ", " S ");
         recipe.setIngredient('E', new RecipeChoice.ExactChoice(getCraftMaterial(Material.BEACON, "§6§lLõi Năng Lượng Cao Cấp", "LEGENDARY")));
@@ -274,10 +151,74 @@ public class CustomRecipeManager {
     
 
     private void registerBerserkSet() {
-        createArmorRecipe("cwe_berserk_helmet", Material.IRON_HELMET, "§cBerserk Helmet", "cwe_berserk_helmet", "III", "I I", "   ", Material.IRON_BLOCK, "§6§lEPIC ARMOR", 80.0, 40.0, 0.0, 0.0, 0.0, 25.0, 0.0);
-        createArmorRecipe("cwe_berserk_chest", Material.IRON_CHESTPLATE, "§cBerserk Chestplate", "cwe_berserk_chestplate", "I I", "III", "III", Material.IRON_BLOCK, "§6§lEPIC ARMOR", 100.0, 60.0, 0.0, 0.0, 0.0, 30.0, 0.0);
-        createArmorRecipe("cwe_berserk_legs", Material.IRON_LEGGINGS, "§cBerserk Leggings", "cwe_berserk_leggings", "III", "I I", "I I", Material.IRON_BLOCK, "§6§lEPIC ARMOR", 90.0, 50.0, 0.0, 0.0, 0.0, 20.0, 0.0);
-        createArmorRecipe("cwe_berserk_boots", Material.IRON_BOOTS, "§cBerserk Boots", "cwe_berserk_boots", "   ", "I I", "I I", Material.IRON_BLOCK, "§6§lEPIC ARMOR", 70.0, 30.0, 0.0, 0.0, 0.0, 15.0, 0.0);
+        createArmorRecipe("cwe_berserk_helmet", Material.IRON_HELMET, "§9Berserk Helmet", "cwe_berserk_helmet", "III", "I I", "   ", Material.IRON_BLOCK, "§9§lRARE ARMOR", 80.0, 40.0, 0.0, 0.0, 0.0, 25.0, 0.0);
+        createArmorRecipe("cwe_berserk_chest", Material.IRON_CHESTPLATE, "§9Berserk Chestplate", "cwe_berserk_chestplate", "I I", "III", "III", Material.IRON_BLOCK, "§9§lRARE ARMOR", 100.0, 60.0, 0.0, 0.0, 0.0, 30.0, 0.0);
+        createArmorRecipe("cwe_berserk_legs", Material.IRON_LEGGINGS, "§9Berserk Leggings", "cwe_berserk_leggings", "III", "I I", "I I", Material.IRON_BLOCK, "§9§lRARE ARMOR", 90.0, 50.0, 0.0, 0.0, 0.0, 20.0, 0.0);
+        createArmorRecipe("cwe_berserk_boots", Material.IRON_BOOTS, "§9Berserk Boots", "cwe_berserk_boots", "   ", "I I", "I I", Material.IRON_BLOCK, "§9§lRARE ARMOR", 70.0, 30.0, 0.0, 0.0, 0.0, 15.0, 0.0);
+    }
+    
+    private void registerLegendarySwords() {
+        // AOTE
+        ItemStack aote = ((org.example.core.CustomWeaponEngine)plugin).getLibraryConfig().getItemStack("items.cwe_aote");
+          if (aote == null) aote = new ItemStack(Material.IRON_SWORD);
+        ShapedRecipe rAote = new ShapedRecipe(new NamespacedKey(plugin, "recipe_cwe_aote"), aote);
+        rAote.shape(" E ", " E ", " D ");
+        rAote.setIngredient('E', Material.ENDER_PEARL);
+        rAote.setIngredient('D', Material.DIAMOND);
+        try { Bukkit.removeRecipe(rAote.getKey()); } catch(Exception ignored){}
+        try { Bukkit.addRecipe(rAote); } catch(Exception ignored){}
+
+        // AOTD
+        ItemStack aotd = ((org.example.core.CustomWeaponEngine)plugin).getLibraryConfig().getItemStack("items.cwe_aotd");
+          if (aotd == null) aotd = new ItemStack(Material.IRON_SWORD);
+        ShapedRecipe rAotd = new ShapedRecipe(new NamespacedKey(plugin, "recipe_cwe_aotd"), aotd);
+        rAotd.shape(" B ", " L ", " B ");
+        rAotd.setIngredient('B', Material.DRAGON_BREATH);
+        rAotd.setIngredient('L', new RecipeChoice.ExactChoice(getCraftMaterial(Material.BEACON, "§6§lLõi Năng Lượng Cao Cấp", "LEGENDARY")));
+        try { Bukkit.removeRecipe(rAotd.getKey()); } catch(Exception ignored){}
+        try { Bukkit.addRecipe(rAotd); } catch(Exception ignored){}
+
+        // Livid Dagger
+        ItemStack livid = ((org.example.core.CustomWeaponEngine)plugin).getLibraryConfig().getItemStack("items.cwe_livid_dagger");
+          if (livid == null) livid = new ItemStack(Material.IRON_SWORD);
+        ShapedRecipe rLivid = new ShapedRecipe(new NamespacedKey(plugin, "recipe_cwe_livid_dagger"), livid);
+        rLivid.shape(" O ", " L ", " S ");
+        rLivid.setIngredient('O', Material.OBSIDIAN);
+        rLivid.setIngredient('L', new RecipeChoice.ExactChoice(getCraftMaterial(Material.MAGMA_CREAM, "§9Lõi Dung Nham", "RARE")));
+        rLivid.setIngredient('S', Material.STICK);
+        try { Bukkit.removeRecipe(rLivid.getKey()); } catch(Exception ignored){}
+        try { Bukkit.addRecipe(rLivid); } catch(Exception ignored){}
+
+        // Giant's Sword
+        ItemStack giants = ((org.example.core.CustomWeaponEngine)plugin).getLibraryConfig().getItemStack("items.cwe_giants_sword");
+          if (giants == null) giants = new ItemStack(Material.IRON_SWORD);
+        ShapedRecipe rGiants = new ShapedRecipe(new NamespacedKey(plugin, "recipe_cwe_giants_sword"), giants);
+        rGiants.shape("III", "ILI", " S ");
+        rGiants.setIngredient('I', Material.IRON_BLOCK);
+        rGiants.setIngredient('L', new RecipeChoice.ExactChoice(getCraftMaterial(Material.BEACON, "§6§lLõi Năng Lượng Cao Cấp", "LEGENDARY")));
+        rGiants.setIngredient('S', Material.STICK);
+        try { Bukkit.removeRecipe(rGiants.getKey()); } catch(Exception ignored){}
+        try { Bukkit.addRecipe(rGiants); } catch(Exception ignored){}
+
+        // Hyperion
+        ItemStack hype = ((org.example.core.CustomWeaponEngine)plugin).getLibraryConfig().getItemStack("items.cwe_hyperion");
+          if (hype == null) hype = new ItemStack(Material.IRON_SWORD);
+        ShapedRecipe rHype = new ShapedRecipe(new NamespacedKey(plugin, "recipe_cwe_hyperion"), hype);
+        rHype.shape(" L ", " L ", " S ");
+        rHype.setIngredient('L', new RecipeChoice.ExactChoice(getCraftMaterial(Material.BEACON, "§6§lLõi Năng Lượng Cao Cấp", "LEGENDARY")));
+        rHype.setIngredient('S', Material.NETHER_STAR);
+        try { Bukkit.removeRecipe(rHype.getKey()); } catch(Exception ignored){}
+        try { Bukkit.addRecipe(rHype); } catch(Exception ignored){}
+        
+        // Emerald Blade
+        ItemStack emerald = ((org.example.core.CustomWeaponEngine)plugin).getLibraryConfig().getItemStack("items.cwe_emerald_blade");
+          if (emerald == null) emerald = new ItemStack(Material.IRON_SWORD);
+        ShapedRecipe rEmerald = new ShapedRecipe(new NamespacedKey(plugin, "recipe_cwe_emerald_blade"), emerald);
+        rEmerald.shape(" E ", " E ", " S ");
+        rEmerald.setIngredient('E', Material.EMERALD_BLOCK);
+        rEmerald.setIngredient('S', Material.STICK);
+        try { Bukkit.removeRecipe(rEmerald.getKey()); } catch(Exception ignored){}
+        try { Bukkit.addRecipe(rEmerald); } catch(Exception ignored){}
     }
 
     private void registerShadowAssassinSet() {
@@ -304,35 +245,23 @@ public class CustomRecipeManager {
     }
 
     private void createArmorRecipe(String keyStr, Material mat, String name, String cweId, String r1, String r2, String r3, Material ingredient, String rarityLore, double hp, double def, double spd, double atkSpd, double critC, double str, double intel) {
+        
         NamespacedKey key = new NamespacedKey(plugin, keyStr);
-        ItemStack result = new ItemStack(mat);
-        ItemMeta meta = result.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName(name);
-            meta.setUnbreakable(true);
-            meta.setLore(Arrays.asList(
-                "§7Health: §a+" + hp,
-                "§7Defense: §a+" + def,
-                (spd > 0 ? "§7Speed: §a+" + spd : ""),
-                (atkSpd > 0 ? "§7Attack Speed: §a+" + atkSpd : ""),
-                (critC > 0 ? "§7Crit Chance: §c+" + critC + "%" : ""),
-                (str > 0 ? "§7Strength: §c+" + str : ""),
-                (intel > 0 ? "§7Intelligence: §a+" + intel : ""),
-                "§f",
-                rarityLore
-            ));
-            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_health"), PersistentDataType.DOUBLE, hp);
-            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_defense"), PersistentDataType.DOUBLE, def);
-            if(spd > 0) meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_speed"), PersistentDataType.DOUBLE, spd);
-            if(atkSpd > 0) meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_attack_speed"), PersistentDataType.DOUBLE, atkSpd);
-            if(critC > 0) meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_crit_chance"), PersistentDataType.DOUBLE, critC);
-            if(str > 0) meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_strength"), PersistentDataType.DOUBLE, str);
-            if(intel > 0) meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_intelligence"), PersistentDataType.DOUBLE, intel);
-            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_has_stats"), PersistentDataType.INTEGER, 1);
-            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "cwe_id"), PersistentDataType.STRING, cweId);
-            result.setItemMeta(meta);
+        ItemStack result = ((org.example.core.CustomWeaponEngine)plugin).getLibraryConfig().getItemStack("items." + cweId);
+        if (result == null) {
+            result = new ItemStack(mat);
+            ItemMeta meta = result.getItemMeta();
+            if (meta != null) {
+                meta.setDisplayName(name);
+                meta.setUnbreakable(true);
+                meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "cwe_id"), org.bukkit.persistence.PersistentDataType.STRING, cweId);
+                result.setItemMeta(meta);
+            }
+        } else {
+            result = result.clone();
         }
         ShapedRecipe recipe = new ShapedRecipe(key, result);
+
         recipe.shape(r1, r2, r3);
         recipe.setIngredient('I', ingredient);
         try { Bukkit.removeRecipe(key); } catch (Exception ignored) {}
@@ -340,43 +269,23 @@ public class CustomRecipeManager {
     }
 
     private void createAdvancedArmorRecipe(String keyStr, Material mat, String name, String cweId, String r1, String r2, String r3, Material baseMat, String rarityLore, double hp, double def, double spd, double atkSpd, double critC, double str, double intel) {
+        
         NamespacedKey key = new NamespacedKey(plugin, keyStr);
-        ItemStack result = new ItemStack(mat);
-        ItemMeta meta = result.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName(name);
-            meta.setUnbreakable(true);
-            meta.setLore(Arrays.asList(
-                "§7Health: §a+" + hp,
-                "§7Defense: §a+" + def,
-                (spd > 0 ? "§7Speed: §a+" + spd : ""),
-                (atkSpd > 0 ? "§7Attack Speed: §a+" + atkSpd : ""),
-                (critC > 0 ? "§7Crit Chance: §c+" + critC + "%" : ""),
-                (str > 0 ? "§7Strength: §c+" + str : ""),
-                (intel > 0 ? "§7Intelligence: §a+" + intel : ""),
-                "§f",
-                rarityLore
-            ));
-            // Add custom Set Bonus for Phantom Ranger
-            if (cweId.contains("phantom_ranger")) {
-                List<String> lore = meta.getLore();
-                lore.add(2, "§7Crit Damage: §c+25%");
-                meta.setLore(lore);
-                meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_crit_damage"), PersistentDataType.DOUBLE, 25.0);
+        ItemStack result = ((org.example.core.CustomWeaponEngine)plugin).getLibraryConfig().getItemStack("items." + cweId);
+        if (result == null) {
+            result = new ItemStack(mat);
+            ItemMeta meta = result.getItemMeta();
+            if (meta != null) {
+                meta.setDisplayName(name);
+                meta.setUnbreakable(true);
+                meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "cwe_id"), org.bukkit.persistence.PersistentDataType.STRING, cweId);
+                result.setItemMeta(meta);
             }
-            
-            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_health"), PersistentDataType.DOUBLE, hp);
-            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_defense"), PersistentDataType.DOUBLE, def);
-            if(spd > 0) meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_speed"), PersistentDataType.DOUBLE, spd);
-            if(atkSpd > 0) meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_attack_speed"), PersistentDataType.DOUBLE, atkSpd);
-            if(critC > 0) meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_crit_chance"), PersistentDataType.DOUBLE, critC);
-            if(str > 0) meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_strength"), PersistentDataType.DOUBLE, str);
-            if(intel > 0) meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_intelligence"), PersistentDataType.DOUBLE, intel);
-            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_has_stats"), PersistentDataType.INTEGER, 1);
-            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "cwe_id"), PersistentDataType.STRING, cweId);
-            result.setItemMeta(meta);
+        } else {
+            result = result.clone();
         }
         ShapedRecipe recipe = new ShapedRecipe(key, result);
+
         recipe.shape(r1, r2, r3);
         recipe.setIngredient('I', baseMat);
         recipe.setIngredient('C', new RecipeChoice.ExactChoice(getCraftMaterial(Material.DRAGON_BREATH, "§5Băng Tinh Cổ Đại", "EPIC")));

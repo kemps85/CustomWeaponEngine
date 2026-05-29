@@ -41,7 +41,7 @@ commands:
     aliases: [cwechangelog]
 
 
-  meteorite:
+  cweboss:
     description: Quan ly su kien Thien Thach
     usage: |
       /meteorite start <loai> - Kich hoat su kien (loai: FIRE | ICE | VOID)
@@ -49,7 +49,7 @@ commands:
       /meteorite status       - Xem trang thai su kien hien tai
     permission: cwe.admin
     permission-message: "\u00a7c[CWE] Ban khong co quyen dung lenh nay!"
-    aliases: [meteor]
+    aliases: [cboss]
 
   setrank:
     description: Thay doi prefix cua nguoi choi qua LuckPerms
@@ -67,6 +67,7 @@ commands:
     description: Lenh he thong thu vien cwe
     permission: cwe.admin
     permission-message: "§c[CWE] Ban khong co quyen dung lenh nay!"
+    aliases: [cwelib]
   bank:
     description: Mo khoa khoan ngan hang ca nhan Personal Bank Account
 
@@ -78,3 +79,6 @@ commands:
     permission: cwe.admin
     permission-message: "§c[CWE] Bạn không có quyền dùng lệnh này!"
     usage: /cweeco <give|set> <người_chơi> <số_tiền>
+  recipes:
+    description: Xem công thức chế tạo đồ Custom
+    aliases: [cwerecipes]

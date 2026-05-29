@@ -197,6 +197,9 @@ public class AnvilGUI implements Listener {
         String matName = block.getType().name();
         if (!matName.contains("ANVIL")) return;
 
+        // Cho phép dùng Anvil Vanilla nếu người chơi đang ngồi (Sneak)
+        if (event.getPlayer().isSneaking()) return;
+
         event.setCancelled(true);
         openCustomAnvilMenu(event.getPlayer());
     }
@@ -483,12 +486,33 @@ public class AnvilGUI implements Listener {
     }
 
     private int calculateAnvilCost(ItemStack left, ItemStack right) {
-        if (!left.hasItemMeta() || !right.hasItemMeta()) return 5;
-        PersistentDataContainer rightContainer = right.getItemMeta().getPersistentDataContainer();
+        boolean isRepairing = false;
+        if (left.hasItemMeta() && left.getItemMeta() instanceof org.bukkit.inventory.meta.Damageable) {
+            org.bukkit.inventory.meta.Damageable dmgMeta = (org.bukkit.inventory.meta.Damageable) left.getItemMeta();
+            if (dmgMeta.hasDamage() && dmgMeta.getDamage() > 0) {
+                Material lm = left.getType();
+                Material rm = right.getType();
+                if (lm == rm) {
+                    isRepairing = true;
+                } else {
+                    String name = lm.name();
+                    if (name.contains("DIAMOND") && rm == Material.DIAMOND) isRepairing = true;
+                    else if (name.contains("IRON") && rm == Material.IRON_INGOT) isRepairing = true;
+                    else if (name.contains("GOLD") && rm == Material.GOLD_INGOT) isRepairing = true;
+                    else if (name.contains("LEATHER") && rm == Material.LEATHER) isRepairing = true;
+                    else if (name.contains("NETHERITE") && rm == Material.NETHERITE_INGOT) isRepairing = true;
+                    else if (name.contains("STONE") && (rm == Material.COBBLESTONE || rm == Material.STONE)) isRepairing = true;
+                    else if (name.contains("WOODEN") && rm.name().contains("PLANKS")) isRepairing = true;
+                }
+            }
+        }
+
         boolean hasValidEnchant = false;
         int totalLevelsFound = 0;
-
-        for (CustomEnchant enchant : CustomEnchant.values()) {
+        
+        if (right.hasItemMeta()) {
+            PersistentDataContainer rightContainer = right.getItemMeta().getPersistentDataContainer();
+            for (CustomEnchant enchant : CustomEnchant.values()) {
             NamespacedKey key = new NamespacedKey(plugin, "enchant_" + enchant.getId());
             if (rightContainer.has(key, PersistentDataType.INTEGER)) {
                 if (left.getType() == Material.BOOK || left.getType() == Material.ENCHANTED_BOOK || enchant.getItemGroup().canApply(left.getType())) {
@@ -518,15 +542,58 @@ public class AnvilGUI implements Listener {
                 }
             }
         }
-
-        if (!hasValidEnchant) return -1;
-        return 10 + (totalLevelsFound * 6);
+        } // End of if (right.hasItemMeta())
+        
+        if (!hasValidEnchant && !isRepairing) return -1;
+        
+        int cost = 0;
+        if (hasValidEnchant) cost += 10 + (totalLevelsFound * 6);
+        if (isRepairing) cost += 5;
+        return cost;
     }
 
     private void applyCombinationLogic(ItemStack target, ItemStack ingredient) {
         ItemMeta targetMeta = target.getItemMeta();
+        if (targetMeta == null) return;
+        
+        // --- REPAIR LOGIC ---
+        if (targetMeta instanceof org.bukkit.inventory.meta.Damageable) {
+            org.bukkit.inventory.meta.Damageable dmgMeta = (org.bukkit.inventory.meta.Damageable) targetMeta;
+            if (dmgMeta.hasDamage() && dmgMeta.getDamage() > 0) {
+                Material lm = target.getType();
+                Material rm = ingredient.getType();
+                boolean isRepairing = false;
+                if (lm == rm) isRepairing = true;
+                else {
+                    String name = lm.name();
+                    if (name.contains("DIAMOND") && rm == Material.DIAMOND) isRepairing = true;
+                    else if (name.contains("IRON") && rm == Material.IRON_INGOT) isRepairing = true;
+                    else if (name.contains("GOLD") && rm == Material.GOLD_INGOT) isRepairing = true;
+                    else if (name.contains("LEATHER") && rm == Material.LEATHER) isRepairing = true;
+                    else if (name.contains("NETHERITE") && rm == Material.NETHERITE_INGOT) isRepairing = true;
+                    else if (name.contains("STONE") && (rm == Material.COBBLESTONE || rm == Material.STONE)) isRepairing = true;
+                    else if (name.contains("WOODEN") && rm.name().contains("PLANKS")) isRepairing = true;
+                }
+                
+                if (isRepairing) {
+                    // Calculate heal amount. Same item = full heal. Material = 25% heal per material
+                    if (lm == rm) {
+                        dmgMeta.setDamage(0);
+                    } else {
+                        int maxDmg = target.getType().getMaxDurability();
+                        int healAmount = (int) (maxDmg * 0.25);
+                        int newDmg = Math.max(0, dmgMeta.getDamage() - healAmount);
+                        dmgMeta.setDamage(newDmg);
+                    }
+                }
+            }
+        }
+        
         ItemMeta ingMeta = ingredient.getItemMeta();
-        if (targetMeta == null || ingMeta == null) return;
+        if (ingMeta == null) {
+            target.setItemMeta(targetMeta);
+            return;
+        }
 
         PersistentDataContainer targetContainer = targetMeta.getPersistentDataContainer();
         PersistentDataContainer ingContainer = ingMeta.getPersistentDataContainer();
@@ -639,11 +706,26 @@ public class AnvilGUI implements Listener {
 
         // Reset repair cost tag on result
         ItemMeta resultMeta = result.getItemMeta();
-        if (resultMeta instanceof org.bukkit.inventory.meta.Repairable) {
-            ((org.bukkit.inventory.meta.Repairable) resultMeta).setRepairCost(0);
-            event.getInventory().setRepairCost(1);
+        if (resultMeta != null) {
+            if (resultMeta instanceof org.bukkit.inventory.meta.Repairable) {
+                ((org.bukkit.inventory.meta.Repairable) resultMeta).setRepairCost(0);
+                event.getInventory().setRepairCost(1);
+            }
+            
+            // Chặn Mending và Unbreaking cho đồ Custom Unbreakable
+            if (resultMeta.isUnbreakable() && resultMeta.getPersistentDataContainer().has(new NamespacedKey(plugin, "cwe_id"), PersistentDataType.STRING)) {
+                if (resultMeta.hasEnchant(org.bukkit.enchantments.Enchantment.MENDING)) {
+                    resultMeta.removeEnchant(org.bukkit.enchantments.Enchantment.MENDING);
+                }
+                if (resultMeta.hasEnchant(org.bukkit.enchantments.Enchantment.UNBREAKING)) {
+                    resultMeta.removeEnchant(org.bukkit.enchantments.Enchantment.UNBREAKING);
+                }
+            }
+            
+            result.setItemMeta(resultMeta);
         }
-
+        event.setResult(result);
+        
         ItemMeta leftMeta = left.getItemMeta();
         ItemMeta rightMeta = right.getItemMeta();
         

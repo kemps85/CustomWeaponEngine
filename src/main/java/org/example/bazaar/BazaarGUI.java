@@ -93,6 +93,11 @@ public class BazaarGUI implements Listener, CommandExecutor {
         register(new Commodity("ENCHANTED_REDSTONE", Material.REDSTONE, "§9Enchanted Redstone", 1600, 320, 8000, 2000));
         register(new Commodity("ENCHANTED_REDSTONE_BLOCK", Material.REDSTONE_BLOCK, "§5Enchanted Block of Redstone", 14400, 2880, 72000, 250));
 
+        // 🧪 Bình Kinh Nghiệm
+        register(new Commodity("CWE_XP_BOTTLE_T1", Material.EXPERIENCE_BOTTLE, "§fExperience Bottle", 85, 20, 450, 5000));
+        register(new Commodity("CWE_XP_BOTTLE_T2", Material.EXPERIENCE_BOTTLE, "§aGrand Experience Bottle", 13500, 2800, 72000, 1000));
+        register(new Commodity("CWE_XP_BOTTLE_T3", Material.EXPERIENCE_BOTTLE, "§9Titanic Experience Bottle", 125000, 25000, 650000, 200));
+
         // 🥩 Nhóm Săn Bắn / Quái Vật
         register(new Commodity("ROTTEN_FLESH", Material.ROTTEN_FLESH, "§cThịt Thối Thô", 5, 1, 30, 15000));
         register(new Commodity("ENCHANTED_ROTTEN_FLESH", Material.ROTTEN_FLESH, "§aEnchanted Rotten Flesh", 800, 160, 4800, 1500));
@@ -247,7 +252,7 @@ public class BazaarGUI implements Listener, CommandExecutor {
         if (title.equals(mainTitle)) {
             int slot = event.getSlot();
             if (slot == 20) openCategoryMenu(player, "Farming", new String[]{"Lúa Mì", "Cà Rốt", "Khoai Tây"}, new Material[]{Material.WHEAT, Material.CARROT, Material.POTATO});
-            if (slot == 22) openCategoryMenu(player, "Mining", new String[]{"Than Đá", "Sắt Ma Thuật", "Vàng Ròng", "Kim Cương", "Ngọc Lục Bảo", "Lapis Lazuli", "Đá Đỏ"}, new Material[]{Material.COAL, Material.IRON_INGOT, Material.GOLD_INGOT, Material.DIAMOND, Material.EMERALD, Material.LAPIS_LAZULI, Material.REDSTONE});
+            if (slot == 22) openCategoryMenu(player, "Mining", new String[]{"Than Đá", "Sắt Ma Thuật", "Vàng Ròng", "Kim Cương", "Ngọc Lục Bảo", "Lapis Lazuli", "Đá Đỏ", "Bình Kinh Nghiệm"}, new Material[]{Material.COAL, Material.IRON_INGOT, Material.GOLD_INGOT, Material.DIAMOND, Material.EMERALD, Material.LAPIS_LAZULI, Material.REDSTONE, Material.EXPERIENCE_BOTTLE});
             if (slot == 24) openCategoryMenu(player, "Combat", new String[]{"Thịt Thối", "Thịt Bò", "Thịt Heo", "Thịt Gà", "Thịt Cừu", "Thịt Thỏ", "Khúc Xương", "Thuốc Súng", "Ngọc Ender", "Tơ Nhện", "Mắt Nhện", "Bóng Nhầy"}, new Material[]{Material.ROTTEN_FLESH, Material.BEEF, Material.PORKCHOP, Material.CHICKEN, Material.MUTTON, Material.RABBIT, Material.BONE, Material.GUNPOWDER, Material.ENDER_PEARL, Material.STRING, Material.SPIDER_EYE, Material.SLIME_BALL});
         } 
         else if (title.startsWith(prefixCat)) {
@@ -264,6 +269,7 @@ public class BazaarGUI implements Listener, CommandExecutor {
             if (base.equals("Ngọc Lục Bảo")) openProductVariantsMenu(player, "Ngọc Lục Bảo", new String[]{"EMERALD", "ENCHANTED_EMERALD", "ENCHANTED_EMERALD_BLOCK"});
             if (base.equals("Lapis Lazuli")) openProductVariantsMenu(player, "Lapis Lazuli", new String[]{"LAPIS_LAZULI", "ENCHANTED_LAPIS", "ENCHANTED_LAPIS_BLOCK"});
             if (base.equals("Đá Đỏ")) openProductVariantsMenu(player, "Đá Đỏ", new String[]{"REDSTONE", "ENCHANTED_REDSTONE", "ENCHANTED_REDSTONE_BLOCK"});
+            if (base.equals("Bình Kinh Nghiệm")) openProductVariantsMenu(player, "Bình Kinh Nghiệm", new String[]{"CWE_XP_BOTTLE_T1", "CWE_XP_BOTTLE_T2", "CWE_XP_BOTTLE_T3"});
             
             if (base.equals("Thịt Thối")) openProductVariantsMenu(player, "Thịt Thối", new String[]{"ROTTEN_FLESH", "ENCHANTED_ROTTEN_FLESH"});
             if (base.equals("Thịt Bò")) openProductVariantsMenu(player, "Thịt Bò", new String[]{"BEEF", "ENCHANTED_BEEF"});
@@ -295,11 +301,25 @@ public class BazaarGUI implements Listener, CommandExecutor {
         int totalCost = getBulkBuyCost(id, amount); if (econ.getBalance(player) < totalCost) { player.sendMessage("§cVí tiền Vault rỗng tuếch, đéo đủ tiền khớp lệnh!"); return; }
         econ.withdrawPlayer(player, totalCost); int stock = currentStocks.get(id); currentStocks.put(id, Math.max(1, stock - amount)); saveStockDataFile();
         ItemStack item = new ItemStack(market.get(id).mat, amount);
-        if (id.startsWith("ENCHANTED_")) {
+        if (id.startsWith("ENCHANTED_") || id.startsWith("CWE_XP_BOTTLE_")) {
             ItemMeta meta = item.getItemMeta();
             if (meta != null) {
-                meta.setDisplayName(market.get(id).name); meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "bazaar_id"), PersistentDataType.STRING, id);
-                meta.addEnchant(org.bukkit.enchantments.Enchantment.MENDING, 1, true); meta.addItemFlags(ItemFlag.HIDE_ENCHANTS); item.setItemMeta(meta);
+                meta.setDisplayName(market.get(id).name); 
+                meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "bazaar_id"), PersistentDataType.STRING, id);
+                if (id.equals("CWE_XP_BOTTLE_T1")) {
+                    meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "xp_payout"), PersistentDataType.INTEGER, 250);
+                    meta.setLore(Arrays.asList("§7Grants §3250 §7Experience", "§7when thrown.", "", "§eRight-click to throw!", "§f", "§f§lCOMMON"));
+                } else if (id.equals("CWE_XP_BOTTLE_T2")) {
+                    meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "xp_payout"), PersistentDataType.INTEGER, 3000);
+                    meta.setLore(Arrays.asList("§7Grants §33,000 §7Experience", "§7when thrown.", "", "§eRight-click to throw!", "§f", "§a§lUNCOMMON"));
+                } else if (id.equals("CWE_XP_BOTTLE_T3")) {
+                    meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "xp_payout"), PersistentDataType.INTEGER, 15000);
+                    meta.setLore(Arrays.asList("§7Grants §315,000 §7Experience", "§7when thrown.", "", "§eRight-click to throw!", "§f", "§9§lRARE"));
+                } else {
+                    meta.addEnchant(org.bukkit.enchantments.Enchantment.MENDING, 1, true); 
+                    meta.addItemFlags(ItemFlag.HIDE_ENCHANTS); 
+                }
+                item.setItemMeta(meta);
             }
         }
         for (ItemStack drop : player.getInventory().addItem(item).values()) { player.getWorld().dropItemNaturally(player.getLocation(), drop); }
@@ -321,7 +341,7 @@ public class BazaarGUI implements Listener, CommandExecutor {
         int totalSold = 0; NamespacedKey key = new NamespacedKey(plugin, "bazaar_id");
         for (ItemStack item : player.getInventory().getContents()) {
             if (item == null || item.getType() == Material.AIR) continue; boolean isMatch = false;
-            if (id.startsWith("ENCHANTED_")) {
+            if (id.startsWith("ENCHANTED_") || id.startsWith("CWE_XP_BOTTLE_")) {
                 if (item.hasItemMeta() && item.getItemMeta().getPersistentDataContainer().has(key, PersistentDataType.STRING)) {
                     if (item.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING).equals(id)) isMatch = true;
                 }
@@ -344,7 +364,7 @@ public class BazaarGUI implements Listener, CommandExecutor {
         NamespacedKey key = new NamespacedKey(plugin, "bazaar_id");
         for (ItemStack item : player.getInventory().getContents()) {
             if (item == null || item.getType() == Material.AIR) continue;
-            if (id.startsWith("ENCHANTED_")) {
+            if (id.startsWith("ENCHANTED_") || id.startsWith("CWE_XP_BOTTLE_")) {
                 if (item.hasItemMeta() && item.getItemMeta().getPersistentDataContainer().has(key, PersistentDataType.STRING)) {
                     if (item.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING).equals(id)) return item;
                 }

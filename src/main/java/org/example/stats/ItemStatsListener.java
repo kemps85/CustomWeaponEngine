@@ -403,10 +403,10 @@ public class ItemStatsListener implements Listener {
                     if (pdc.has(new NamespacedKey(plugin, "cwe_reforge"), PersistentDataType.STRING)) {
                         String prefix = pdc.get(new NamespacedKey(plugin, "cwe_reforge"), PersistentDataType.STRING);
                         String rarityStr = pdc.has(new NamespacedKey(plugin, ItemStatsGUI.KEY_RARITY), PersistentDataType.STRING)
-                                ? pdc.get(new NamespacedKey(plugin, ItemStatsGUI.KEY_RARITY), PersistentDataType.STRING) : "RARE";
+                                ? pdc.get(new NamespacedKey(plugin, ItemStatsGUI.KEY_RARITY), PersistentDataType.STRING) : "COMMON";
                         org.example.enchant.ReforgeSystem.ReforgeTier t;
                         try { t = org.example.enchant.ReforgeSystem.ReforgeTier.valueOf(rarityStr); }
-                        catch (Exception e) { t = org.example.enchant.ReforgeSystem.ReforgeTier.RARE; }
+                        catch (Exception e) { t = org.example.enchant.ReforgeSystem.ReforgeTier.COMMON; }
                         org.example.enchant.ReforgeSystem.ItemCategory cat = getCategoryForReforge(mainHand);
                         org.example.enchant.ReforgeSystem.ReforgeStat bonus =
                                 org.example.enchant.ReforgeSystem.getReforgeStat(prefix, cat, t);
@@ -419,8 +419,56 @@ public class ItemStatsListener implements Listener {
                 for (int i = 0; i < 8; i++) totals[i] += mainHandTotals[i];
             }
         }
+        
+        // --- DRAGON ARMOR SET BONUSES ---
+        String h = getArmorIdStr(player.getInventory().getHelmet());
+        String c = getArmorIdStr(player.getInventory().getChestplate());
+        String l = getArmorIdStr(player.getInventory().getLeggings());
+        String b = getArmorIdStr(player.getInventory().getBoots());
+
+        if (h != null && c != null && l != null && b != null) {
+            // Superior Dragon: +5% to all stats
+            if (h.equals("cwe_superior_helmet") && c.equals("cwe_superior_chestplate") && l.equals("cwe_superior_leggings") && b.equals("cwe_superior_boots")) {
+                for (int i = 0; i < 8; i++) totals[i] *= 1.05;
+            }
+            // Protector Dragon: +Defense based on missing HP
+            else if (h.equals("cwe_protector_helmet") && c.equals("cwe_protector_chestplate") && l.equals("cwe_protector_leggings") && b.equals("cwe_protector_boots")) {
+                org.bukkit.attribute.AttributeInstance maxHpAttr = player.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH);
+                if (maxHpAttr != null) {
+                    double missingHpPercent = 1.0 - (player.getHealth() / maxHpAttr.getValue());
+                    if (missingHpPercent > 0) {
+                        totals[4] *= (1.0 + missingHpPercent); // 4 is Defense
+                    }
+                }
+            }
+            // Young Dragon: +70 Speed when HP > 50%
+            else if (h.equals("cwe_young_helmet") && c.equals("cwe_young_chestplate") && l.equals("cwe_young_leggings") && b.equals("cwe_young_boots")) {
+                org.bukkit.attribute.AttributeInstance maxHpAttr = player.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH);
+                if (maxHpAttr != null) {
+                    double hpPercent = player.getHealth() / maxHpAttr.getValue();
+                    if (hpPercent >= 0.5) {
+                        totals[6] += 70; // 6 is Speed
+                    }
+                }
+            }
+            // Strong Dragon: Buff AOTE (+75 Strength)
+            else if (h.equals("cwe_strong_helmet") && c.equals("cwe_strong_chestplate") && l.equals("cwe_strong_leggings") && b.equals("cwe_strong_boots")) {
+                ItemStack mh = player.getInventory().getItemInMainHand();
+                if (mh != null && mh.hasItemMeta()) {
+                    String wepId = mh.getItemMeta().getPersistentDataContainer().get(new NamespacedKey(plugin, "cwe_id"), PersistentDataType.STRING);
+                    if ("cwe_aote".equalsIgnoreCase(wepId)) {
+                        totals[0] += 75; // +75 Strength if holding AOTE and wearing Strong Dragon
+                    }
+                }
+            }
+        }
 
         return totals;
+    }
+    
+    private String getArmorIdStr(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return null;
+        return item.getItemMeta().getPersistentDataContainer().get(new NamespacedKey(plugin, "cwe_id"), PersistentDataType.STRING);
     }
 
     private void addStatsFromItem(ItemStack item, double[] totals) {
@@ -448,10 +496,10 @@ public class ItemStatsListener implements Listener {
             String prefix = pdc.get(new NamespacedKey(plugin, "cwe_reforge"), PersistentDataType.STRING);
             String rarityStr = pdc.has(new NamespacedKey(plugin, ItemStatsGUI.KEY_RARITY), PersistentDataType.STRING)
                     ? pdc.get(new NamespacedKey(plugin, ItemStatsGUI.KEY_RARITY), PersistentDataType.STRING)
-                    : "RARE"; // Vanilla fallback
+                    : "COMMON"; // Vanilla fallback
             org.example.enchant.ReforgeSystem.ReforgeTier tier;
             try { tier = org.example.enchant.ReforgeSystem.ReforgeTier.valueOf(rarityStr); }
-            catch (Exception e) { tier = org.example.enchant.ReforgeSystem.ReforgeTier.RARE; }
+            catch (Exception e) { tier = org.example.enchant.ReforgeSystem.ReforgeTier.COMMON; }
 
             org.example.enchant.ReforgeSystem.ItemCategory cat = getCategoryForReforge(item);
             org.example.enchant.ReforgeSystem.ReforgeStat bonus =
@@ -555,7 +603,14 @@ public class ItemStatsListener implements Listener {
         AttributeInstance attr = player.getAttribute(Attribute.GENERIC_MAX_HEALTH);
         if (attr == null) return;
         NamespacedKey statKeyMod = new NamespacedKey(plugin, "cwe_stat_health");
-        attr.removeModifier(statKeyMod);
+        
+        // Quét và dọn sạch mọi modifier rác kẹt lại do crash server
+        for (org.bukkit.attribute.AttributeModifier mod : new java.util.ArrayList<>(attr.getModifiers())) {
+            if (mod.getName().startsWith("cwe_")) {
+                attr.removeModifier(mod);
+            }
+        }
+        
         if (healthBonus > 0) {
             attr.addModifier(new org.bukkit.attribute.AttributeModifier(
                 statKeyMod,
@@ -569,7 +624,14 @@ public class ItemStatsListener implements Listener {
         AttributeInstance speedAttr = player.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
         if (speedAttr == null) return;
         NamespacedKey statSpeedModKey = new NamespacedKey(plugin, "cwe_stat_speed");
-        speedAttr.removeModifier(statSpeedModKey);
+        
+        // Dọn sạch rác speed
+        for (org.bukkit.attribute.AttributeModifier mod : new java.util.ArrayList<>(speedAttr.getModifiers())) {
+            if (mod.getName().startsWith("cwe_")) {
+                speedAttr.removeModifier(mod);
+            }
+        }
+
         if (speedBonus > 0) {
             speedAttr.addModifier(new org.bukkit.attribute.AttributeModifier(
                 statSpeedModKey,
@@ -611,15 +673,19 @@ public class ItemStatsListener implements Listener {
             }
         }
 
-        // Reset health modifier
+        // Reset health modifier mạnh tay
         AttributeInstance attr = player.getAttribute(Attribute.GENERIC_MAX_HEALTH);
         if (attr != null) {
-            attr.removeModifier(new NamespacedKey(plugin, "cwe_stat_health"));
+            for (org.bukkit.attribute.AttributeModifier mod : new java.util.ArrayList<>(attr.getModifiers())) {
+                if (mod.getName().startsWith("cwe_")) attr.removeModifier(mod);
+            }
         }
-        // Reset speed modifier
+        // Reset speed modifier mạnh tay
         AttributeInstance speedAttr = player.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
         if (speedAttr != null) {
-            speedAttr.removeModifier(new NamespacedKey(plugin, "cwe_stat_speed"));
+            for (org.bukkit.attribute.AttributeModifier mod : new java.util.ArrayList<>(speedAttr.getModifiers())) {
+                if (mod.getName().startsWith("cwe_")) speedAttr.removeModifier(mod);
+            }
         }
         // Reset attack speed modifier
         AttributeInstance atkAttr = player.getAttribute(Attribute.GENERIC_ATTACK_SPEED);

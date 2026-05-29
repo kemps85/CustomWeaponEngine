@@ -51,7 +51,7 @@ public class ReforgeSystem implements Listener, CommandExecutor {
     // ===========================================================================
 
     public enum ItemCategory { MELEE, RANGED, ARMOR, TOOLS }
-    public enum ReforgeTier  { RARE, EPIC, LEGENDARY, MYTHIC, NONE }
+    public enum ReforgeTier  { COMMON, UNCOMMON, RARE, EPIC, LEGENDARY, MYTHIC, NONE }
 
     public static class ReforgeStat {
         public String name;
@@ -89,24 +89,32 @@ public class ReforgeSystem implements Listener, CommandExecutor {
         Map<String, Map<ReforgeTier, ReforgeStat>> melee = new LinkedHashMap<>();
 
         Map<ReforgeTier, ReforgeStat> spicy = new HashMap<>();
+        spicy.put(ReforgeTier.COMMON,    new ReforgeStat("Spicy").str(8).cc(2).cd(10));
+        spicy.put(ReforgeTier.UNCOMMON,  new ReforgeStat("Spicy").str(11).cc(3).cd(15));
         spicy.put(ReforgeTier.RARE,      new ReforgeStat("Spicy").str(15).cc(4).cd(20));
         spicy.put(ReforgeTier.EPIC,      new ReforgeStat("Spicy").str(20).cc(7).cd(25));
         spicy.put(ReforgeTier.LEGENDARY, new ReforgeStat("Spicy").str(25).cc(10).cd(35));
         melee.put("Spicy", spicy);
 
         Map<ReforgeTier, ReforgeStat> heroic = new HashMap<>();
+        heroic.put(ReforgeTier.COMMON,    new ReforgeStat("Heroic").str(8).spd(1).intel(20));
+        heroic.put(ReforgeTier.UNCOMMON,  new ReforgeStat("Heroic").str(11).spd(1).intel(30));
         heroic.put(ReforgeTier.RARE,      new ReforgeStat("Heroic").str(15).spd(1).intel(40));
         heroic.put(ReforgeTier.EPIC,      new ReforgeStat("Heroic").str(20).spd(2).intel(50));
         heroic.put(ReforgeTier.LEGENDARY, new ReforgeStat("Heroic").str(25).spd(3).intel(65));
         melee.put("Heroic", heroic);
 
         Map<ReforgeTier, ReforgeStat> legendary = new HashMap<>();
+        legendary.put(ReforgeTier.COMMON,    new ReforgeStat("Legendary").atkSpd(2).str(6).cc(2).cd(8).intel(8));
+        legendary.put(ReforgeTier.UNCOMMON,  new ReforgeStat("Legendary").atkSpd(2).str(9).cc(4).cd(11).intel(11));
         legendary.put(ReforgeTier.RARE,      new ReforgeStat("Legendary").atkSpd(3).str(12).cc(5).cd(15).intel(15));
         legendary.put(ReforgeTier.EPIC,      new ReforgeStat("Legendary").atkSpd(5).str(15).cc(7).cd(20).intel(20));
         legendary.put(ReforgeTier.LEGENDARY, new ReforgeStat("Legendary").atkSpd(7).str(20).cc(9).cd(28).intel(25));
         melee.put("Legendary", legendary);
 
         Map<ReforgeTier, ReforgeStat> sharp = new HashMap<>();
+        sharp.put(ReforgeTier.COMMON,    new ReforgeStat("Sharp").cc(6).cd(10));
+        sharp.put(ReforgeTier.UNCOMMON,  new ReforgeStat("Sharp").cc(9).cd(15));
         sharp.put(ReforgeTier.RARE,      new ReforgeStat("Sharp").cc(12).cd(20));
         sharp.put(ReforgeTier.EPIC,      new ReforgeStat("Sharp").cc(14).cd(25));
         sharp.put(ReforgeTier.LEGENDARY, new ReforgeStat("Sharp").cc(17).cd(30));
@@ -118,16 +126,77 @@ public class ReforgeSystem implements Listener, CommandExecutor {
         Map<String, Map<ReforgeTier, ReforgeStat>> ranged = new LinkedHashMap<>();
 
         Map<ReforgeTier, ReforgeStat> rapid = new HashMap<>();
+        rapid.put(ReforgeTier.COMMON,    new ReforgeStat("Rapid").str(5).cd(12));
+        rapid.put(ReforgeTier.UNCOMMON,  new ReforgeStat("Rapid").str(8).cd(19));
         rapid.put(ReforgeTier.RARE,      new ReforgeStat("Rapid").str(10).cd(25));
         rapid.put(ReforgeTier.EPIC,      new ReforgeStat("Rapid").str(15).cd(35));
         rapid.put(ReforgeTier.LEGENDARY, new ReforgeStat("Rapid").str(22).cd(50));
         ranged.put("Rapid", rapid);
 
         Map<ReforgeTier, ReforgeStat> unreal = new HashMap<>();
+        unreal.put(ReforgeTier.COMMON,    new ReforgeStat("Unreal").atkSpd(2).str(4).cc(4).cd(8));
+        unreal.put(ReforgeTier.UNCOMMON,  new ReforgeStat("Unreal").atkSpd(2).str(6).cc(6).cd(13));
         unreal.put(ReforgeTier.RARE,      new ReforgeStat("Unreal").atkSpd(3).str(8).cc(8).cd(17));
         unreal.put(ReforgeTier.EPIC,      new ReforgeStat("Unreal").atkSpd(5).str(11).cc(10).cd(22));
         unreal.put(ReforgeTier.LEGENDARY, new ReforgeStat("Unreal").atkSpd(7).str(15).cc(13).cd(29));
         ranged.put("Unreal", unreal);
+
+        
+        Map<ReforgeTier, ReforgeStat> awkward = new HashMap<>();
+        awkward.put(ReforgeTier.COMMON, new ReforgeStat("Awkward").cc(10).cd(5).intel(5));
+        awkward.put(ReforgeTier.UNCOMMON, new ReforgeStat("Awkward").cc(12).cd(8).intel(8));
+        awkward.put(ReforgeTier.RARE, new ReforgeStat("Awkward").cc(15).cd(10).intel(10));
+        awkward.put(ReforgeTier.EPIC, new ReforgeStat("Awkward").cc(20).cd(15).intel(15));
+        awkward.put(ReforgeTier.LEGENDARY, new ReforgeStat("Awkward").cc(25).cd(20).intel(20));
+        ranged.put("Awkward", awkward);
+
+        Map<ReforgeTier, ReforgeStat> rich = new HashMap<>();
+        rich.put(ReforgeTier.COMMON, new ReforgeStat("Rich").intel(10));
+        rich.put(ReforgeTier.UNCOMMON, new ReforgeStat("Rich").intel(15));
+        rich.put(ReforgeTier.RARE, new ReforgeStat("Rich").intel(20));
+        rich.put(ReforgeTier.EPIC, new ReforgeStat("Rich").intel(30));
+        rich.put(ReforgeTier.LEGENDARY, new ReforgeStat("Rich").intel(40));
+        ranged.put("Rich", rich);
+
+        Map<ReforgeTier, ReforgeStat> fine = new HashMap<>();
+        fine.put(ReforgeTier.COMMON, new ReforgeStat("Fine").str(3).cc(3).cd(3));
+        fine.put(ReforgeTier.UNCOMMON, new ReforgeStat("Fine").str(5).cc(4).cd(5));
+        fine.put(ReforgeTier.RARE, new ReforgeStat("Fine").str(7).cc(5).cd(8));
+        fine.put(ReforgeTier.EPIC, new ReforgeStat("Fine").str(10).cc(8).cd(12));
+        fine.put(ReforgeTier.LEGENDARY, new ReforgeStat("Fine").str(15).cc(10).cd(18));
+        ranged.put("Fine", fine);
+
+        Map<ReforgeTier, ReforgeStat> neat = new HashMap<>();
+        neat.put(ReforgeTier.COMMON, new ReforgeStat("Neat").cd(10));
+        neat.put(ReforgeTier.UNCOMMON, new ReforgeStat("Neat").cd(14));
+        neat.put(ReforgeTier.RARE, new ReforgeStat("Neat").cd(18));
+        neat.put(ReforgeTier.EPIC, new ReforgeStat("Neat").cd(24));
+        neat.put(ReforgeTier.LEGENDARY, new ReforgeStat("Neat").cd(30));
+        ranged.put("Neat", neat);
+
+        Map<ReforgeTier, ReforgeStat> hasty = new HashMap<>();
+        hasty.put(ReforgeTier.COMMON, new ReforgeStat("Hasty").str(3).cc(15));
+        hasty.put(ReforgeTier.UNCOMMON, new ReforgeStat("Hasty").str(5).cc(20));
+        hasty.put(ReforgeTier.RARE, new ReforgeStat("Hasty").str(7).cc(25));
+        hasty.put(ReforgeTier.EPIC, new ReforgeStat("Hasty").str(10).cc(35));
+        hasty.put(ReforgeTier.LEGENDARY, new ReforgeStat("Hasty").str(15).cc(50));
+        ranged.put("Hasty", hasty);
+
+        Map<ReforgeTier, ReforgeStat> grand = new HashMap<>();
+        grand.put(ReforgeTier.COMMON, new ReforgeStat("Grand").str(15));
+        grand.put(ReforgeTier.UNCOMMON, new ReforgeStat("Grand").str(20));
+        grand.put(ReforgeTier.RARE, new ReforgeStat("Grand").str(25));
+        grand.put(ReforgeTier.EPIC, new ReforgeStat("Grand").str(40));
+        grand.put(ReforgeTier.LEGENDARY, new ReforgeStat("Grand").str(50));
+        ranged.put("Grand", grand);
+
+        Map<ReforgeTier, ReforgeStat> deadly = new HashMap<>();
+        deadly.put(ReforgeTier.COMMON, new ReforgeStat("Deadly").cc(5).cd(10));
+        deadly.put(ReforgeTier.UNCOMMON, new ReforgeStat("Deadly").cc(7).cd(15));
+        deadly.put(ReforgeTier.RARE, new ReforgeStat("Deadly").cc(10).cd(20));
+        deadly.put(ReforgeTier.EPIC, new ReforgeStat("Deadly").cc(14).cd(28));
+        deadly.put(ReforgeTier.LEGENDARY, new ReforgeStat("Deadly").cc(18).cd(35));
+        ranged.put("Deadly", deadly);
 
         REFORGE_MAP.put(ItemCategory.RANGED, ranged);
 
@@ -135,42 +204,56 @@ public class ReforgeSystem implements Listener, CommandExecutor {
         Map<String, Map<ReforgeTier, ReforgeStat>> armor = new LinkedHashMap<>();
 
         Map<ReforgeTier, ReforgeStat> fierce = new HashMap<>();
+        fierce.put(ReforgeTier.COMMON,    new ReforgeStat("Fierce").str(3).cc(2).cd(5));
+        fierce.put(ReforgeTier.UNCOMMON,  new ReforgeStat("Fierce").str(4).cc(3).cd(8));
         fierce.put(ReforgeTier.RARE,      new ReforgeStat("Fierce").str(6).cc(4).cd(10));
         fierce.put(ReforgeTier.EPIC,      new ReforgeStat("Fierce").str(8).cc(7).cd(14));
         fierce.put(ReforgeTier.LEGENDARY, new ReforgeStat("Fierce").str(10).cc(10).cd(18));
         armor.put("Fierce", fierce);
 
         Map<ReforgeTier, ReforgeStat> titanic = new HashMap<>();
+        titanic.put(ReforgeTier.COMMON,    new ReforgeStat("Titanic").hp(8).def(8));
+        titanic.put(ReforgeTier.UNCOMMON,  new ReforgeStat("Titanic").hp(11).def(11));
         titanic.put(ReforgeTier.RARE,      new ReforgeStat("Titanic").hp(15).def(15));
         titanic.put(ReforgeTier.EPIC,      new ReforgeStat("Titanic").hp(25).def(25));
         titanic.put(ReforgeTier.LEGENDARY, new ReforgeStat("Titanic").hp(40).def(40));
         armor.put("Titanic", titanic);
 
         Map<ReforgeTier, ReforgeStat> wise = new HashMap<>();
+        wise.put(ReforgeTier.COMMON,    new ReforgeStat("Wise").hp(4).intel(25));
+        wise.put(ReforgeTier.UNCOMMON,  new ReforgeStat("Wise").hp(6).intel(38));
         wise.put(ReforgeTier.RARE,      new ReforgeStat("Wise").hp(8).intel(50));
         wise.put(ReforgeTier.EPIC,      new ReforgeStat("Wise").hp(12).intel(75));
         wise.put(ReforgeTier.LEGENDARY, new ReforgeStat("Wise").hp(15).intel(100));
         armor.put("Wise", wise);
 
         Map<ReforgeTier, ReforgeStat> pure = new HashMap<>();
+        pure.put(ReforgeTier.COMMON,    new ReforgeStat("Pure").cd(4));
+        pure.put(ReforgeTier.UNCOMMON,  new ReforgeStat("Pure").cd(6));
         pure.put(ReforgeTier.RARE,      new ReforgeStat("Pure").cd(8));
         pure.put(ReforgeTier.EPIC,      new ReforgeStat("Pure").cd(12));
         pure.put(ReforgeTier.LEGENDARY, new ReforgeStat("Pure").cd(18));
         armor.put("Pure", pure);
 
         Map<ReforgeTier, ReforgeStat> perfect = new HashMap<>();
+        perfect.put(ReforgeTier.COMMON,    new ReforgeStat("Perfect").str(2).def(4));
+        perfect.put(ReforgeTier.UNCOMMON,  new ReforgeStat("Perfect").str(4).def(6));
         perfect.put(ReforgeTier.RARE,      new ReforgeStat("Perfect").str(5).def(8));
         perfect.put(ReforgeTier.EPIC,      new ReforgeStat("Perfect").str(5).def(12));
         perfect.put(ReforgeTier.LEGENDARY, new ReforgeStat("Perfect").str(5).def(18));
         armor.put("Perfect", perfect);
 
         Map<ReforgeTier, ReforgeStat> clean = new HashMap<>();
+        clean.put(ReforgeTier.COMMON,    new ReforgeStat("Clean").hp(5).spd(1));
+        clean.put(ReforgeTier.UNCOMMON,  new ReforgeStat("Clean").hp(8).spd(1));
         clean.put(ReforgeTier.RARE,      new ReforgeStat("Clean").hp(10).spd(1));
         clean.put(ReforgeTier.EPIC,      new ReforgeStat("Clean").hp(18).spd(2));
         clean.put(ReforgeTier.LEGENDARY, new ReforgeStat("Clean").hp(30).spd(3));
         armor.put("Clean", clean);
 
         Map<ReforgeTier, ReforgeStat> light = new HashMap<>();
+        light.put(ReforgeTier.COMMON,    new ReforgeStat("Light").spd(1).atkSpd(1));
+        light.put(ReforgeTier.UNCOMMON,  new ReforgeStat("Light").spd(2).atkSpd(2));
         light.put(ReforgeTier.RARE,      new ReforgeStat("Light").spd(2).atkSpd(2));
         light.put(ReforgeTier.EPIC,      new ReforgeStat("Light").spd(3).atkSpd(3));
         light.put(ReforgeTier.LEGENDARY, new ReforgeStat("Light").spd(5).atkSpd(5));
@@ -182,6 +265,8 @@ public class ReforgeSystem implements Listener, CommandExecutor {
         Map<String, Map<ReforgeTier, ReforgeStat>> tools = new LinkedHashMap<>();
 
         Map<ReforgeTier, ReforgeStat> refined = new HashMap<>();
+        refined.put(ReforgeTier.COMMON,    new ReforgeStat("Refined").def(2).intel(2));
+        refined.put(ReforgeTier.UNCOMMON,  new ReforgeStat("Refined").def(4).intel(4));
         refined.put(ReforgeTier.RARE,      new ReforgeStat("Refined").def(5).intel(5));
         refined.put(ReforgeTier.EPIC,      new ReforgeStat("Refined").def(8).intel(10));
         refined.put(ReforgeTier.LEGENDARY, new ReforgeStat("Refined").def(12).intel(15));
@@ -197,18 +282,24 @@ public class ReforgeSystem implements Listener, CommandExecutor {
         Map<String, Map<ReforgeTier, ReforgeStat>> exArmor = new LinkedHashMap<>();
 
         Map<ReforgeTier, ReforgeStat> ancient = new HashMap<>();
+        ancient.put(ReforgeTier.COMMON,    new ReforgeStat("Ancient").str(4).cd(3).def(5));
+        ancient.put(ReforgeTier.UNCOMMON,  new ReforgeStat("Ancient").str(6).cd(4).def(8));
         ancient.put(ReforgeTier.RARE,      new ReforgeStat("Ancient").str(8).cd(6).def(10));
         ancient.put(ReforgeTier.EPIC,      new ReforgeStat("Ancient").str(12).cd(9).def(15));
         ancient.put(ReforgeTier.LEGENDARY, new ReforgeStat("Ancient").str(18).cd(12).def(25));
         exArmor.put("Ancient", ancient);
 
         Map<ReforgeTier, ReforgeStat> necrotic = new HashMap<>();
+        necrotic.put(ReforgeTier.COMMON,    new ReforgeStat("Necrotic").intel(55));
+        necrotic.put(ReforgeTier.UNCOMMON,  new ReforgeStat("Necrotic").intel(82));
         necrotic.put(ReforgeTier.RARE,      new ReforgeStat("Necrotic").intel(110));
         necrotic.put(ReforgeTier.EPIC,      new ReforgeStat("Necrotic").intel(150));
         necrotic.put(ReforgeTier.LEGENDARY, new ReforgeStat("Necrotic").intel(200));
         exArmor.put("Necrotic", necrotic);
 
         Map<ReforgeTier, ReforgeStat> giant = new HashMap<>();
+        giant.put(ReforgeTier.COMMON,    new ReforgeStat("Giant").hp(25));
+        giant.put(ReforgeTier.UNCOMMON,  new ReforgeStat("Giant").hp(38));
         giant.put(ReforgeTier.RARE,      new ReforgeStat("Giant").hp(50));
         giant.put(ReforgeTier.EPIC,      new ReforgeStat("Giant").hp(90));
         giant.put(ReforgeTier.LEGENDARY, new ReforgeStat("Giant").hp(140));
@@ -216,16 +307,50 @@ public class ReforgeSystem implements Listener, CommandExecutor {
 
         EXCLUSIVE_MAP.put(ItemCategory.ARMOR, exArmor);
 
+        
+        // --- RANGED EXCLUSIVE ---
+        Map<String, Map<ReforgeTier, ReforgeStat>> exRanged = new LinkedHashMap<>();
+
+        Map<ReforgeTier, ReforgeStat> precise = new HashMap<>();
+        precise.put(ReforgeTier.COMMON, new ReforgeStat("Precise").str(5).cc(4).cd(10));
+        precise.put(ReforgeTier.UNCOMMON, new ReforgeStat("Precise").str(8).cc(6).cd(15));
+        precise.put(ReforgeTier.RARE, new ReforgeStat("Precise").str(12).cc(8).cd(20));
+        precise.put(ReforgeTier.EPIC, new ReforgeStat("Precise").str(18).cc(10).cd(28));
+        precise.put(ReforgeTier.LEGENDARY, new ReforgeStat("Precise").str(25).cc(12).cd(35));
+        exRanged.put("Precise", precise);
+
+        Map<ReforgeTier, ReforgeStat> spiritual = new HashMap<>();
+        spiritual.put(ReforgeTier.COMMON, new ReforgeStat("Spiritual").str(8).cc(4).cd(12));
+        spiritual.put(ReforgeTier.UNCOMMON, new ReforgeStat("Spiritual").str(12).cc(6).cd(18));
+        spiritual.put(ReforgeTier.RARE, new ReforgeStat("Spiritual").str(18).cc(8).cd(24));
+        spiritual.put(ReforgeTier.EPIC, new ReforgeStat("Spiritual").str(25).cc(10).cd(32));
+        spiritual.put(ReforgeTier.LEGENDARY, new ReforgeStat("Spiritual").str(32).cc(12).cd(40));
+        exRanged.put("Spiritual", spiritual);
+
+        Map<ReforgeTier, ReforgeStat> headstrong = new HashMap<>();
+        headstrong.put(ReforgeTier.COMMON, new ReforgeStat("Headstrong").str(15).cd(15));
+        headstrong.put(ReforgeTier.UNCOMMON, new ReforgeStat("Headstrong").str(20).cd(20));
+        headstrong.put(ReforgeTier.RARE, new ReforgeStat("Headstrong").str(25).cd(25));
+        headstrong.put(ReforgeTier.EPIC, new ReforgeStat("Headstrong").str(35).cd(35));
+        headstrong.put(ReforgeTier.LEGENDARY, new ReforgeStat("Headstrong").str(45).cd(45));
+        exRanged.put("Headstrong", headstrong);
+
+        EXCLUSIVE_MAP.put(ItemCategory.RANGED, exRanged);
+
         // --- MELEE EXCLUSIVE ---
         Map<String, Map<ReforgeTier, ReforgeStat>> exMelee = new LinkedHashMap<>();
 
         Map<ReforgeTier, ReforgeStat> fabled = new HashMap<>();
+        fabled.put(ReforgeTier.COMMON,    new ReforgeStat("Fabled").str(15).cd(8));
+        fabled.put(ReforgeTier.UNCOMMON,  new ReforgeStat("Fabled").str(22).cd(11));
         fabled.put(ReforgeTier.RARE,      new ReforgeStat("Fabled").str(30).cd(15));
         fabled.put(ReforgeTier.EPIC,      new ReforgeStat("Fabled").str(40).cd(20));
         fabled.put(ReforgeTier.LEGENDARY, new ReforgeStat("Fabled").str(50).cd(25));
         exMelee.put("Fabled", fabled);
 
         Map<ReforgeTier, ReforgeStat> withered = new HashMap<>();
+        withered.put(ReforgeTier.COMMON,    new ReforgeStat("Withered").str(8).lvlMult(0.4));
+        withered.put(ReforgeTier.UNCOMMON,  new ReforgeStat("Withered").str(11).lvlMult(0.6));
         withered.put(ReforgeTier.RARE,      new ReforgeStat("Withered").str(15).lvlMult(0.8));
         withered.put(ReforgeTier.EPIC,      new ReforgeStat("Withered").str(20).lvlMult(1.0));
         withered.put(ReforgeTier.LEGENDARY, new ReforgeStat("Withered").str(25).lvlMult(1.2));
@@ -236,6 +361,8 @@ public class ReforgeSystem implements Listener, CommandExecutor {
         // --- EXCLUSIVE NEW POOLS (For Fragments) ---
         // Basic / Rare exclusive
         Map<ReforgeTier, ReforgeStat> reinforced = new HashMap<>();
+        reinforced.put(ReforgeTier.COMMON,    new ReforgeStat("Reinforced").hp(15).def(10));
+        reinforced.put(ReforgeTier.UNCOMMON,  new ReforgeStat("Reinforced").hp(22).def(15));
         reinforced.put(ReforgeTier.RARE, new ReforgeStat("Reinforced").hp(30).def(20));
         reinforced.put(ReforgeTier.EPIC, new ReforgeStat("Reinforced").hp(50).def(30));
         reinforced.put(ReforgeTier.LEGENDARY, new ReforgeStat("Reinforced").hp(70).def(45));
@@ -243,6 +370,8 @@ public class ReforgeSystem implements Listener, CommandExecutor {
         exArmor.put("Reinforced", reinforced);
         
         Map<ReforgeTier, ReforgeStat> magnetic = new HashMap<>();
+        magnetic.put(ReforgeTier.COMMON,    new ReforgeStat("Magnetic").cd(10));
+        magnetic.put(ReforgeTier.UNCOMMON,  new ReforgeStat("Magnetic").cd(15));
         magnetic.put(ReforgeTier.RARE, new ReforgeStat("Magnetic").cd(20));
         magnetic.put(ReforgeTier.EPIC, new ReforgeStat("Magnetic").cd(30));
         magnetic.put(ReforgeTier.LEGENDARY, new ReforgeStat("Magnetic").cd(45));
@@ -250,6 +379,8 @@ public class ReforgeSystem implements Listener, CommandExecutor {
         
         // Epic / Legendary exclusive
         Map<ReforgeTier, ReforgeStat> demonic = new HashMap<>();
+        demonic.put(ReforgeTier.COMMON,    new ReforgeStat("Demonic").str(20).cd(15));
+        demonic.put(ReforgeTier.UNCOMMON,  new ReforgeStat("Demonic").str(30).cd(22));
         demonic.put(ReforgeTier.RARE, new ReforgeStat("Demonic").str(40).cd(30));
         demonic.put(ReforgeTier.EPIC, new ReforgeStat("Demonic").str(60).cd(45));
         demonic.put(ReforgeTier.LEGENDARY, new ReforgeStat("Demonic").str(90).cd(60));
@@ -257,6 +388,8 @@ public class ReforgeSystem implements Listener, CommandExecutor {
         exMelee.put("Demonic", demonic);
         
         Map<ReforgeTier, ReforgeStat> aegis = new HashMap<>();
+        aegis.put(ReforgeTier.COMMON,    new ReforgeStat("Aegis").hp(50).def(40));
+        aegis.put(ReforgeTier.UNCOMMON,  new ReforgeStat("Aegis").hp(75).def(60));
         aegis.put(ReforgeTier.RARE, new ReforgeStat("Aegis").hp(100).def(80));
         aegis.put(ReforgeTier.EPIC, new ReforgeStat("Aegis").hp(150).def(120));
         aegis.put(ReforgeTier.LEGENDARY, new ReforgeStat("Aegis").hp(220).def(180));
@@ -570,7 +703,7 @@ public class ReforgeSystem implements Listener, CommandExecutor {
 
         ReforgeTier tier = resolveTier(item, pdc);
         if (tier == ReforgeTier.NONE) {
-            player.sendMessage("§cChỉ vật phẩm RARE, EPIC, LEGENDARY mới có thể trùng đúc!");
+            player.sendMessage("§cChỉ vật phẩm COMMON, UNCOMMON, RARE, EPIC, LEGENDARY mới có thể trùng đúc!");
             return;
         }
 
@@ -618,7 +751,7 @@ public class ReforgeSystem implements Listener, CommandExecutor {
 
         ReforgeTier tier = resolveTier(item, pdc);
         if (tier == ReforgeTier.NONE) {
-            player.sendMessage("§cChỉ vật phẩm RARE, EPIC, LEGENDARY mới có thể trùng đúc!");
+            player.sendMessage("§cChỉ vật phẩm COMMON, UNCOMMON, RARE, EPIC, LEGENDARY mới có thể trùng đúc!");
             return;
         }
 
@@ -664,11 +797,14 @@ public class ReforgeSystem implements Listener, CommandExecutor {
     private String rollTieredExclusivePrefix(ItemCategory cat, String tier) {
         Random r = new Random();
         if ("MYTHIC".equals(tier)) {
-            if (cat == ItemCategory.MELEE) return "Cosmic";
+            if (cat == ItemCategory.MELEE || cat == ItemCategory.RANGED) return "Cosmic";
             return "Divine";
         } else if ("EPIC".equals(tier) || "LEGENDARY".equals(tier)) {
             if (cat == ItemCategory.MELEE) {
                 String[] arr = {"Demonic", "Fabled", "Withered"};
+                return arr[r.nextInt(arr.length)];
+            } else if (cat == ItemCategory.RANGED) {
+                String[] arr = {"Precise", "Spiritual", "Headstrong"};
                 return arr[r.nextInt(arr.length)];
             }
             String[] arr = {"Aegis", "Necrotic", "Giant"};
@@ -676,6 +812,9 @@ public class ReforgeSystem implements Listener, CommandExecutor {
         } else {
             if (cat == ItemCategory.MELEE) {
                 String[] arr = {"Fabled", "Withered"};
+                return arr[r.nextInt(arr.length)];
+            } else if (cat == ItemCategory.RANGED) {
+                String[] arr = {"Precise", "Spiritual"};
                 return arr[r.nextInt(arr.length)];
             }
             String[] arr = {"Reinforced", "Ancient"};
@@ -692,28 +831,26 @@ public class ReforgeSystem implements Listener, CommandExecutor {
      * Trả về NONE nếu item không đủ điều kiện.
      */
     private ReforgeTier resolveTier(ItemStack item, PersistentDataContainer pdc) {
-        // Nếu item CÓ PDC custom stats → đọc rarity từ PDC
-        if (pdc.has(new NamespacedKey(plugin, ItemStatsGUI.KEY_HAS_STATS), PersistentDataType.INTEGER)) {
-            String rarityStr = pdc.has(new NamespacedKey(plugin, ItemStatsGUI.KEY_RARITY), PersistentDataType.STRING)
-                    ? pdc.get(new NamespacedKey(plugin, ItemStatsGUI.KEY_RARITY), PersistentDataType.STRING)
-                    : "NONE";
+        NamespacedKey rarityKey = new NamespacedKey(plugin, ItemStatsGUI.KEY_RARITY);
+        if (pdc.has(rarityKey, PersistentDataType.STRING)) {
+            String rarityStr = pdc.get(rarityKey, PersistentDataType.STRING);
             try {
                 ReforgeTier t = ReforgeTier.valueOf(rarityStr);
-                if (t == ReforgeTier.RARE || t == ReforgeTier.EPIC || t == ReforgeTier.LEGENDARY) return t;
+                if (t != ReforgeTier.NONE && t != ReforgeTier.MYTHIC) return t;
                 return ReforgeTier.NONE;
             } catch (Exception e) {
                 return ReforgeTier.NONE;
             }
         }
 
-        // Item Vanilla (không có PDC) → fallback RARE nếu là vũ khí/giáp/công cụ hợp lệ
+        // Nếu hoàn toàn chưa có Rarity (chưa được VanillaItemUpdater chạm vào)
         String name = item.getType().name();
         boolean isEquip = name.contains("SWORD") || name.contains("AXE") || name.contains("BOW") ||
                           name.contains("HELMET") || name.contains("CHESTPLATE") ||
                           name.contains("LEGGINGS") || name.contains("BOOTS") ||
                           name.contains("PICKAXE") || name.contains("HOE") || name.contains("SHOVEL") ||
                           item.getType() == Material.STICK || item.getType() == Material.BLAZE_ROD;
-        return isEquip ? ReforgeTier.RARE : ReforgeTier.NONE;
+        return isEquip ? ReforgeTier.COMMON : ReforgeTier.NONE;
     }
 
     private ItemCategory getCategory(ItemStack item, PersistentDataContainer pdc) {
@@ -907,7 +1044,7 @@ public class ReforgeSystem implements Listener, CommandExecutor {
             else          newLore.add(rarityLabel + " " + getArmorOrVanillaTypeName(item));
         } else {
             // Vanilla item fallback: luôn hiển thị RARE + loại item
-            newLore.add("§9§lRARE " + resolveVanillaTypeName(item));
+            newLore.add("§f§lCOMMON " + resolveVanillaTypeName(item));
         }
 
         meta.setLore(newLore);
