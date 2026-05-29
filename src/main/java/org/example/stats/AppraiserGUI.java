@@ -266,9 +266,17 @@ public class AppraiserGUI implements Listener {
             for (String r : plugin.getConfig().getConfigurationSection("appraiser.pools." + type).getKeys(false)) {
                 pools.put(r, plugin.getConfig().getInt("appraiser.pools." + type + "." + r));
             }
+        } else if (plugin.getConfig().contains("appraiser.pools.default")) {
+            for (String r : plugin.getConfig().getConfigurationSection("appraiser.pools.default").getKeys(false)) {
+                pools.put(r, plugin.getConfig().getInt("appraiser.pools.default." + r));
+            }
         } else {
-            pools.put("COMMON", plugin.getConfig().getInt("appraiser.pools.default.COMMON", 70));
-            pools.put("UNCOMMON", plugin.getConfig().getInt("appraiser.pools.default.UNCOMMON", 30));
+            pools.put("COMMON", 50);
+            pools.put("UNCOMMON", 25);
+            pools.put("RARE", 15);
+            pools.put("EPIC", 7);
+            pools.put("LEGENDARY", 2);
+            pools.put("MYTHIC", 1);
         }
 
         int totalWeight = 0;
