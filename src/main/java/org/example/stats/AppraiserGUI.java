@@ -196,6 +196,22 @@ public class AppraiserGUI implements Listener {
                 NamespacedKey defKey = new NamespacedKey(plugin, ItemStatsGUI.KEY_DEFENSE);
                 NamespacedKey hpKey = new NamespacedKey(plugin, ItemStatsGUI.KEY_HEALTH);
 
+                // Add base stats for raw vanilla items if they don't exist yet
+                if (!pdc.has(dmgKey, PersistentDataType.DOUBLE) && !pdc.has(defKey, PersistentDataType.DOUBLE)) {
+                    double base = 20.0;
+                    if (itemType.contains("DIAMOND_")) base = 50.0;
+                    if (itemType.contains("NETHERITE_")) base = 80.0;
+                    if (itemType.contains("IRON_")) base = 30.0;
+                    
+                    if (itemType.contains("SWORD") || itemType.contains("AXE") || itemType.contains("BOW") || itemType.contains("CROSSBOW")) {
+                        pdc.set(dmgKey, PersistentDataType.DOUBLE, base);
+                        pdc.set(strKey, PersistentDataType.DOUBLE, base / 2);
+                    } else if (itemType.contains("HELMET") || itemType.contains("CHESTPLATE") || itemType.contains("LEGGINGS") || itemType.contains("BOOTS")) {
+                        pdc.set(defKey, PersistentDataType.DOUBLE, base / 1.5);
+                        pdc.set(hpKey, PersistentDataType.DOUBLE, base);
+                    }
+                }
+
                 if (pdc.has(dmgKey, PersistentDataType.DOUBLE)) {
                     double val = pdc.get(dmgKey, PersistentDataType.DOUBLE);
                     pdc.set(dmgKey, PersistentDataType.DOUBLE, val * multiplier);
