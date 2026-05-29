@@ -51,7 +51,10 @@ public class AppraiserGUI implements Listener {
         }
 
         updateButton(inv, null);
-        Bukkit.getScheduler().runTaskLater(plugin, () -> player.openInventory(inv), 1L);
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            player.closeInventory();
+            player.openInventory(inv);
+        }, 3L);
     }
 
     private void updateButton(Inventory inv, ItemStack itemToAppraise) {
