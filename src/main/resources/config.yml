@@ -101,6 +101,24 @@ player-commands:
   - "(Mẹo: Tìm NPC Máy Giám Định để mở khóa sức mạnh trang bị)"
   
 # =========================================================================
+#             HƯỚNG DẪN TÂN THỦ (NEWBIE GUIDE)
+# =========================================================================
+# Bảng hướng dẫn tính năng cơ bản trong server
+newbie-guide:
+  - "&e&lHƯỚNG DẪN CHƠI CƠ BẢN"
+  - "&f1. &bĐe Nâng Cấp (Custom Anvil):"
+  - "&7   - Đặt bất kỳ Đe nào xuống đất và Click chuột phải."
+  - "&7   - Sửa chữa trang bị vĩnh viễn với giá cố định 5 Levels."
+  - "&7   - Ép Sách Phù Phép Custom & Sạc Năng lượng (Charge)."
+  - "&f2. &bGiám Định Trang Bị (Appraise):"
+  - "&7   - Mang vũ khí/giáp Vanilla đến Máy Giám Định (NPC)."
+  - "&7   - Roll nhân phẩm để nhận độ hiếm (Rare, Epic, Legendary...)."
+  - "&7   - Trang bị sau khi Giám Định sẽ KHÔNG BAO GIỜ HỎNG."
+  - "&f3. &bSức Mạnh Riêng Biệt (Item Ability):"
+  - "&7   - Vũ khí Custom luôn có Kỹ năng Ẩn. Chuột Phải để thi triển."
+  - "&7   - Giáp Custom khi mặc đủ bộ sẽ kích hoạt hiệu ứng (Set Bonus)."
+
+# =========================================================================
 #             HỆ THỐNG MÁY GIÁM ĐỊNH (RARITY APPRAISER)
 # =========================================================================
 appraiser:

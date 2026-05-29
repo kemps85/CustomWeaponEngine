@@ -292,7 +292,7 @@ public final class CustomWeaponEngine extends JavaPlugin implements CommandExecu
         // Khoi tao Hologram Manager
         hologramManager = new org.example.system.HologramManager(this);
         Bukkit.getScheduler().runTaskLater(this, () -> {
-            hologramManager.updateHologram();
+            hologramManager.updateHolograms();
         }, 40L); // Delay 2s de cho DecentHolograms hoat dong truoc
         
         getLogger().info("🟩 CustomWeaponEngine Engine v4.0 (Bazaar AMM & Ore Guardians Updated) hoat dong!");
@@ -324,7 +324,7 @@ public final class CustomWeaponEngine extends JavaPlugin implements CommandExecu
             if (weaponEngine != null) weaponEngine.clearCooldowns();
             if (assassinEngine != null) assassinEngine.clearCooldowns(); 
             if (berserkEngine != null) berserkEngine.clearCache(); 
-            if (hologramManager != null) hologramManager.updateHologram();
+            if (hologramManager != null) hologramManager.updateHolograms();
             sender.sendMessage("§a[CustomWeaponEngine] Configuration reloaded!");
             return true;
         }
