@@ -65,8 +65,8 @@ public class RareEpicItems {
         // --- BOWS & WANDS ---
         org.example.system.ItemGenerator generator = new org.example.system.ItemGenerator(plugin);
         lib.set("items.runaan_bow", generator.generateItem("runaan_bow"));
-        lib.set("items.juju_shortbow", generator.generateItem("juju_shortbow"));
-        lib.set("items.astral_shepherd_wand", generator.generateItem("astral_shepherd_wand"));
+        lib.set("items.shortbow", generator.generateItem("juju_shortbow"));
+        lib.set("items.cwe_astral_shepherd_wand", generator.generateItem("astral_shepherd_wand"));
 
         plugin.saveLibraryConfig();
     }

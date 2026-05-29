@@ -37,7 +37,7 @@ public class AOTDListener implements Listener {
         if (event.getItem() == null || event.getItem().getItemMeta() == null) return;
 
         String id = event.getItem().getItemMeta().getPersistentDataContainer().get(idKey, PersistentDataType.STRING);
-        if (!"cwe_aotd".equalsIgnoreCase(id)) return;
+        if (!"cwe_aotd".equalsIgnoreCase(id) && !"aotd".equalsIgnoreCase(id)) return;
 
         Player p = event.getPlayer();
 

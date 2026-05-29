@@ -913,7 +913,27 @@ public class ReforgeSystem implements Listener, CommandExecutor {
         String[] colorSplit = splitColorPrefix(originalName);
         String color   = colorSplit[0];
         String rawName = colorSplit[1];
-        meta.setDisplayName(color + prefix + " " + rawName);
+        
+        String finalPrefix = prefix;
+        String finalRawName = rawName;
+        
+        if (rawName.startsWith(prefix + " ")) {
+            if (prefix.equals("Wise") || prefix.equals("Strong") || prefix.equals("Heavy")) {
+                finalPrefix = "Very " + prefix;
+                finalRawName = rawName.substring(prefix.length() + 1);
+            } else if (prefix.equals("Superior")) {
+                finalPrefix = "Highly Superior";
+                finalRawName = rawName.substring(prefix.length() + 1);
+            } else if (prefix.equals("Perfect")) {
+                finalPrefix = "Absolutely Perfect";
+                finalRawName = rawName.substring(prefix.length() + 1);
+            } else {
+                finalPrefix = "Very " + prefix;
+                finalRawName = rawName.substring(prefix.length() + 1);
+            }
+        }
+        
+        meta.setDisplayName(color + finalPrefix + " " + finalRawName);
 
         // ── Lưu PDC ──────────────────────────────────────────────────────────────
         pdc.set(reforgeKey, PersistentDataType.STRING, prefix);
