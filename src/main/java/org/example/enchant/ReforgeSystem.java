@@ -933,7 +933,13 @@ public class ReforgeSystem implements Listener, CommandExecutor {
             }
         }
         
-        meta.setDisplayName(color + finalPrefix + " " + finalRawName);
+        ItemStatsGUI.Rarity rarityEnum = ItemStatsGUI.Rarity.NONE;
+        try { rarityEnum = ItemStatsGUI.Rarity.valueOf(tier.name()); } catch (Exception ignored) {}
+
+        String rarityColor = (rarityEnum != ItemStatsGUI.Rarity.NONE && rarityEnum.color != null && !rarityEnum.color.isEmpty()) 
+                             ? rarityEnum.color : color;
+        
+        meta.setDisplayName(rarityColor + finalPrefix + " " + finalRawName);
 
         // ── Lưu PDC ──────────────────────────────────────────────────────────────
         pdc.set(reforgeKey, PersistentDataType.STRING, prefix);
@@ -946,9 +952,6 @@ public class ReforgeSystem implements Listener, CommandExecutor {
                 ? (pdc.has(new NamespacedKey(plugin, "cwe_is_weapon"), PersistentDataType.INTEGER)
                    && pdc.get(new NamespacedKey(plugin, "cwe_is_weapon"), PersistentDataType.INTEGER) == 1)
                 : (cat == ItemCategory.MELEE || cat == ItemCategory.RANGED);
-
-        ItemStatsGUI.Rarity rarityEnum = ItemStatsGUI.Rarity.NONE;
-        try { rarityEnum = ItemStatsGUI.Rarity.valueOf(tier.name()); } catch (Exception ignored) {}
 
         // ── Base stats (0 nếu Vanilla) ───────────────────────────────────────────
         double[] base = new double[7];
