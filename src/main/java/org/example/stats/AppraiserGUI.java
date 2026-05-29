@@ -117,7 +117,10 @@ public class AppraiserGUI implements Listener {
 
         PersistentDataContainer pdc = meta.getPersistentDataContainer();
         
-        // Custom weapons are allowed now! We no longer return false for cwe_id.
+        // Cannot appraise custom weapons
+        if (pdc.has(new NamespacedKey(plugin, "cwe_id"), PersistentDataType.STRING)) {
+            return false;
+        }
 
         // Cannot appraise twice
         if (pdc.has(new NamespacedKey(plugin, "cwe_appraised"), PersistentDataType.INTEGER)) {
