@@ -76,7 +76,8 @@ public class VanillaItemUpdater implements Listener {
 
         String name = item.getType().name();
         boolean isEquipment = name.contains("SWORD") || name.contains("AXE") || name.contains("BOW") || name.contains("CROSSBOW")
-                || name.contains("HELMET") || name.contains("CHESTPLATE") || name.contains("LEGGINGS") || name.contains("BOOTS");
+                || name.contains("HELMET") || name.contains("CHESTPLATE") || name.contains("LEGGINGS") || name.contains("BOOTS")
+                || item.getType() == Material.TRIDENT || item.getType() == Material.ELYTRA || item.getType() == Material.MACE || item.getType() == Material.SHIELD;
 
         if (!isEquipment) return;
 
@@ -89,15 +90,42 @@ public class VanillaItemUpdater implements Listener {
         // Auto-tag rarity for vanilla items without rarity
         if (!pdc.has(rarityKey, PersistentDataType.STRING)) {
             String rarity = "COMMON";
-            if (name.startsWith("IRON_") || name.startsWith("CHAINMAIL_") || name.startsWith("GOLDEN_")) {
+            if (name.startsWith("IRON_") || name.startsWith("CHAINMAIL_") || name.startsWith("GOLDEN_") || item.getType() == Material.SHIELD) {
                 rarity = "UNCOMMON";
-            } else if (name.startsWith("DIAMOND_")) {
+            } else if (name.startsWith("DIAMOND_") || item.getType() == Material.TRIDENT) {
                 rarity = "RARE";
-            } else if (name.startsWith("NETHERITE_")) {
+            } else if (name.startsWith("NETHERITE_") || item.getType() == Material.ELYTRA || item.getType() == Material.MACE) {
                 rarity = "EPIC";
             }
             pdc.set(rarityKey, PersistentDataType.STRING, rarity);
             needsUpdate = true;
+        }
+
+        // Auto-assign base stats for special vanilla items
+        if (!pdc.has(new NamespacedKey(plugin, "cwe_base_stats_assigned"), PersistentDataType.INTEGER)) {
+            NamespacedKey dmgKey = new NamespacedKey(plugin, "stat_damage");
+            NamespacedKey strKey = new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_STRENGTH);
+            NamespacedKey defKey = new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_DEFENSE);
+            NamespacedKey hpKey = new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_HEALTH);
+
+            if (item.getType() == Material.TRIDENT && !pdc.has(dmgKey, PersistentDataType.DOUBLE)) {
+                pdc.set(dmgKey, PersistentDataType.DOUBLE, 60.0);
+                pdc.set(strKey, PersistentDataType.DOUBLE, 35.0);
+                needsUpdate = true;
+            } else if (item.getType() == Material.MACE && !pdc.has(dmgKey, PersistentDataType.DOUBLE)) {
+                pdc.set(dmgKey, PersistentDataType.DOUBLE, 75.0);
+                pdc.set(strKey, PersistentDataType.DOUBLE, 50.0);
+                needsUpdate = true;
+            } else if (item.getType() == Material.ELYTRA && !pdc.has(defKey, PersistentDataType.DOUBLE)) {
+                pdc.set(defKey, PersistentDataType.DOUBLE, 40.0);
+                pdc.set(hpKey, PersistentDataType.DOUBLE, 80.0);
+                needsUpdate = true;
+            } else if (item.getType() == Material.SHIELD && !pdc.has(defKey, PersistentDataType.DOUBLE)) {
+                pdc.set(defKey, PersistentDataType.DOUBLE, 30.0);
+                pdc.set(hpKey, PersistentDataType.DOUBLE, 20.0);
+                needsUpdate = true;
+            }
+            pdc.set(new NamespacedKey(plugin, "cwe_base_stats_assigned"), PersistentDataType.INTEGER, 1);
         }
 
         // Bug fix: Rebuild enchant lore to fix old items that have bugged stats
@@ -161,7 +189,7 @@ public class VanillaItemUpdater implements Listener {
                 damage = pdc.has(new NamespacedKey(plugin, "cwe_damage"), PersistentDataType.DOUBLE) ? pdc.get(new NamespacedKey(plugin, "cwe_damage"), PersistentDataType.DOUBLE) : 0.0;
             }
 
-            boolean isWeapon = name.contains("SWORD") || name.contains("AXE") || name.contains("BOW") || name.contains("CROSSBOW") || item.getType() == Material.TRIDENT;
+            boolean isWeapon = name.contains("SWORD") || name.contains("AXE") || name.contains("BOW") || name.contains("CROSSBOW") || item.getType() == Material.TRIDENT || item.getType() == Material.MACE;
             org.example.stats.ItemStatsGUI.rebuildLore(item, meta, stats, damage, rEnum, bTitle, bD1, bD2, click, isWeapon);
             
             item.setItemMeta(meta);
