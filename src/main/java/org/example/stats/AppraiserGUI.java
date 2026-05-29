@@ -82,15 +82,22 @@ public class AppraiserGUI implements Listener {
                 meta.setLore(lore);
                 btn.setItemMeta(meta);
             } else {
-                btn = new ItemStack(Material.BARRIER);
-                ItemMeta meta = btn.getItemMeta();
-                meta.setDisplayName("§cKhông thể giám định!");
-                List<String> lore = new ArrayList<>();
-                lore.add("§7Vật phẩm này đã được giám định");
-                lore.add("§7hoặc là vũ khí Custom (không hỗ trợ).");
-                meta.setLore(lore);
-                btn.setItemMeta(meta);
+            btn = new ItemStack(Material.BARRIER);
+            ItemMeta meta = btn.getItemMeta();
+            meta.setDisplayName("§cKhông thể giám định!");
+            List<String> lore = new ArrayList<>();
+            
+            ItemMeta targetMeta = itemToAppraise.getItemMeta();
+            if (targetMeta != null && targetMeta.getPersistentDataContainer().has(new NamespacedKey(plugin, "cwe_appraised"), PersistentDataType.INTEGER)) {
+                lore.add("§7Vật phẩm này đã được giám định rồi!");
+            } else {
+                lore.add("§7Vật phẩm này không phải là trang bị");
+                lore.add("§7hợp lệ (Kiếm, Cung, Giáp, v.v...).");
             }
+            
+            meta.setLore(lore);
+            btn.setItemMeta(meta);
+        }
         }
         inv.setItem(BUTTON_SLOT, btn);
     }
@@ -110,10 +117,7 @@ public class AppraiserGUI implements Listener {
 
         PersistentDataContainer pdc = meta.getPersistentDataContainer();
         
-        // Cannot appraise custom weapons
-        if (pdc.has(new NamespacedKey(plugin, "cwe_id"), PersistentDataType.STRING)) {
-            return false;
-        }
+        // Custom weapons are allowed now! We no longer return false for cwe_id.
 
         // Cannot appraise twice
         if (pdc.has(new NamespacedKey(plugin, "cwe_appraised"), PersistentDataType.INTEGER)) {
