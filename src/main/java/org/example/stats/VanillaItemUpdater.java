@@ -118,6 +118,35 @@ public class VanillaItemUpdater implements Listener {
             String bD2 = pdc.has(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_SETBONUS_DESC2), PersistentDataType.STRING) ? pdc.get(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_SETBONUS_DESC2), PersistentDataType.STRING) : "";
             String click = pdc.has(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_ABILITY_CLICK), PersistentDataType.STRING) ? pdc.get(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_ABILITY_CLICK), PersistentDataType.STRING) : "RIGHT CLICK";
             
+            // HACK: Fallback extract from old lore if PDC is missing (for existing legacy items)
+            if (bTitle.isEmpty() && meta.hasLore()) {
+                boolean nextIsD1 = false;
+                boolean nextIsD2 = false;
+                for (String line : meta.getLore()) {
+                    String clean = org.bukkit.ChatColor.stripColor(line);
+                    if (clean.startsWith("Item Ability: ")) {
+                        int bracket = clean.lastIndexOf("[");
+                        if (bracket != -1) {
+                            bTitle = clean.substring(14, bracket).trim();
+                            click = clean.substring(bracket + 1, clean.length() - 1).trim();
+                        } else {
+                            bTitle = clean.substring(14).trim();
+                        }
+                        nextIsD1 = true;
+                    } else if (clean.startsWith("Full Set Bonus: ")) {
+                        bTitle = clean.substring(16).trim();
+                        nextIsD1 = true;
+                    } else if (nextIsD1 && !clean.trim().isEmpty() && !clean.startsWith("Mana Cost") && !clean.startsWith("Cooldown")) {
+                        bD1 = clean;
+                        nextIsD1 = false;
+                        nextIsD2 = true;
+                    } else if (nextIsD2 && !clean.trim().isEmpty() && !clean.startsWith("Mana Cost") && !clean.startsWith("Cooldown")) {
+                        bD2 = clean;
+                        nextIsD2 = false;
+                    }
+                }
+            }
+            
             double[] stats = new double[7];
             stats[0] = pdc.has(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_STRENGTH), PersistentDataType.DOUBLE) ? pdc.get(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_STRENGTH), PersistentDataType.DOUBLE) : 0.0;
             stats[1] = pdc.has(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_CRIT_CHANCE), PersistentDataType.DOUBLE) ? pdc.get(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_CRIT_CHANCE), PersistentDataType.DOUBLE) : 0.0;

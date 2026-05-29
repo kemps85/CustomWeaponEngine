@@ -156,6 +156,6 @@ public class LegendaryArmor {
             
             item.setItemMeta(meta);
         }
-        if (!lib.contains("items." + id)) lib.set("items." + id, item);
+        lib.set("items." + id, item);
     }
 }
