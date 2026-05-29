@@ -277,15 +277,18 @@ public class AppraiserGUI implements Listener {
     private String rollRarity(String type) {
         Map<String, Integer> pools = new HashMap<>();
         
-        if (plugin.getConfig().contains("appraiser.pools." + type)) {
+        if (plugin.getConfig().contains("appraiser.pools." + type) && plugin.getConfig().getConfigurationSection("appraiser.pools." + type) != null) {
             for (String r : plugin.getConfig().getConfigurationSection("appraiser.pools." + type).getKeys(false)) {
                 pools.put(r, plugin.getConfig().getInt("appraiser.pools." + type + "." + r));
             }
-        } else if (plugin.getConfig().contains("appraiser.pools.default")) {
+        } else if (plugin.getConfig().contains("appraiser.pools.default") && plugin.getConfig().getConfigurationSection("appraiser.pools.default") != null) {
             for (String r : plugin.getConfig().getConfigurationSection("appraiser.pools.default").getKeys(false)) {
                 pools.put(r, plugin.getConfig().getInt("appraiser.pools.default." + r));
             }
-        } else {
+        } 
+        
+        // Fallback in case pools were left completely empty or invalid in config
+        if (pools.isEmpty()) {
             pools.put("COMMON", 50);
             pools.put("UNCOMMON", 25);
             pools.put("RARE", 15);
@@ -296,6 +299,11 @@ public class AppraiserGUI implements Listener {
 
         int totalWeight = 0;
         for (int w : pools.values()) totalWeight += w;
+
+        // Failsafe: if weight is somehow 0 or negative
+        if (totalWeight <= 0) {
+            return "COMMON";
+        }
 
         int randomVal = random.nextInt(totalWeight);
         int currentWeight = 0;
