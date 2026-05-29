@@ -321,8 +321,8 @@ public class AstralShepherdListener implements Listener {
                 }
 
                 if (collided) {
-                    triggerExplosion(nextLoc, player, explosionDamage);
                     sheepProjectile.remove();
+                    triggerExplosion(nextLoc, player, explosionDamage);
                     this.cancel();
                 }
             }
