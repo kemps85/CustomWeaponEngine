@@ -34,6 +34,7 @@ public class EpicWeaponListeners implements Listener {
 
     @EventHandler
     public void onInteract(PlayerInteractEvent event) {
+        if (event.getHand() != org.bukkit.inventory.EquipmentSlot.HAND) return;
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         if (event.getItem() == null || event.getItem().getItemMeta() == null) return;
 
@@ -63,7 +64,7 @@ public class EpicWeaponListeners implements Listener {
         p.getWorld().spawnParticle(Particle.BLOCK, p.getLocation(), 40, 2, 0.5, 2, 0.1, org.bukkit.Material.IRON_BLOCK.createBlockData());
         
         for (Entity e : p.getNearbyEntities(4, 3, 4)) {
-            if (e instanceof LivingEntity && e != p) {
+            if (e instanceof LivingEntity && e != p && !(e instanceof org.bukkit.entity.Player)) {
                 LivingEntity target = (LivingEntity) e;
                 target.setNoDamageTicks(0);
                 target.damage(150.0, p);
@@ -130,7 +131,7 @@ public class EpicWeaponListeners implements Listener {
                 if (currentLoc.getBlock().getType().isSolid()) collided = true;
                 else {
                     for (Entity e : currentLoc.getWorld().getNearbyEntities(currentLoc, 1.0, 1.0, 1.0)) {
-                        if (e instanceof LivingEntity && e != p) {
+                        if (e instanceof LivingEntity && e != p && !(e instanceof org.bukkit.entity.Player)) {
                             collided = true;
                             break;
                         }
@@ -141,7 +142,7 @@ public class EpicWeaponListeners implements Listener {
                     currentLoc.getWorld().createExplosion(currentLoc, 0F, false, false);
                     currentLoc.getWorld().playSound(currentLoc, Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 1.5f);
                     for (Entity e : currentLoc.getWorld().getNearbyEntities(currentLoc, 3.0, 3.0, 3.0)) {
-                        if (e instanceof LivingEntity && e != p) {
+                        if (e instanceof LivingEntity && e != p && !(e instanceof org.bukkit.entity.Player)) {
                             ((LivingEntity) e).setNoDamageTicks(0);
                             ((LivingEntity) e).damage(300.0, p); // 300 base dmg
                         }

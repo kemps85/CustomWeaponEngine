@@ -323,9 +323,10 @@ public class ItemStatsListener implements Listener {
         // So sánh với cache — nếu không đổi thì bỏ qua
         if (cached != null && arraysEqual(totals, cached)) return;
 
-        // ── Lưu tỷ lệ mana TRƯỚC KHI apply (để giữ % mana sau khi max mana thay đổi) ──
+        // ── Lưu tỷ lệ mana VÀ health TRƯỚC KHI apply (để giữ % sau khi max thay đổi) ──
         boolean auraOk = Bukkit.getPluginManager().isPluginEnabled("AuraSkills");
         double manaRatio = -1;
+        double hpRatio = -1;
         if (auraOk) {
             dev.aurelium.auraskills.api.user.SkillsUser u =
                     dev.aurelium.auraskills.api.AuraSkillsApi.get().getUser(player.getUniqueId());
@@ -333,23 +334,40 @@ public class ItemStatsListener implements Listener {
                 manaRatio = u.getMana() / u.getMaxMana();
             }
         }
+        
+        org.bukkit.attribute.AttributeInstance maxHpAttr = player.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH);
+        if (maxHpAttr != null && maxHpAttr.getValue() > 0) {
+            hpRatio = player.getHealth() / maxHpAttr.getValue();
+        }
 
         // Apply modifiers
         applyModifiers(player, totals);
         appliedCache.put(player.getUniqueId(), totals.clone());
 
-        // ── Khôi phục mana theo tỷ lệ CŨ để tránh thay đổi thanh mana đột ngột ──
-        if (auraOk && manaRatio >= 0) {
-            final double ratio = manaRatio;
-            // Delay 1 tick để AuraSkills cập nhật xong maxMana trước khi set mana
+        // ── Khôi phục mana và health theo tỷ lệ CŨ để tránh thay đổi đột ngột ──
+        if (manaRatio >= 0 || hpRatio >= 0) {
+            final double mRatio = manaRatio;
+            final double hRatio = hpRatio;
+            
+            // Delay 1 tick để AuraSkills cập nhật xong maxMana/maxHealth
             Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                dev.aurelium.auraskills.api.user.SkillsUser u2 =
-                        dev.aurelium.auraskills.api.AuraSkillsApi.get().getUser(player.getUniqueId());
-                if (u2 != null && u2.getMaxMana() > 0) {
-                    double newMana = u2.getMaxMana() * ratio;
-                    // Clamp trong khoảng [0, maxMana]
-                    newMana = Math.max(0, Math.min(newMana, u2.getMaxMana()));
-                    u2.setMana(newMana);
+                if (auraOk && mRatio >= 0) {
+                    dev.aurelium.auraskills.api.user.SkillsUser u2 =
+                            dev.aurelium.auraskills.api.AuraSkillsApi.get().getUser(player.getUniqueId());
+                    if (u2 != null && u2.getMaxMana() > 0) {
+                        double newMana = u2.getMaxMana() * mRatio;
+                        newMana = Math.max(0, Math.min(newMana, u2.getMaxMana()));
+                        u2.setMana(newMana);
+                    }
+                }
+                
+                if (hRatio >= 0) {
+                    org.bukkit.attribute.AttributeInstance updatedMaxHp = player.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH);
+                    if (updatedMaxHp != null && updatedMaxHp.getValue() > 0) {
+                        double newHp = updatedMaxHp.getValue() * hRatio;
+                        newHp = Math.max(0, Math.min(newHp, updatedMaxHp.getValue()));
+                        player.setHealth(newHp);
+                    }
                 }
             }, 1L);
         }
@@ -417,6 +435,39 @@ public class ItemStatsListener implements Listener {
                 }
 
                 for (int i = 0; i < 8; i++) totals[i] += mainHandTotals[i];
+            }
+        }
+        
+        // Off hand — Kế thừa stat khi cầm tay trái
+        ItemStack offHand = player.getInventory().getItemInOffHand();
+        if (offHand != null && !offHand.getType().isAir()) {
+            String name = offHand.getType().name();
+            boolean isArmorItem = name.contains("HELMET") || name.contains("CHESTPLATE")
+                    || name.contains("LEGGINGS") || name.contains("BOOTS") || name.contains("ELYTRA") || name.contains("SHIELD");
+            if (!isArmorItem) {
+                double[] offHandTotals = new double[8];
+                addStatsFromItem(offHand, offHandTotals);
+
+                // WITHERED reforge logic for offhand
+                if (offHand.hasItemMeta()) {
+                    PersistentDataContainer pdc = offHand.getItemMeta().getPersistentDataContainer();
+                    if (pdc.has(new NamespacedKey(plugin, "cwe_reforge"), PersistentDataType.STRING)) {
+                        String prefix = pdc.get(new NamespacedKey(plugin, "cwe_reforge"), PersistentDataType.STRING);
+                        String rarityStr = pdc.has(new NamespacedKey(plugin, ItemStatsGUI.KEY_RARITY), PersistentDataType.STRING)
+                                ? pdc.get(new NamespacedKey(plugin, ItemStatsGUI.KEY_RARITY), PersistentDataType.STRING) : "COMMON";
+                        org.example.enchant.ReforgeSystem.ReforgeTier t;
+                        try { t = org.example.enchant.ReforgeSystem.ReforgeTier.valueOf(rarityStr); }
+                        catch (Exception e) { t = org.example.enchant.ReforgeSystem.ReforgeTier.COMMON; }
+                        org.example.enchant.ReforgeSystem.ItemCategory cat = getCategoryForReforge(offHand);
+                        org.example.enchant.ReforgeSystem.ReforgeStat bonus =
+                                org.example.enchant.ReforgeSystem.getReforgeStat(prefix, cat, t);
+                        if (bonus != null && bonus.levelMultiplier > 0) {
+                            offHandTotals[0] += bonus.levelMultiplier * player.getLevel();
+                        }
+                    }
+                }
+
+                for (int i = 0; i < 8; i++) totals[i] += offHandTotals[i];
             }
         }
         
@@ -561,14 +612,19 @@ public class ItemStatsListener implements Listener {
 
         // ── Health ──
         if (auraEnabled && user != null) {
-            updateAuraModifier(user, "cwe_item_health", Stats.HEALTH, totals[3]);
+            updateAuraModifier(user, "cwe_item_health", Stats.HEALTH, totals[3] + 80); // Skyblock base health is 100 (20 + 80)
             applyHealth(player, 0); // Clear bukkit fallback
         } else {
-            applyHealth(player, totals[3]);
+            applyHealth(player, totals[3] + 80); // Skyblock base health is 100 (20 + 80)
         }
 
-        // ── AuraSkills: Defense (Toughness) ──
-        updateAuraModifier(user, "cwe_item_defense",      Stats.TOUGHNESS,   totals[4]);
+        // ── Vanilla Armor Disable ──
+        applyVanillaArmorNerf(player);
+
+        // ── AuraSkills: Defense (Toughness) disabled to use custom Skyblock formula ──
+        if (user != null && user.getStatModifier("cwe_item_defense") != null) {
+            user.removeStatModifier("cwe_item_defense");
+        }
 
         // ── AuraSkills: Intelligence (Wisdom) ──
         updateAuraModifier(user, "cwe_item_intelligence", Stats.WISDOM,       totals[5]);
@@ -588,14 +644,45 @@ public class ItemStatsListener implements Listener {
     private void updateAuraModifier(SkillsUser user, String modKey, dev.aurelium.auraskills.api.stat.Stat stat, double value) {
         if (user == null) return;
 
+        dev.aurelium.auraskills.api.stat.StatModifier oldMod = user.getStatModifier(modKey);
+        
+        // If the modifier value hasn't changed, do nothing to prevent stat drops/clamping
+        if (oldMod != null && oldMod.value() == value) {
+            return;
+        }
+
         // Remove old modifier
-        if (user.getStatModifier(modKey) != null) {
+        if (oldMod != null) {
             user.removeStatModifier(modKey);
         }
 
         // Add new modifier if > 0
         if (value > 0) {
-            user.addStatModifier(new StatModifier(modKey, stat, value, Operation.ADD));
+            user.addStatModifier(new dev.aurelium.auraskills.api.stat.StatModifier(modKey, stat, value, dev.aurelium.auraskills.api.util.AuraSkillsModifier.Operation.ADD));
+        }
+    }
+
+    private void applyVanillaArmorNerf(Player player) {
+        NamespacedKey armorModKey = new NamespacedKey(plugin, "cwe_stat_vanilla_armor_nerf");
+        
+        AttributeInstance armorAttr = player.getAttribute(Attribute.GENERIC_ARMOR);
+        if (armorAttr != null) {
+            armorAttr.removeModifier(armorModKey);
+            armorAttr.addModifier(new org.bukkit.attribute.AttributeModifier(
+                armorModKey,
+                -100, // Âm 100 để đảm bảo Vanilla Armor luôn bằng 0
+                org.bukkit.attribute.AttributeModifier.Operation.ADD_NUMBER
+            ));
+        }
+
+        AttributeInstance toughnessAttr = player.getAttribute(Attribute.GENERIC_ARMOR_TOUGHNESS);
+        if (toughnessAttr != null) {
+            toughnessAttr.removeModifier(armorModKey);
+            toughnessAttr.addModifier(new org.bukkit.attribute.AttributeModifier(
+                armorModKey,
+                -100, // Âm 100 để đảm bảo Vanilla Armor Toughness luôn bằng 0
+                org.bukkit.attribute.AttributeModifier.Operation.ADD_NUMBER
+            ));
         }
     }
 
@@ -709,6 +796,51 @@ public class ItemStatsListener implements Listener {
      */
     public void clearCache(UUID uuid) {
         appliedCache.remove(uuid);
+    }
+
+    // ─── DEFENSE SCALING (SKYBLOCK FORMULA) ───────────────────────────────────
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onPlayerTakeDamage(org.bukkit.event.entity.EntityDamageEvent event) {
+        if (event.getEntity() instanceof Player) {
+            Player p = (Player) event.getEntity();
+            // Bỏ qua sát thương chuẩn (void, starve, kill command)
+            if (event.getCause() == org.bukkit.event.entity.EntityDamageEvent.DamageCause.VOID ||
+                event.getCause() == org.bukkit.event.entity.EntityDamageEvent.DamageCause.STARVATION ||
+                event.getCause() == org.bukkit.event.entity.EntityDamageEvent.DamageCause.SUICIDE) {
+                return;
+            }
+
+            double[] cached = appliedCache.get(p.getUniqueId());
+            if (cached != null) {
+                double defense = cached[4]; // 4 is defense
+                if (defense > 0) {
+                    // Skyblock Defense Formula: Multiplier = 100 / (100 + Defense)
+                    double multiplier = 100.0 / (100.0 + defense);
+                    event.setDamage(event.getDamage() * multiplier);
+                }
+            }
+        }
+    }
+
+    // ─── ATTACK SPEED SCALING (SKYBLOCK FORMULA) ──────────────────────────────
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onPlayerAttack(org.bukkit.event.entity.EntityDamageByEntityEvent event) {
+        if (event.getDamager() instanceof Player && event.getEntity() instanceof org.bukkit.entity.LivingEntity) {
+            Player p = (Player) event.getDamager();
+            double[] cached = appliedCache.get(p.getUniqueId());
+            if (cached != null) {
+                double atkSpeed = cached[7]; // 7 is Attack Speed
+                if (atkSpeed > 0) {
+                    if (atkSpeed > 100) atkSpeed = 100;
+                    // Ticks required between hits (Vanilla is 10 ticks = 0.5s)
+                    int requiredTicks = (int) Math.round(10.0 / (1.0 + (atkSpeed / 100.0)));
+                    
+                    org.bukkit.entity.LivingEntity target = (org.bukkit.entity.LivingEntity) event.getEntity();
+                    // Thay đổi thời gian bất tử tối đa của quái vật sau khi bị người chơi này chém
+                    target.setMaximumNoDamageTicks(requiredTicks * 2);
+                }
+            }
+        }
     }
 }
 

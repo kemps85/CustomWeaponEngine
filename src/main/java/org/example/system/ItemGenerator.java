@@ -58,10 +58,13 @@ public class ItemGenerator {
             
             // Fix stats not applied
             meta.getPersistentDataContainer().set(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_HAS_STATS), PersistentDataType.INTEGER, 1);
+            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_damage"), PersistentDataType.DOUBLE, 160.0);
             meta.getPersistentDataContainer().set(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_STRENGTH), PersistentDataType.DOUBLE, 50.0);
-            // We put damage in strength because bows don't use melee damage in Minecraft.
-            // Wait, actually let's just add base stats
             meta.getPersistentDataContainer().set(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_RARITY), PersistentDataType.STRING, "LEGENDARY");
+            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_setbonus_title"), PersistentDataType.STRING, "Triple Shot");
+            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_setbonus_desc1"), PersistentDataType.STRING, "Bắn ra 3 mũi tên cùng lúc,");
+            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_setbonus_desc2"), PersistentDataType.STRING, "mũi tên phụ gây 40% sát thương.");
+            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_ability_click"), PersistentDataType.STRING, "RIGHT CLICK");
 
             item.setItemMeta(meta);
         }
@@ -92,10 +95,15 @@ public class ItemGenerator {
 
             // Fix stats not applied
             meta.getPersistentDataContainer().set(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_HAS_STATS), PersistentDataType.INTEGER, 1);
+            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_damage"), PersistentDataType.DOUBLE, 210.0);
             meta.getPersistentDataContainer().set(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_STRENGTH), PersistentDataType.DOUBLE, 40.0);
             meta.getPersistentDataContainer().set(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_CRIT_CHANCE), PersistentDataType.DOUBLE, 15.0);
             meta.getPersistentDataContainer().set(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_CRIT_DAMAGE), PersistentDataType.DOUBLE, 80.0);
             meta.getPersistentDataContainer().set(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_RARITY), PersistentDataType.STRING, "EPIC");
+            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_setbonus_title"), PersistentDataType.STRING, "Shortbow");
+            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_setbonus_desc1"), PersistentDataType.STRING, "Bắn ngay lập tức không cần gồng.");
+            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_setbonus_desc2"), PersistentDataType.STRING, "Gây sát thương thêm lên quái vật hệ Bóng tối.");
+            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_ability_click"), PersistentDataType.STRING, "RIGHT CLICK");
 
             item.setItemMeta(meta);
         }
@@ -123,6 +131,17 @@ public class ItemGenerator {
             meta.setLore(lore);
             NamespacedKey cweIdKey = new NamespacedKey(plugin, "cwe_id");
             meta.getPersistentDataContainer().set(cweIdKey, PersistentDataType.STRING, "cwe_astral_shepherd_wand");
+            
+            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_HAS_STATS), PersistentDataType.INTEGER, 1);
+            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_damage"), PersistentDataType.DOUBLE, 120.0);
+            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_STRENGTH), PersistentDataType.DOUBLE, 30.0);
+            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_INTELLIGENCE), PersistentDataType.DOUBLE, 200.0);
+            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_RARITY), PersistentDataType.STRING, "EPIC");
+            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_setbonus_title"), PersistentDataType.STRING, "Astral Summon");
+            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_setbonus_desc1"), PersistentDataType.STRING, "Triệu hồi một tinh linh cừu ánh sao");
+            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_setbonus_desc2"), PersistentDataType.STRING, "lao về phía trước và phát nổ.");
+            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_ability_click"), PersistentDataType.STRING, "RIGHT CLICK");
+            
             item.setItemMeta(meta);
         }
         return item;

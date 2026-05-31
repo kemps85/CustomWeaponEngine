@@ -76,6 +76,13 @@ public class RunaanBowListener implements Listener {
                 rightArrow.setShooter(player);
                 rightArrow.setMetadata("runaan_side", new FixedMetadataValue(plugin, true));
 
+                double dmg = container.getOrDefault(new NamespacedKey(plugin, "stat_damage"), PersistentDataType.DOUBLE, 0.0);
+                if (dmg == 0) dmg = container.getOrDefault(new NamespacedKey(plugin, "cwe_damage"), PersistentDataType.DOUBLE, 0.0);
+                if (dmg > 0) {
+                    leftArrow.setMetadata("cwe_base_damage", new FixedMetadataValue(plugin, dmg));
+                    rightArrow.setMetadata("cwe_base_damage", new FixedMetadataValue(plugin, dmg));
+                }
+
                 // Chỉ điều hướng (homing) khi cung được kéo đủ căng (force >= 0.8)
                 if (event.getForce() >= 0.8f) {
                     startHomingTask(leftArrow, player);
@@ -118,7 +125,7 @@ public class RunaanBowListener implements Listener {
 
         List<Entity> nearby = arrow.getNearbyEntities(radius, radius, radius);
         for (Entity e : nearby) {
-            if (e instanceof LivingEntity && e != shooter && !e.isDead()) {
+            if (e instanceof LivingEntity && e != shooter && !e.isDead() && !(e instanceof org.bukkit.entity.Player)) {
                 if (e.getType() == org.bukkit.entity.EntityType.ARMOR_STAND) continue;
                 
                 double distSq = e.getLocation().distanceSquared(arrow.getLocation());

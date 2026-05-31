@@ -65,6 +65,31 @@ public class RegionBossManager implements Listener {
         updateHologram(type);
     }
 
+    public void removeSpawn(String type) {
+        if (spawns.containsKey(type)) {
+            Location loc = spawns.get(type);
+            spawns.remove(type);
+            plugin.getConfig().set("bosses." + type, null);
+            plugin.saveConfig();
+            
+            ArmorStand as = holograms.remove(type);
+            if (as != null && !as.isDead()) {
+                as.remove();
+            }
+            
+            if (loc != null && loc.getWorld() != null) {
+                for (org.bukkit.entity.Entity e : loc.getWorld().getNearbyEntities(loc, 10, 10, 10)) {
+                    if (e instanceof ArmorStand) {
+                        String name = e.getCustomName();
+                        if (name != null && (name.contains("BOSS") || name.contains("Rương") || name.contains("KHIÊU CHIẾN"))) {
+                            e.remove();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     private void startHologramTask() {
         hologramTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             for (String type : new String[]{"ICE", "FIRE", "VOID"}) {
@@ -80,7 +105,7 @@ public class RegionBossManager implements Listener {
         ArmorStand as = holograms.get(type);
         if (as == null || as.isDead()) {
             for (org.bukkit.entity.Entity e : loc.getWorld().getNearbyEntities(loc, 2, 3, 2)) {
-                if (e instanceof ArmorStand && e.hasMetadata("cwe_boss_hologram")) {
+                if (e instanceof ArmorStand && e.getPersistentDataContainer().has(new org.bukkit.NamespacedKey(plugin, "cwe_boss_hologram"), org.bukkit.persistence.PersistentDataType.STRING)) {
                     e.remove();
                 }
             }
@@ -89,7 +114,7 @@ public class RegionBossManager implements Listener {
             as.setGravity(false);
             as.setCustomNameVisible(true);
             as.setMarker(true);
-            as.setMetadata("cwe_boss_hologram", new FixedMetadataValue(plugin, type));
+            as.getPersistentDataContainer().set(new org.bukkit.NamespacedKey(plugin, "cwe_boss_hologram"), org.bukkit.persistence.PersistentDataType.STRING, type);
             holograms.put(type, as);
             
             // Place a beacon block under it to indicate
@@ -156,14 +181,14 @@ public class RegionBossManager implements Listener {
         as.setCustomName(title);
         as.setCustomNameVisible(true);
         as.setMarker(true);
-        as.setMetadata("cwe_meteor_chest", new FixedMetadataValue(plugin, chestType));
+        as.getPersistentDataContainer().set(new org.bukkit.NamespacedKey(plugin, "cwe_meteor_chest"), org.bukkit.persistence.PersistentDataType.INTEGER, chestType);
     }
 
     public void cleanupChests() {
         for (Location loc : chestLocations) {
             loc.getBlock().setType(Material.AIR);
             for (org.bukkit.entity.Entity e : loc.getWorld().getNearbyEntities(loc, 1, 3, 1)) {
-                if (e instanceof ArmorStand && e.hasMetadata("cwe_meteor_chest")) {
+                if (e instanceof ArmorStand && e.getPersistentDataContainer().has(new org.bukkit.NamespacedKey(plugin, "cwe_meteor_chest"), org.bukkit.persistence.PersistentDataType.INTEGER)) {
                     e.remove();
                 }
             }
@@ -181,9 +206,9 @@ public class RegionBossManager implements Listener {
 
     @EventHandler
     public void onInteractHologram(PlayerInteractAtEntityEvent event) {
-        if (event.getRightClicked() instanceof ArmorStand && event.getRightClicked().hasMetadata("cwe_boss_hologram")) {
+        if (event.getRightClicked() instanceof ArmorStand && event.getRightClicked().getPersistentDataContainer().has(new org.bukkit.NamespacedKey(plugin, "cwe_boss_hologram"), org.bukkit.persistence.PersistentDataType.STRING)) {
             event.setCancelled(true);
-            String type = event.getRightClicked().getMetadata("cwe_boss_hologram").get(0).asString();
+            String type = event.getRightClicked().getPersistentDataContainer().get(new org.bukkit.NamespacedKey(plugin, "cwe_boss_hologram"), org.bukkit.persistence.PersistentDataType.STRING);
             handleBossSummonClick(event.getPlayer(), type);
         }
     }

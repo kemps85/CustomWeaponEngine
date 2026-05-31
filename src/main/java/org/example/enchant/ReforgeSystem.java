@@ -881,6 +881,14 @@ public class ReforgeSystem implements Listener, CommandExecutor {
     // APPLY REFORGE — Xây dựng lại tên + lore
     // ===========================================================================
 
+    private void setD(PersistentDataContainer pdc, String key, double value) {
+        if (value != 0) {
+            pdc.set(new NamespacedKey(plugin, key), PersistentDataType.DOUBLE, value);
+        } else {
+            pdc.remove(new NamespacedKey(plugin, key));
+        }
+    }
+
     private void applyReforge(ItemStack item, ItemMeta meta, PersistentDataContainer pdc,
                                String prefix, ReforgeTier tier, ItemCategory cat, boolean exclusive) {
         // ── Tên gốc ──────────────────────────────────────────────────────────────
@@ -888,190 +896,81 @@ public class ReforgeSystem implements Listener, CommandExecutor {
         NamespacedKey reforgeKey  = new NamespacedKey(plugin, "cwe_reforge");
         NamespacedKey exclusiveKey= new NamespacedKey(plugin, "cwe_reforge_exclusive");
 
-        String originalName;
-        if (pdc.has(ogNameKey, PersistentDataType.STRING)) {
-            originalName = pdc.get(ogNameKey, PersistentDataType.STRING);
-        } else {
-            // Vanilla item có thể không có display name — dùng type name
-            originalName = meta.hasDisplayName() ? meta.getDisplayName()
+        if (!pdc.has(ogNameKey, PersistentDataType.STRING)) {
+            String originalName = meta.hasDisplayName() ? meta.getDisplayName()
                     : ChatColor.WHITE + formatVanillaName(item.getType().name());
             pdc.set(ogNameKey, PersistentDataType.STRING, originalName);
         }
 
         // ── Xử lý xoá reforge ────────────────────────────────────────────────────
         if (prefix == null || prefix.isEmpty()) {
-            meta.setDisplayName(originalName);
             pdc.remove(reforgeKey);
-            pdc.remove(ogNameKey);
             pdc.remove(exclusiveKey);
-            meta.setLore(Collections.emptyList());
+            setD(pdc, "cwe_rf_strength", 0);
+            setD(pdc, "cwe_rf_crit_chance", 0);
+            setD(pdc, "cwe_rf_crit_damage", 0);
+            setD(pdc, "cwe_rf_health", 0);
+            setD(pdc, "cwe_rf_defense", 0);
+            setD(pdc, "cwe_rf_intelligence", 0);
+            setD(pdc, "cwe_rf_speed", 0);
+            setD(pdc, "cwe_rf_attack_speed", 0);
+            setD(pdc, "cwe_rf_level_mult", 0);
             item.setItemMeta(meta);
+            org.example.stats.ItemBuilder.updateItem(item);
             return;
         }
 
-        // ── Gán tên mới = Màu + Prefix + Tên gốc (không màu) ────────────────────
-        String[] colorSplit = splitColorPrefix(originalName);
-        String color   = colorSplit[0];
+        // ── Lưu PDC ──────────────────────────────────────────────────────────────
+        String ogName = pdc.get(ogNameKey, PersistentDataType.STRING);
+        String[] colorSplit = splitColorPrefix(ogName);
         String rawName = colorSplit[1];
         
         String finalPrefix = prefix;
-        String finalRawName = rawName;
-        
         if (rawName.startsWith(prefix + " ")) {
             if (prefix.equals("Wise") || prefix.equals("Strong") || prefix.equals("Heavy")) {
                 finalPrefix = "Very " + prefix;
-                finalRawName = rawName.substring(prefix.length() + 1);
             } else if (prefix.equals("Superior")) {
                 finalPrefix = "Highly Superior";
-                finalRawName = rawName.substring(prefix.length() + 1);
             } else if (prefix.equals("Perfect")) {
                 finalPrefix = "Absolutely Perfect";
-                finalRawName = rawName.substring(prefix.length() + 1);
             } else {
                 finalPrefix = "Very " + prefix;
-                finalRawName = rawName.substring(prefix.length() + 1);
             }
         }
         
-        ItemStatsGUI.Rarity rarityEnum = ItemStatsGUI.Rarity.NONE;
-        try { rarityEnum = ItemStatsGUI.Rarity.valueOf(tier.name()); } catch (Exception ignored) {}
-
-        String rarityColor = (rarityEnum != ItemStatsGUI.Rarity.NONE && rarityEnum.color != null && !rarityEnum.color.isEmpty()) 
-                             ? rarityEnum.color : color;
-        
-        meta.setDisplayName(rarityColor + finalPrefix + " " + finalRawName);
-
-        // ── Lưu PDC ──────────────────────────────────────────────────────────────
-        pdc.set(reforgeKey, PersistentDataType.STRING, prefix);
+        pdc.set(reforgeKey, PersistentDataType.STRING, finalPrefix);
         if (exclusive) pdc.set(exclusiveKey, PersistentDataType.INTEGER, 1);
         else           pdc.remove(exclusiveKey);
-
-        // ── Rarity & Flags ───────────────────────────────────────────────────────
-        boolean isCustomItem = pdc.has(new NamespacedKey(plugin, ItemStatsGUI.KEY_HAS_STATS), PersistentDataType.INTEGER);
-        boolean isWeapon = isCustomItem
-                ? (pdc.has(new NamespacedKey(plugin, "cwe_is_weapon"), PersistentDataType.INTEGER)
-                   && pdc.get(new NamespacedKey(plugin, "cwe_is_weapon"), PersistentDataType.INTEGER) == 1)
-                : (cat == ItemCategory.MELEE || cat == ItemCategory.RANGED);
-
-        // ── Base stats (0 nếu Vanilla) ───────────────────────────────────────────
-        double[] base = new double[7];
-        if (isCustomItem) {
-            base[0] = getD(pdc, ItemStatsGUI.KEY_STRENGTH);
-            base[1] = getD(pdc, ItemStatsGUI.KEY_CRIT_CHANCE);
-            base[2] = getD(pdc, ItemStatsGUI.KEY_CRIT_DAMAGE);
-            base[3] = getD(pdc, ItemStatsGUI.KEY_HEALTH);
-            base[4] = getD(pdc, ItemStatsGUI.KEY_DEFENSE);
-            base[5] = getD(pdc, ItemStatsGUI.KEY_INTELLIGENCE);
-            base[6] = getD(pdc, ItemStatsGUI.KEY_SPEED);
-        }
-
-        NamespacedKey dmgKey    = new NamespacedKey(plugin, "stat_damage");
-        NamespacedKey dmgKeyAlt = new NamespacedKey(plugin, "cwe_damage");
-        double damage = pdc.has(dmgKey, PersistentDataType.DOUBLE)
-                ? pdc.getOrDefault(dmgKey, PersistentDataType.DOUBLE, 0.0)
-                : (pdc.has(dmgKeyAlt, PersistentDataType.DOUBLE)
-                    ? pdc.getOrDefault(dmgKeyAlt, PersistentDataType.DOUBLE, 0.0) : 0.0);
-
-        String bTitle = getString(pdc, ItemStatsGUI.KEY_SETBONUS_TITLE, "");
-        String bD1    = getString(pdc, ItemStatsGUI.KEY_SETBONUS_DESC1, "");
-        String bD2    = getString(pdc, ItemStatsGUI.KEY_SETBONUS_DESC2, "");
 
         // ── Reforge bonus ────────────────────────────────────────────────────────
         ReforgeStat bonus = exclusive
                 ? getExclusiveReforgeStat(prefix, cat, tier)
                 : getReforgeStat(prefix, cat, tier);
 
-        double bonusAtk = 0;
         if (bonus != null) {
-            base[0] += bonus.strength;
-            base[1] += bonus.critChance;
-            base[2] += bonus.critDamage;
-            base[3] += bonus.health;
-            base[4] += bonus.defense;
-            base[5] += bonus.intelligence;
-            base[6] += bonus.speed;
-            bonusAtk  = bonus.attackSpeed;
-        }
-
-        // ── Thu thập enchant lines (giữ lại) ────────────────────────────────────
-        List<String> existingLore = meta.hasLore() ? meta.getLore() : new ArrayList<>();
-        List<String> enchantLines = new ArrayList<>();
-        for (String line : existingLore) {
-            if (isEnchantLoreLine(line)) enchantLines.add(line);
-        }
-
-        // ── Xây dựng lore mới ────────────────────────────────────────────────────
-        List<String> newLore = new ArrayList<>();
-        if (isWeapon) {
-            if (damage > 0) newLore.add(String.format("§7Damage: §c+%.0f", damage));
-            addStat(newLore, "Strength",     "§c", base[0], bonus != null ? bonus.strength    : 0, prefix, false);
-            addStat(newLore, "Attack Speed", "§e", bonusAtk, bonusAtk,                              prefix, true);
-            if (damage > 0 || base[0] > 0 || bonusAtk > 0) newLore.add("§f");
-
-            addStat(newLore, "Crit Chance",  "§9", base[1], bonus != null ? bonus.critChance  : 0, prefix, true);
-            addStat(newLore, "Crit Damage",  "§5", base[2], bonus != null ? bonus.critDamage  : 0, prefix, true);
-            addStat(newLore, "Intelligence", "§a", base[5], bonus != null ? bonus.intelligence: 0, prefix, false);
-            if (base[1] > 0 || base[2] > 0 || base[5] > 0) newLore.add("§f");
-
-            // Withered special note
-            if (bonus != null && bonus.levelMultiplier > 0) {
-                newLore.add(String.format("§8Withered: §7+%.1fx Level", bonus.levelMultiplier));
-            }
-
-            if (!bTitle.isEmpty()) {
-                String clickType = getString(pdc, ItemStatsGUI.KEY_ABILITY_CLICK, "RIGHT CLICK");
-                newLore.add("§6Item Ability: " + bTitle + " §e§l[" + clickType + "]");
-                if (!bD1.isEmpty()) newLore.add("§7" + bD1);
-                if (!bD2.isEmpty()) newLore.add("§7" + bD2);
-
-                org.bukkit.configuration.file.FileConfiguration config = CustomWeaponEngine.getInstance().getConfig();
-                String weaponId = getWeaponIdFromDisplayName(originalName);
-                if (weaponId != null) {
-                    double mana = config.getDouble("weapons." + weaponId + ".mana-cost", 0);
-                    int cd  = config.getInt("weapons." + weaponId + ".cooldown", 0);
-                    if (mana > 0) newLore.add("§9Mana Cost: §3" + (int) mana);
-                    if (cd   > 0) newLore.add("§9Cooldown: §a" + cd + "s");
-                }
-                newLore.add("§f");
-            }
+            setD(pdc, "cwe_rf_strength", bonus.strength);
+            setD(pdc, "cwe_rf_crit_chance", bonus.critChance);
+            setD(pdc, "cwe_rf_crit_damage", bonus.critDamage);
+            setD(pdc, "cwe_rf_health", bonus.health);
+            setD(pdc, "cwe_rf_defense", bonus.defense);
+            setD(pdc, "cwe_rf_intelligence", bonus.intelligence);
+            setD(pdc, "cwe_rf_speed", bonus.speed);
+            setD(pdc, "cwe_rf_attack_speed", bonus.attackSpeed);
+            setD(pdc, "cwe_rf_level_mult", bonus.levelMultiplier);
         } else {
-            // ARMOR
-            addStat(newLore, "Health",       "§c", base[3], bonus != null ? bonus.health       : 0, prefix, false);
-            addStat(newLore, "Defense",      "§a", base[4], bonus != null ? bonus.defense      : 0, prefix, false);
-            addStat(newLore, "Strength",     "§c", base[0], bonus != null ? bonus.strength     : 0, prefix, false);
-            if (base[3] > 0 || base[4] > 0 || base[0] > 0) newLore.add("§f");
-
-            addStat(newLore, "Crit Chance",  "§9", base[1], bonus != null ? bonus.critChance   : 0, prefix, true);
-            addStat(newLore, "Crit Damage",  "§5", base[2], bonus != null ? bonus.critDamage   : 0, prefix, true);
-            addStat(newLore, "Speed",        "§f", base[6], bonus != null ? bonus.speed        : 0, prefix, false);
-            addStat(newLore, "Intelligence", "§a", base[5], bonus != null ? bonus.intelligence : 0, prefix, false);
-            if (base[1] > 0 || base[2] > 0 || base[6] > 0 || base[5] > 0) newLore.add("§f");
-
-            if (!bTitle.isEmpty()) {
-                newLore.add("§6Full Set Bonus: " + bTitle);
-                if (!bD1.isEmpty()) newLore.add("§7" + bD1);
-                if (!bD2.isEmpty()) newLore.add("§7" + bD2);
-                newLore.add("§f");
-            }
+            setD(pdc, "cwe_rf_strength", 0);
+            setD(pdc, "cwe_rf_crit_chance", 0);
+            setD(pdc, "cwe_rf_crit_damage", 0);
+            setD(pdc, "cwe_rf_health", 0);
+            setD(pdc, "cwe_rf_defense", 0);
+            setD(pdc, "cwe_rf_intelligence", 0);
+            setD(pdc, "cwe_rf_speed", 0);
+            setD(pdc, "cwe_rf_attack_speed", 0);
+            setD(pdc, "cwe_rf_level_mult", 0);
         }
 
-        if (!enchantLines.isEmpty()) {
-            newLore.addAll(enchantLines);
-            newLore.add("§f");
-        }
-
-        // Dòng rarity cuối
-        if (rarityEnum != ItemStatsGUI.Rarity.NONE) {
-            String rarityLabel = rarityEnum.color + "§l" + rarityEnum.name();
-            if (isWeapon) newLore.add(rarityLabel + " " + ItemStatsGUI.getWeaponTypeName(item));
-            else          newLore.add(rarityLabel + " " + getArmorOrVanillaTypeName(item));
-        } else {
-            // Vanilla item fallback: luôn hiển thị RARE + loại item
-            newLore.add("§f§lCOMMON " + resolveVanillaTypeName(item));
-        }
-
-        meta.setLore(newLore);
         item.setItemMeta(meta);
+        org.example.stats.ItemBuilder.updateItem(item);
     }
 
     // ===========================================================================

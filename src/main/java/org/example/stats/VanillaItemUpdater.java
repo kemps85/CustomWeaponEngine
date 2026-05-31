@@ -126,6 +126,7 @@ public class VanillaItemUpdater implements Listener {
                 needsUpdate = true;
             }
             pdc.set(new NamespacedKey(plugin, "cwe_base_stats_assigned"), PersistentDataType.INTEGER, 1);
+            pdc.set(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_HAS_STATS), PersistentDataType.INTEGER, 1);
         }
 
         // Bug fix: Rebuild enchant lore to fix old items that have bugged stats
@@ -136,69 +137,8 @@ public class VanillaItemUpdater implements Listener {
         }
 
         if (needsUpdate) {
-            // Apply rarity to lore via ItemStatsGUI
-            String rarityStr = pdc.get(rarityKey, PersistentDataType.STRING);
-            org.example.stats.ItemStatsGUI.Rarity rEnum = org.example.stats.ItemStatsGUI.Rarity.COMMON;
-            try { rEnum = org.example.stats.ItemStatsGUI.Rarity.valueOf(rarityStr); } catch (Exception ignored) {}
-            
-            String bTitle = pdc.has(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_SETBONUS_TITLE), PersistentDataType.STRING) ? pdc.get(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_SETBONUS_TITLE), PersistentDataType.STRING) : "";
-            String bD1 = pdc.has(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_SETBONUS_DESC1), PersistentDataType.STRING) ? pdc.get(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_SETBONUS_DESC1), PersistentDataType.STRING) : "";
-            String bD2 = pdc.has(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_SETBONUS_DESC2), PersistentDataType.STRING) ? pdc.get(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_SETBONUS_DESC2), PersistentDataType.STRING) : "";
-            String click = pdc.has(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_ABILITY_CLICK), PersistentDataType.STRING) ? pdc.get(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_ABILITY_CLICK), PersistentDataType.STRING) : "RIGHT CLICK";
-            
-            // HACK: Fallback extract from old lore if PDC is missing (for existing legacy items)
-            if (bTitle.isEmpty() && meta.hasLore()) {
-                boolean nextIsD1 = false;
-                boolean nextIsD2 = false;
-                for (String line : meta.getLore()) {
-                    String clean = org.bukkit.ChatColor.stripColor(line);
-                    if (clean.startsWith("Item Ability: ")) {
-                        int bracket = clean.lastIndexOf("[");
-                        if (bracket != -1) {
-                            bTitle = clean.substring(14, bracket).trim();
-                            click = clean.substring(bracket + 1, clean.length() - 1).trim();
-                        } else {
-                            bTitle = clean.substring(14).trim();
-                        }
-                        nextIsD1 = true;
-                    } else if (clean.startsWith("Full Set Bonus: ")) {
-                        bTitle = clean.substring(16).trim();
-                        nextIsD1 = true;
-                    } else if (nextIsD1 && !clean.trim().isEmpty() && !clean.startsWith("Mana Cost") && !clean.startsWith("Cooldown")) {
-                        bD1 = clean;
-                        nextIsD1 = false;
-                        nextIsD2 = true;
-                    } else if (nextIsD2 && !clean.trim().isEmpty() && !clean.startsWith("Mana Cost") && !clean.startsWith("Cooldown")) {
-                        bD2 = clean;
-                        nextIsD2 = false;
-                    }
-                }
-            }
-            
-            double[] stats = new double[7];
-            stats[0] = pdc.has(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_STRENGTH), PersistentDataType.DOUBLE) ? pdc.get(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_STRENGTH), PersistentDataType.DOUBLE) : 0.0;
-            stats[1] = pdc.has(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_CRIT_CHANCE), PersistentDataType.DOUBLE) ? pdc.get(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_CRIT_CHANCE), PersistentDataType.DOUBLE) : 0.0;
-            stats[2] = pdc.has(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_CRIT_DAMAGE), PersistentDataType.DOUBLE) ? pdc.get(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_CRIT_DAMAGE), PersistentDataType.DOUBLE) : 0.0;
-            stats[3] = pdc.has(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_HEALTH), PersistentDataType.DOUBLE) ? pdc.get(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_HEALTH), PersistentDataType.DOUBLE) : 0.0;
-            stats[4] = pdc.has(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_DEFENSE), PersistentDataType.DOUBLE) ? pdc.get(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_DEFENSE), PersistentDataType.DOUBLE) : 0.0;
-            stats[5] = pdc.has(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_INTELLIGENCE), PersistentDataType.DOUBLE) ? pdc.get(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_INTELLIGENCE), PersistentDataType.DOUBLE) : 0.0;
-            stats[6] = pdc.has(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_SPEED), PersistentDataType.DOUBLE) ? pdc.get(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_SPEED), PersistentDataType.DOUBLE) : 0.0;
-            
-            double damage = pdc.has(new NamespacedKey(plugin, "stat_damage"), PersistentDataType.DOUBLE) ? pdc.get(new NamespacedKey(plugin, "stat_damage"), PersistentDataType.DOUBLE) : 0.0;
-            if (damage == 0.0) {
-                damage = pdc.has(new NamespacedKey(plugin, "cwe_damage"), PersistentDataType.DOUBLE) ? pdc.get(new NamespacedKey(plugin, "cwe_damage"), PersistentDataType.DOUBLE) : 0.0;
-            }
-
-            boolean isWeapon = name.contains("SWORD") || name.contains("AXE") || name.contains("BOW") || name.contains("CROSSBOW") || item.getType() == Material.TRIDENT || item.getType() == Material.MACE;
-            org.example.stats.ItemStatsGUI.rebuildLore(item, meta, stats, damage, rEnum, bTitle, bD1, bD2, click, isWeapon);
-            
             item.setItemMeta(meta);
-            
-            // Rewrite lore and stats using EnchantManager
-            EnchantManager em = CustomWeaponEngine.getEnchantManager();
-            if (em != null) {
-                em.rebuildEnchantLore(item);
-            }
+            ItemBuilder.updateItem(item);
         }
     }
 }

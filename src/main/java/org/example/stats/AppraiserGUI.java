@@ -188,12 +188,22 @@ public class AppraiserGUI implements Listener {
                     String rarity = rollRarity(itemType);
 
                     // Tăng chỉ số
-                    double multiplier = 1.0;
-                    if (rarity.equals("UNCOMMON")) multiplier = 1.05;
-                    if (rarity.equals("RARE")) multiplier = 1.1;
-                    if (rarity.equals("EPIC")) multiplier = 1.25;
-                    if (rarity.equals("LEGENDARY")) multiplier = 1.5;
-                    if (rarity.equals("MYTHIC")) multiplier = 1.75;
+                    String oldRarityStr = pdc.getOrDefault(new NamespacedKey(plugin, ItemStatsGUI.KEY_RARITY), PersistentDataType.STRING, "COMMON");
+                    double oldMultiplier = 1.0;
+                    if (oldRarityStr.equals("UNCOMMON")) oldMultiplier = 1.05;
+                    if (oldRarityStr.equals("RARE")) oldMultiplier = 1.1;
+                    if (oldRarityStr.equals("EPIC")) oldMultiplier = 1.25;
+                    if (oldRarityStr.equals("LEGENDARY")) oldMultiplier = 1.5;
+                    if (oldRarityStr.equals("MYTHIC")) oldMultiplier = 1.75;
+
+                    double newMultiplier = 1.0;
+                    if (rarity.equals("UNCOMMON")) newMultiplier = 1.05;
+                    if (rarity.equals("RARE")) newMultiplier = 1.1;
+                    if (rarity.equals("EPIC")) newMultiplier = 1.25;
+                    if (rarity.equals("LEGENDARY")) newMultiplier = 1.5;
+                    if (rarity.equals("MYTHIC")) newMultiplier = 1.75;
+
+                    double scale = newMultiplier / oldMultiplier;
 
                     // Scale base stats if they exist
                     NamespacedKey dmgKey = new NamespacedKey(plugin, "stat_damage");
@@ -219,19 +229,19 @@ public class AppraiserGUI implements Listener {
 
                     if (pdc.has(dmgKey, PersistentDataType.DOUBLE)) {
                         double val = pdc.getOrDefault(dmgKey, PersistentDataType.DOUBLE, 0.0);
-                        pdc.set(dmgKey, PersistentDataType.DOUBLE, val * multiplier);
+                        pdc.set(dmgKey, PersistentDataType.DOUBLE, val * scale);
                     }
                     if (pdc.has(strKey, PersistentDataType.DOUBLE)) {
                         double val = pdc.getOrDefault(strKey, PersistentDataType.DOUBLE, 0.0);
-                        pdc.set(strKey, PersistentDataType.DOUBLE, val * multiplier);
+                        pdc.set(strKey, PersistentDataType.DOUBLE, val * scale);
                     }
                     if (pdc.has(defKey, PersistentDataType.DOUBLE)) {
                         double val = pdc.getOrDefault(defKey, PersistentDataType.DOUBLE, 0.0);
-                        pdc.set(defKey, PersistentDataType.DOUBLE, val * multiplier);
+                        pdc.set(defKey, PersistentDataType.DOUBLE, val * scale);
                     }
                     if (pdc.has(hpKey, PersistentDataType.DOUBLE)) {
                         double val = pdc.getOrDefault(hpKey, PersistentDataType.DOUBLE, 0.0);
-                        pdc.set(hpKey, PersistentDataType.DOUBLE, val * multiplier);
+                        pdc.set(hpKey, PersistentDataType.DOUBLE, val * scale);
                     }
 
                     pdc.set(new NamespacedKey(plugin, ItemStatsGUI.KEY_RARITY), PersistentDataType.STRING, rarity);

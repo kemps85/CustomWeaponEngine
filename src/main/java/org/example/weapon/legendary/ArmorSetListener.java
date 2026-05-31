@@ -62,4 +62,26 @@ public class ArmorSetListener implements Listener {
             }
         }
     }
+
+    @EventHandler
+    public void onWitherbornExplode(org.bukkit.event.entity.EntityExplodeEvent event) {
+        if (event.getEntity() instanceof org.bukkit.entity.WitherSkull) {
+            org.bukkit.entity.WitherSkull skull = (org.bukkit.entity.WitherSkull) event.getEntity();
+            NamespacedKey wKey = new NamespacedKey(org.bukkit.plugin.java.JavaPlugin.getPlugin(CustomWeaponEngine.class), "witherborn_damage");
+            if (skull.getPersistentDataContainer().has(wKey, PersistentDataType.DOUBLE)) {
+                event.blockList().clear(); // Ngăn phá block
+            }
+        }
+    }
+    
+    @EventHandler
+    public void onWitherbornChangeBlock(org.bukkit.event.entity.EntityChangeBlockEvent event) {
+        if (event.getEntity() instanceof org.bukkit.entity.WitherSkull) {
+            org.bukkit.entity.WitherSkull skull = (org.bukkit.entity.WitherSkull) event.getEntity();
+            NamespacedKey wKey = new NamespacedKey(org.bukkit.plugin.java.JavaPlugin.getPlugin(CustomWeaponEngine.class), "witherborn_damage");
+            if (skull.getPersistentDataContainer().has(wKey, PersistentDataType.DOUBLE)) {
+                event.setCancelled(true); // Ngăn Wither phá block
+            }
+        }
+    }
 }

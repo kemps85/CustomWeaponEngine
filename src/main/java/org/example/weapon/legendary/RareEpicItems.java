@@ -102,6 +102,7 @@ public class RareEpicItems {
             meta.getPersistentDataContainer().set(idKey, PersistentDataType.STRING, id);
             meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "cwe_item_stats"), PersistentDataType.INTEGER, 1);
             meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_rarity"), PersistentDataType.STRING, rarity);
+            if (damage > 0) meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_damage"), PersistentDataType.DOUBLE, (double) damage);
             if (strength > 0) meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_strength"), PersistentDataType.DOUBLE, (double) strength);
             if (cc > 0) meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_crit_chance"), PersistentDataType.DOUBLE, (double) cc);
             if (cd > 0) meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_crit_damage"), PersistentDataType.DOUBLE, (double) cd);
@@ -153,6 +154,7 @@ public class RareEpicItems {
             meta.getPersistentDataContainer().set(idKey, PersistentDataType.STRING, id);
             meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "cwe_item_stats"), PersistentDataType.INTEGER, 1);
             meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_rarity"), PersistentDataType.STRING, rarity);
+            if (damage > 0) meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_damage"), PersistentDataType.DOUBLE, (double) damage);
             if (strength > 0) meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_strength"), PersistentDataType.DOUBLE, (double) strength);
             if (critChance > 0) meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_crit_chance"), PersistentDataType.DOUBLE, (double) critChance);
             if (critDamage > 0) meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_crit_damage"), PersistentDataType.DOUBLE, (double) critDamage);

@@ -269,6 +269,7 @@ public class HeavenlySwordListener implements Listener {
 
     @EventHandler
     public void onWeaponRightClick(PlayerInteractEvent event) {
+        if (event.getHand() != org.bukkit.inventory.EquipmentSlot.HAND) return;
         Player player = event.getPlayer();
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
 

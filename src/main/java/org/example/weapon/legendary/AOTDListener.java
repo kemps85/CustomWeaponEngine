@@ -33,6 +33,7 @@ public class AOTDListener implements Listener {
 
     @EventHandler
     public void onInteract(PlayerInteractEvent event) {
+        if (event.getHand() != org.bukkit.inventory.EquipmentSlot.HAND) return;
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         if (event.getItem() == null || event.getItem().getItemMeta() == null) return;
 
@@ -71,7 +72,7 @@ public class AOTDListener implements Listener {
 
         // Quét entities trong bán kính rộng rồi lọc theo cone
         for (Entity e : p.getNearbyEntities(CONE_RANGE + 1, CONE_RADIUS + 2, CONE_RANGE + 1)) {
-            if (!(e instanceof LivingEntity) || e == p) continue;
+            if (!(e instanceof LivingEntity) || e == p || e instanceof org.bukkit.entity.Player) continue;
             if (e instanceof org.bukkit.entity.ArmorStand) continue;
 
             LivingEntity target = (LivingEntity) e;

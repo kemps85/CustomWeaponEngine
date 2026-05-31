@@ -28,6 +28,7 @@ public class ShadowFuryListener implements Listener {
 
     @EventHandler
     public void onInteract(PlayerInteractEvent event) {
+        if (event.getHand() != org.bukkit.inventory.EquipmentSlot.HAND) return;
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         if (event.getItem() == null || event.getItem().getItemMeta() == null) return;
         
@@ -37,7 +38,7 @@ public class ShadowFuryListener implements Listener {
             
             List<LivingEntity> targets = new ArrayList<>();
             for (Entity e : p.getNearbyEntities(12, 6, 12)) {
-                if (e instanceof LivingEntity && e != p) {
+                if (e instanceof LivingEntity && e != p && !(e instanceof org.bukkit.entity.Player)) {
                     targets.add((LivingEntity) e);
                     if (targets.size() >= 5) break;
                 }

@@ -14,6 +14,15 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.event.Listener;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.world.ChunkLoadEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.WitherSkull;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.NamespacedKey;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -87,6 +96,7 @@ public final class CustomWeaponEngine extends JavaPlugin implements CommandExecu
         }
 
         enchantManager = new EnchantManager(this);
+        org.example.stats.ItemBuilder.init(this);
 
         // 🟩 Đăng ký công thức chế tạo Mending đặc quyền
         NamespacedKey recipeKey = new NamespacedKey(this, "custom_mending_book");
@@ -186,6 +196,32 @@ public final class CustomWeaponEngine extends JavaPlugin implements CommandExecu
     
         if (getCommand("cst") != null) {
             getCommand("cst").setExecutor(this);
+            // Tự động dọn rác WitherSkull bị lỗi (NaN) bị kẹt trong chunk
+            Bukkit.getPluginManager().registerEvents(new Listener() {
+                @EventHandler
+                public void onChunkLoad(ChunkLoadEvent event) {
+                    for (Entity e : event.getChunk().getEntities()) {
+                        if (e instanceof WitherSkull) {
+                            e.remove();
+                        }
+                    }
+                }
+                
+                @EventHandler
+                public void onPlayerJoin(PlayerJoinEvent event) {
+                    org.bukkit.entity.Player p = event.getPlayer();
+                    NamespacedKey idKey = new NamespacedKey(CustomWeaponEngine.this, "cwe_id");
+                    for (int i = 0; i < p.getInventory().getSize(); i++) {
+                        ItemStack item = p.getInventory().getItem(i);
+                        if (item != null && item.hasItemMeta()) {
+                            String cweId = item.getItemMeta().getPersistentDataContainer().get(idKey, PersistentDataType.STRING);
+                            if (cweId != null && (cweId.startsWith("necron_") || cweId.startsWith("storm_") || cweId.startsWith("goldor_") || cweId.startsWith("maxor_"))) {
+                                p.getInventory().setItem(i, null); // Xóa sổ ngay lập tức
+                            }
+                        }
+                    }
+                }
+            }, this);
             getCommand("cst").setTabCompleter((sender, command, alias, args) -> {
                 if (args.length == 1) {
                     java.util.List<String> list = new java.util.ArrayList<>();
@@ -201,6 +237,7 @@ public final class CustomWeaponEngine extends JavaPlugin implements CommandExecu
         getServer().getPluginManager().registerEvents(weaponEngine, this);
         getServer().getPluginManager().registerEvents(new RunaanBowListener(this), this);
         getServer().getPluginManager().registerEvents(new ShortbowListener(this), this);
+        getServer().getPluginManager().registerEvents(new org.example.weapon.ArrowDamageListener(this), this);
 
         berserkEngine = new BerserkListener();
         getServer().getPluginManager().registerEvents(berserkEngine, this);
@@ -260,6 +297,16 @@ public final class CustomWeaponEngine extends JavaPlugin implements CommandExecu
             getCommand("setrank").setTabCompleter(setRankCmd);
         }
 
+        if (getCommand("cwebook") != null) {
+            org.example.system.CustomBookCommand bookCmd = new org.example.system.CustomBookCommand(this);
+            getCommand("cwebook").setExecutor(bookCmd);
+            getCommand("cwebook").setTabCompleter(bookCmd);
+        }
+
+        // --- Register Other Listeners ---
+        getServer().getPluginManager().registerEvents(new org.example.enchant.EnchantTableListener(this), this);
+
+
         getServer().getPluginManager().registerEvents(new org.example.system.UpdateNotifier(this), this);
         
         // 🟩 Đăng ký Chat Listener
@@ -281,7 +328,6 @@ public final class CustomWeaponEngine extends JavaPlugin implements CommandExecu
         getServer().getPluginManager().registerEvents(new org.example.weapon.legendary.SlayerDungeonListener(this), this);
         
         // Bật các Task ngầm cho Set Giáp
-        new org.example.weapon.legendary.WitherbornTask(this).runTaskTimer(this, 0L, 2L);
         new org.example.weapon.legendary.DragonTask(this).runTaskTimer(this, 0L, 20L); // 1 giay
         
         if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {

@@ -220,6 +220,7 @@ public class AstralShepherdListener implements Listener {
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
+        if (event.getHand() != org.bukkit.inventory.EquipmentSlot.HAND) return;
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) {
             return;
         }
@@ -313,7 +314,7 @@ public class AstralShepherdListener implements Listener {
                     // Va chạm thực thể
                     List<Entity> nearby = (List<Entity>) nextLoc.getWorld().getNearbyEntities(nextLoc, 1.0, 1.0, 1.0);
                     for (Entity e : nearby) {
-                        if (e instanceof LivingEntity && e != player && e != sheepProjectile) {
+                        if (e instanceof LivingEntity && e != player && e != sheepProjectile && !(e instanceof org.bukkit.entity.Player)) {
                             collided = true;
                             break;
                         }
@@ -338,7 +339,7 @@ public class AstralShepherdListener implements Listener {
 
         // Gây sát thương AOE bán kính 2 ô
         for (Entity e : loc.getWorld().getNearbyEntities(loc, 2.0, 2.0, 2.0)) {
-            if (e instanceof LivingEntity && !e.isDead() && e != shooter) {
+            if (e instanceof LivingEntity && !e.isDead() && e != shooter && !(e instanceof org.bukkit.entity.Player)) {
                 // Không sát thương ArmorStand
                 if (e.getType() == org.bukkit.entity.EntityType.ARMOR_STAND) continue;
                 

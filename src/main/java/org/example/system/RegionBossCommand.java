@@ -31,6 +31,17 @@ public class RegionBossCommand implements CommandExecutor, TabCompleter {
             }
             return true;
         }
+
+        if (args.length == 2 && args[0].equalsIgnoreCase("removespawn")) {
+            String type = args[1].toUpperCase();
+            if (type.equals("FIRE") || type.equals("ICE") || type.equals("VOID")) {
+                CustomWeaponEngine.regionBossManager.removeSpawn(type);
+                sender.sendMessage("§aĐã xóa điểm spawn và hologram của Boss " + type + "!");
+            } else {
+                sender.sendMessage("§cLoại Boss không hợp lệ!");
+            }
+            return true;
+        }
         
         if (args.length == 2 && args[0].equalsIgnoreCase("spawn")) {
             String type = args[1].toUpperCase();
@@ -45,6 +56,7 @@ public class RegionBossCommand implements CommandExecutor, TabCompleter {
 
         sender.sendMessage("§6§l══════ BOSS VÙNG ══════");
         sender.sendMessage("§e/cweboss setspawn <FIRE|ICE|VOID> §7- Đặt vị trí đấu trường");
+        sender.sendMessage("§e/cweboss removespawn <FIRE|ICE|VOID> §7- Xóa vị trí đấu trường");
         sender.sendMessage("§e/cweboss spawn <FIRE|ICE|VOID> §7- Ép Boss xuất hiện lập tức");
         return true;
     }
@@ -54,6 +66,7 @@ public class RegionBossCommand implements CommandExecutor, TabCompleter {
         List<String> completions = new ArrayList<>();
         if (args.length == 1) {
             completions.add("setspawn");
+            completions.add("removespawn");
             completions.add("spawn");
         } else if (args.length == 2) {
             completions.add("FIRE");

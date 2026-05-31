@@ -177,9 +177,6 @@ public class BerserkListener implements Listener {
         double predictedHealth = player.getHealth() - event.getFinalDamage();
         double healthPercent = (predictedHealth / maxHealth);
 
-        // 🟥 THANH DEBUG TỐI CAO: Bây giờ gõ lệnh /damage phát là phải nổ chữ này ngay!
-        player.sendActionBar("§e[Debug] Giáp Berserk: " + pieces + "/4 §7| Máu sắp tới: " + (int)(healthPercent * 100) + "% (Cần <= 35%)");
-
         if (pieces < 4) return; 
 
         // Ngưỡng kích hoạt: Dưới 35% máu tối đa

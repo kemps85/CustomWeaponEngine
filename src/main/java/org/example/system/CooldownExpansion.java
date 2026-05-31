@@ -1,37 +1,10 @@
 package org.example.system;
 
-import org.example.core.CustomWeaponEngine;
-import org.example.weapon.*;
-import org.example.armor.*;
-import org.example.enchant.*;
-import org.example.bazaar.*;
-import org.example.stats.*;
-import org.example.system.*;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
-import org.example.core.CustomWeaponEngine;
-import org.example.weapon.*;
-import org.example.armor.*;
-import org.example.enchant.*;
-import org.example.bazaar.*;
-import org.example.stats.*;
-import org.example.system.*;
 import org.bukkit.OfflinePlayer;
-import org.example.core.CustomWeaponEngine;
-import org.example.weapon.*;
-import org.example.armor.*;
-import org.example.enchant.*;
-import org.example.bazaar.*;
-import org.example.stats.*;
-import org.example.system.*;
+import org.example.weapon.HeavenlySwordListener;
 import org.jetbrains.annotations.NotNull;
 
-import org.example.core.CustomWeaponEngine;
-import org.example.weapon.*;
-import org.example.armor.*;
-import org.example.enchant.*;
-import org.example.bazaar.*;
-import org.example.stats.*;
-import org.example.system.*;
 public class CooldownExpansion extends PlaceholderExpansion {
 
     private final HeavenlySwordListener weaponEngine;
@@ -71,6 +44,14 @@ public class CooldownExpansion extends PlaceholderExpansion {
             
             // 🟩 FIXED: Changed "§aSẵn sàng" to "§aReady" for full English consistency
             return timeLeft > 0 ? timeLeft + "s" : "§aReady";
+        }
+
+        // Check action bar mana consumption: %cst_mana_cost%
+        if (params.equals("mana_cost")) {
+            if (player.isOnline()) {
+                return org.example.weapon.legendary.ManaHelper.getActionbarMessage((org.bukkit.entity.Player) player);
+            }
+            return "";
         }
 
         return null;

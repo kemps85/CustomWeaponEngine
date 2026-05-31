@@ -36,6 +36,7 @@ public class ShortbowListener implements Listener {
 
     @EventHandler
     public void onInteract(PlayerInteractEvent event) {
+        if (event.getHand() != org.bukkit.inventory.EquipmentSlot.HAND) return;
         Action action = event.getAction();
         if (action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK || action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK) {
             Player player = event.getPlayer();
@@ -64,6 +65,10 @@ public class ShortbowListener implements Listener {
                     arrow.setShooter(player);
                     arrow.setMetadata("juju_arrow", new FixedMetadataValue(plugin, true));
                     arrow.setPierceLevel(2); // Can pierce 2 times, hitting 3 targets total
+
+                    double dmg = container.getOrDefault(new NamespacedKey(plugin, "stat_damage"), PersistentDataType.DOUBLE, 0.0);
+                    if (dmg == 0) dmg = container.getOrDefault(new NamespacedKey(plugin, "cwe_damage"), PersistentDataType.DOUBLE, 0.0);
+                    if (dmg > 0) arrow.setMetadata("cwe_base_damage", new FixedMetadataValue(plugin, dmg));
 
                     player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ARROW_SHOOT, 1.0f, 1.0f);
                 }

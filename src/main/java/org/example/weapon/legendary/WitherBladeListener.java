@@ -26,6 +26,7 @@ public class WitherBladeListener implements Listener {
 
     @EventHandler
     public void onInteract(PlayerInteractEvent event) {
+        if (event.getHand() != org.bukkit.inventory.EquipmentSlot.HAND) return;
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         if (event.getItem() == null || event.getItem().getItemMeta() == null) return;
         
@@ -53,7 +54,7 @@ public class WitherBladeListener implements Listener {
             p.getWorld().spawnParticle(Particle.EXPLOSION, p.getLocation(), 1);
             
             for (Entity e : p.getNearbyEntities(10, 5, 10)) {
-                if (e instanceof LivingEntity && e != p) {
+                if (e instanceof LivingEntity && e != p && !(e instanceof org.bukkit.entity.Player)) {
                     ((LivingEntity) e).damage(500, p);
                 }
             }

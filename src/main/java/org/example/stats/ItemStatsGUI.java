@@ -729,6 +729,10 @@ public class ItemStatsGUI implements Listener, CommandExecutor {
 
         rebuildLore(held, meta, stats, damage, rarity, bTitle, bD1, bD2, clickType, isWeapon);
         held.setItemMeta(meta);
+        
+        // Rebuild full lore via central ItemBuilder
+        ItemBuilder.updateItem(held);
+        
         player.getInventory().setItemInMainHand(held);
         player.updateInventory();
         return true;
