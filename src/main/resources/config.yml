@@ -1,0 +1,163 @@
+# =========================================================================
+#             CẤU HÌNH HỆ THỐNG VŨ KHÍ (CUSTOM WEAPON ENGINE)
+# =========================================================================
+
+weapons:
+  thien_dao:
+    display-name: "&b&lThiên Đạo Kiếm"
+    cooldown: 1
+    mana-cost: 0.0
+    skill-damage-percent: 10.0
+    execute-threshold: 10.0
+    effect: "LIGHTNING"
+
+  hoa_long:
+    display-name: "&c&lHỏa Long Kiếm"
+    cooldown: 1
+    mana-cost: 0.0
+    skill-damage: 25.0
+    execute-threshold: 10.0
+    effect: "EXPLOSION"
+
+  huyet_anh:
+    display-name: "&c&lHuyết Ảnh Kiếm"
+    cooldown: 2.5
+    mana-cost: 0.0
+    skill-damage-percent: 35.0
+    execute-threshold: 15.0
+    effect: "LIGHTNING"
+
+  shadow_fang:
+    display-name: "&9&lĐoản Đao Shadow Fang"
+    cooldown: 3
+    mana-cost: 25.0
+    dash-force: 1.4
+    effect: "DASH"
+
+  fire_staff:
+    display-name: "&c&lFire Staff"
+    cooldown: 3
+    mana-cost: 30.0
+    skill-damage: 10.0
+    range: 12.0
+    effect: "MAGIC_PROJECTILE"
+    element: "FIRE"
+
+  ice_staff:
+    display-name: "&b&lIce Staff"
+    cooldown: 3
+    mana-cost: 30.0
+    skill-damage: 8.0
+    range: 12.0
+    effect: "MAGIC_PROJECTILE"
+    element: "ICE"
+
+# =========================================================================
+#             CẤU HÌNH BỘ GIÁP ĐẶC BIỆT (ARMOR SETS)
+# =========================================================================
+sets:
+  berserk:
+    display-name: "Berserk"
+  shadow_assassin:
+    display-name: "Shadow"
+    crouch-stealth-time: 2
+    stealth-duration: 30
+
+# =========================================================================
+#             CẤU HÌNH THÔNG BÁO CẬP NHẬT (CHANGELOG SYSTEM)
+# =========================================================================
+changelog:
+  version: 4
+  lines:
+    - "&e========================================="
+    - "     &6&l✦ BẢN CẬP NHẬT HỆ THỐNG MỚI (CWE v4.6) ✦"
+    - "&e========================================="
+    - " &fCập nhật hệ thống chống lỗi và nâng cấp cốt lõi:"
+    - ""
+    - " &e1. &a&lBảo Tồn Chỉ Số (PDC Backup):"
+    - "   &7- Sửa lỗi hệ thống quét đồ vô tình xóa sạch Item Ability và Full Set Bonus."
+    - "   &7- Khôi phục tính năng giữ nguyên chỉ số RPG khi hệ thống làm mới trang bị."
+    - ""
+    - " &e2. &a&lVá Lỗi Kỹ Năng Vũ Khí:"
+    - "   &7- Gậy Cừu (Shepherd Wand) không còn rớt lông cừu/thịt cừu khi nổ."
+    - "   &7- AOTD (Aspect of the Dragons) thay đổi hiệu ứng: LAVA + FLAME hoành tráng hơn."
+    - ""
+    - " &e3. &a&lHệ Thống Máu & Tốc Độ:"
+    - "   &7- Fix triệt để bug kẹt Máu (Health) do Attribute Modifier Vanilla không được dọn sạch."
+    - "   &7- Xóa sổ lượng máu/tốc độ dư thừa do kẹt lag server."
+    - "&e========================================="
+
+# =========================================================================
+#             DANH SÁCH LỆNH DÀNH CHO NGƯỜI CHƠI (PLAYER COMMANDS)
+# =========================================================================
+# Danh sách này sẽ được hiển thị trên Bảng Điện Tử (Hologram)
+player-commands:
+  - "/bank - Mở tài khoản Ngân hàng cá nhân (Gửi/Rút tiền an toàn)"
+  - "/reforge - Mở lò rèn Gacha (Tẩy luyện lại chỉ số trang bị)"
+  - "/bazaar - Mở sàn giao dịch Chợ Đen (Mua bán vật phẩm)"
+  - "/recipes - Xem sách hướng dẫn chế tạo vũ khí & đồ Custom"
+  - "/cweupdate - Xem danh sách các bản cập nhật mới nhất của Server"
+  - "(Mẹo: Click chuột phải vào Đe để sửa chữa/ép bùa)"
+  - "(Mẹo: Tìm NPC Máy Giám Định để mở khóa sức mạnh trang bị)"
+  
+# =========================================================================
+#             HƯỚNG DẪN TÂN THỦ (NEWBIE GUIDE)
+# =========================================================================
+# Bảng hướng dẫn tính năng cơ bản trong server
+newbie-guide:
+  - "&e&lHƯỚNG DẪN CHƠI CƠ BẢN"
+  - "&e1. &6&lĐe Nâng Cấp (Custom Anvil):"
+  - "&f   - Đặt bất kỳ Đe nào xuống đất và Click chuột phải."
+  - "&f   - Sửa chữa trang bị vĩnh viễn với giá cố định 5 Levels."
+  - "&f   - Ép Sách Phù Phép Custom & Sạc Năng lượng (Charge)."
+  - "&e2. &6&lGiám Định Trang Bị (Appraise):"
+  - "&f   - Mang vũ khí/giáp Vanilla đến Máy Giám Định (NPC)."
+  - "&f   - Roll nhân phẩm để nhận độ hiếm (Rare, Epic, Legendary...)."
+  - "&f   - Trang bị sau khi Giám Định sẽ KHÔNG BAO GIỜ HỎNG."
+  - "&e3. &6&lSức Mạnh Riêng Biệt (Item Ability):"
+  - "&f   - Vũ khí Custom luôn có Kỹ năng Ẩn. Chuột Phải để thi triển."
+  - "&f   - Giáp Custom khi mặc đủ bộ sẽ kích hoạt hiệu ứng (Set Bonus)."
+
+# =========================================================================
+#             HỆ THỐNG MÁY GIÁM ĐỊNH (RARITY APPRAISER)
+# =========================================================================
+appraiser:
+  cost: 1000 # Chi phí Vault để giám định
+  
+  # Cấu hình tỷ lệ ra Rarity theo từng loại (Tổng = 100)
+  pools:
+    TRIDENT:
+      RARE: 60
+      EPIC: 30
+      LEGENDARY: 10
+    MACE:
+      RARE: 30
+      EPIC: 50
+      LEGENDARY: 20
+    ELYTRA:
+      RARE: 40
+      EPIC: 45
+      LEGENDARY: 15
+    NETHERITE_SWORD:
+      RARE: 65
+      EPIC: 30
+      LEGENDARY: 5
+    NETHERITE_AXE:
+      RARE: 65
+      EPIC: 30
+      LEGENDARY: 5
+    DIAMOND_SWORD:
+      RARE: 90
+      EPIC: 9
+      LEGENDARY: 1
+    CROSSBOW:
+      RARE: 85
+      EPIC: 14
+      LEGENDARY: 1
+    BOW:
+      RARE: 85
+      EPIC: 14
+      LEGENDARY: 1
+    default:
+      COMMON: 70
+      UNCOMMON: 30
