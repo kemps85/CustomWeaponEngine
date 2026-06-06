@@ -165,13 +165,17 @@ public final class CustomWeaponEngine extends JavaPlugin implements CommandExecu
         getServer().getPluginManager().registerEvents(new org.example.stats.ItemStatsListener(this), this);
         getServer().getPluginManager().registerEvents(new org.example.stats.VanillaItemUpdater(this), this);
         getServer().getPluginManager().registerEvents(new org.example.stats.CritTagger(this), this);
-        getServer().getPluginManager().registerEvents(new org.example.stats.AppraiserGUI(this), this);
+        org.example.stats.AppraiserGUI appraiserGUI = new org.example.stats.AppraiserGUI(this);
+        getServer().getPluginManager().registerEvents(appraiserGUI, this);
+        if (getCommand("appraisal") != null) {
+            getCommand("appraisal").setExecutor(appraiserGUI);
+        }
         
         regionBossManager = new org.example.system.RegionBossManager(this);
         getServer().getPluginManager().registerEvents(regionBossManager, this);
         
         // 🟩 Đăng ký lệnh /meteorite với Tab-Complete đầy đủ
-                if (getCommand("cweboss") != null) {
+        if (getCommand("cweboss") != null) {
             org.example.system.RegionBossCommand bossCmd = new org.example.system.RegionBossCommand();
             getCommand("cweboss").setExecutor(bossCmd);
             getCommand("cweboss").setTabCompleter(bossCmd);
@@ -180,8 +184,8 @@ public final class CustomWeaponEngine extends JavaPlugin implements CommandExecu
         getServer().getPluginManager().registerEvents(meteorBossManager, this);
 
         // 🟩 Đăng ký lệnh /cweie (Custom Item Editor)
-        if (getCommand("itemeditor") != null) {
-            getCommand("itemeditor").setExecutor(new org.example.system.ItemEditorCommand());
+        if (getCommand("cweie") != null) {
+            getCommand("cweie").setExecutor(new org.example.system.ItemEditorCommand());
         }
 
         // --- HỆ THỐNG MỚI (PHỤC HỒI TỪ QUÁN NET) ---

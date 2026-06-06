@@ -17,13 +17,17 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.example.core.CustomWeaponEngine;
 
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-public class AppraiserGUI implements Listener {
+public class AppraiserGUI implements Listener, CommandExecutor {
 
     private final CustomWeaponEngine plugin;
     private final String guiTitle = "§8Máy Giám Định (Appraiser)";
@@ -365,5 +369,15 @@ public class AppraiserGUI implements Listener {
                 safeGiveItem((Player) event.getPlayer(), item);
             }
         }
+    }
+
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (!(sender instanceof Player)) {
+            sender.sendMessage("§cChỉ người chơi mới có thể sử dụng lệnh này!");
+            return true;
+        }
+        openGUI((Player) sender);
+        return true;
     }
 }

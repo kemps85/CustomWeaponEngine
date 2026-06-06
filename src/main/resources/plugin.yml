@@ -80,3 +80,23 @@ commands:
   recipes:
     description: Xem công thức chế tạo đồ Custom
     aliases: [cwerecipes]
+  guide:
+    description: Mo giao dien Cam Nang He Thong huong dan
+    aliases: [camnang]
+  quests:
+    description: Mo giao dien Nhiem Vu Tan Thu Huong Dan
+    aliases: [nv, quest]
+  cwequestadmin:
+    description: Reset nhiem vu cua nguoi choi (Admin)
+    permission: cwe.admin
+    permission-message: "§c[CWE] Ban khong co quyen dung lenh nay!"
+  skillbook:
+    description: Mo giao dien Ep Sach Ky Nang
+    aliases: [sb]
+  cwebook:
+    description: Cap sach custom cho nguoi choi (Admin)
+    permission: cwe.admin
+    permission-message: "§c[CWE] Ban khong co quyen dung lenh nay!"
+  appraisal:
+    description: Mo giao dien May Giam Dinh RPG
+    aliases: [appraise, giamdinh]
