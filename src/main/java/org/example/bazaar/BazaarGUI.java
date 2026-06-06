@@ -107,6 +107,9 @@ CommandExecutor {
         this.register(new Commodity("REDSTONE", Material.REDSTONE, "\u00a79\u0110\u00e1 \u0110\u1ecf Th\u00f4", 10, 2, 50, 20000));
         this.register(new Commodity("ENCHANTED_REDSTONE", Material.REDSTONE, "\u00a79Enchanted Redstone", 1600, 320, 8000, 2000));
         this.register(new Commodity("ENCHANTED_REDSTONE_BLOCK", Material.REDSTONE_BLOCK, "\u00a75Enchanted Block of Redstone", 14400, 2880, 72000, 250));
+        this.register(new Commodity("QUARTZ", Material.QUARTZ, "\u00a79Th\u1ea1ch Anh Th\u00f4", 15, 3, 80, 15000));
+        this.register(new Commodity("ENCHANTED_QUARTZ", Material.QUARTZ, "\u00a79Enchanted Quartz", 2400, 480, 12800, 1500));
+        this.register(new Commodity("ENCHANTED_QUARTZ_BLOCK", Material.QUARTZ_BLOCK, "\u00a75Enchanted Block of Quartz", 21600, 4320, 115200, 200));
         this.register(new Commodity("CWE_XP_BOTTLE_T1", Material.EXPERIENCE_BOTTLE, "\u00a7fExperience Bottle", 85, 20, 450, 5000));
         this.register(new Commodity("CWE_XP_BOTTLE_T2", Material.EXPERIENCE_BOTTLE, "\u00a7aGrand Experience Bottle", 13500, 2800, 72000, 1000));
         this.register(new Commodity("CWE_XP_BOTTLE_T3", Material.EXPERIENCE_BOTTLE, "\u00a79Titanic Experience Bottle", 125000, 25000, 650000, 200));
@@ -327,7 +330,7 @@ CommandExecutor {
                 this.openCategoryMenu(player, "Farming", new String[]{"L\u00faa M\u00ec", "C\u00e0 R\u1ed1t", "Khoai T\u00e2y"}, new Material[]{Material.WHEAT, Material.CARROT, Material.POTATO});
             }
             if (slot == 21) {
-                this.openCategoryMenu(player, "Mining", new String[]{"Than \u0110\u00e1", "S\u1eaft Ma Thu\u1eadt", "V\u00e0ng R\u00f2ng", "Kim C\u01b0\u01a1ng", "Ng\u1ecdc L\u1ee5c B\u1ea3o", "Lapis Lazuli", "\u0110\u00e1 \u0110\u1ecf", "B\u00ecnh Kinh Nghi\u1ec7m"}, new Material[]{Material.COAL, Material.IRON_INGOT, Material.GOLD_INGOT, Material.DIAMOND, Material.EMERALD, Material.LAPIS_LAZULI, Material.REDSTONE, Material.EXPERIENCE_BOTTLE});
+                this.openCategoryMenu(player, "Mining", new String[]{"Than \u0110\u00e1", "S\u1eaft Ma Thu\u1eadt", "V\u00e0ng R\u00f2ng", "Kim C\u01b0\u01a1ng", "Ng\u1ecdc L\u1ee5c B\u1ea3o", "Lapis Lazuli", "\u0110\u00e1 \u0110\u1ecf", "Th\u1ea1ch Anh", "B\u00ecnh Kinh Nghi\u1ec7m"}, new Material[]{Material.COAL, Material.IRON_INGOT, Material.GOLD_INGOT, Material.DIAMOND, Material.EMERALD, Material.LAPIS_LAZULI, Material.REDSTONE, Material.QUARTZ, Material.EXPERIENCE_BOTTLE});
             }
             if (slot == 23) {
                 this.openCategoryMenu(player, "Combat", new String[]{"Th\u1ecbt Th\u1ed1i", "Th\u1ecbt B\u00f2", "Th\u1ecbt Heo", "Th\u1ecbt G\u00e0", "Th\u1ecbt C\u1eebu", "Th\u1ecbt Th\u1ecf", "Kh\u00fac X\u01b0\u01a1ng", "Thu\u1ed1c S\u00fang", "Ng\u1ecdc Ender", "T\u01a1 Nh\u1ec7n", "M\u1eaft Nh\u1ec7n", "B\u00f3ng Nh\u1ea7y"}, new Material[]{Material.ROTTEN_FLESH, Material.BEEF, Material.PORKCHOP, Material.CHICKEN, Material.MUTTON, Material.RABBIT, Material.BONE, Material.GUNPOWDER, Material.ENDER_PEARL, Material.STRING, Material.SPIDER_EYE, Material.SLIME_BALL});
@@ -373,6 +376,9 @@ CommandExecutor {
             }
             if (base.equals("\u0110\u00e1 \u0110\u1ecf")) {
                 this.openProductVariantsMenu(player, "\u0110\u00e1 \u0110\u1ecf", new String[]{"REDSTONE", "ENCHANTED_REDSTONE", "ENCHANTED_REDSTONE_BLOCK"});
+            }
+            if (base.equals("Th\u1ea1ch Anh")) {
+                this.openProductVariantsMenu(player, "Th\u1ea1ch Anh", new String[]{"QUARTZ", "ENCHANTED_QUARTZ", "ENCHANTED_QUARTZ_BLOCK"});
             }
             if (base.equals("B\u00ecnh Kinh Nghi\u1ec7m")) {
                 this.openProductVariantsMenu(player, "B\u00ecnh Kinh Nghi\u1ec7m", new String[]{"CWE_XP_BOTTLE_T1", "CWE_XP_BOTTLE_T2", "CWE_XP_BOTTLE_T3"});

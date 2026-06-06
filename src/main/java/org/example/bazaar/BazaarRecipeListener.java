@@ -220,6 +220,7 @@ public class BazaarRecipeListener implements Listener {
         registerCross(Material.EMERALD, "ENCHANTED_EMERALD", "§9Enchanted Emerald", Material.EMERALD);
         registerCross(Material.LAPIS_LAZULI, "ENCHANTED_LAPIS", "§9Enchanted Lapis Lazuli", Material.LAPIS_LAZULI);
         registerCross(Material.REDSTONE, "ENCHANTED_REDSTONE", "§9Enchanted Redstone", Material.REDSTONE);
+        registerCross(Material.QUARTZ, "ENCHANTED_QUARTZ", "§9Enchanted Quartz", Material.QUARTZ);
 
         registerBlock("ENCHANTED_COAL", "ENCHANTED_COAL_BLOCK", "§5Enchanted Block of Coal", Material.COAL_BLOCK);
         registerBlock("ENCHANTED_IRON", "ENCHANTED_IRON_BLOCK", "§5Enchanted Block of Iron", Material.IRON_BLOCK);
@@ -228,6 +229,7 @@ public class BazaarRecipeListener implements Listener {
         registerBlock("ENCHANTED_EMERALD", "ENCHANTED_EMERALD_BLOCK", "§5Enchanted Block of Emerald", Material.EMERALD_BLOCK);
         registerBlock("ENCHANTED_LAPIS", "ENCHANTED_LAPIS_BLOCK", "§5Enchanted Block of Lapis Lazuli", Material.LAPIS_BLOCK);
         registerBlock("ENCHANTED_REDSTONE", "ENCHANTED_REDSTONE_BLOCK", "§5Enchanted Block of Redstone", Material.REDSTONE_BLOCK);
+        registerBlock("ENCHANTED_QUARTZ", "ENCHANTED_QUARTZ_BLOCK", "§5Enchanted Block of Quartz", Material.QUARTZ_BLOCK);
     }
 
     private void registerCross(Material input, String id, String displayName, Material outputMat) { crossRecipes.put(input, new String[]{id, displayName, outputMat.name()}); }
