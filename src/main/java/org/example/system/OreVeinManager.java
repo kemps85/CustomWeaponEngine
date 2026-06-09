@@ -186,6 +186,7 @@ public class OreVeinManager implements CommandExecutor, org.bukkit.command.TabCo
         
         // Count of missing guardians that are currently on cooldown
         public int guardiansOnCooldown = 0;
+        public long lastSpawnFailureTime = 0;
 
         public OreVein(UUID id, Location center, String oreType) {
             this.id = id;
@@ -277,6 +278,22 @@ public class OreVeinManager implements CommandExecutor, org.bukkit.command.TabCo
             }
             for (OreVein vein : veins) {
                 if (vein.center.getWorld() == null) continue;
+
+                // Chỉ spawn nếu có người chơi Survival/Adventure ở gần
+                boolean playerNearby = false;
+                for (Player p : vein.center.getWorld().getPlayers()) {
+                    if (p.getLocation().distanceSquared(vein.center) <= (vein.radius + 15) * (vein.radius + 15)) {
+                        org.bukkit.GameMode gm = p.getGameMode();
+                        if (gm == org.bukkit.GameMode.SURVIVAL || gm == org.bukkit.GameMode.ADVENTURE) {
+                            playerNearby = true;
+                            break;
+                        }
+                    }
+                }
+                if (!playerNearby) continue;
+
+                // Giới hạn tần suất nếu spawn thất bại (đợi 60 giây) để tránh spam tin nhắn MythicMobs khi spawn bị chặn
+                if (System.currentTimeMillis() - vein.lastSpawnFailureTime < 60000) continue;
                 
                 // Count current active guardians
                 int activeCount = countActiveGuardians(vein);
@@ -285,8 +302,12 @@ public class OreVeinManager implements CommandExecutor, org.bukkit.command.TabCo
                 int needed = 2 - (activeCount + vein.guardiansOnCooldown);
                 
                 for (int i = 0; i < needed; i++) {
-                    spawnGuardianInVein(vein);
-                    activeCount++;
+                    if (spawnGuardianInVein(vein)) {
+                        activeCount++;
+                    } else {
+                        vein.lastSpawnFailureTime = System.currentTimeMillis();
+                        break;
+                    }
                 }
             }
         }, 200L, 200L);
@@ -305,9 +326,29 @@ public class OreVeinManager implements CommandExecutor, org.bukkit.command.TabCo
                 }
             }
             for (OreVein vein : veins) {
+                if (vein.center.getWorld() == null) continue;
+
+                // Chỉ spawn nếu có người chơi Survival/Adventure ở gần
+                boolean playerNearby = false;
+                for (Player p : vein.center.getWorld().getPlayers()) {
+                    if (p.getLocation().distanceSquared(vein.center) <= (vein.radius + 15) * (vein.radius + 15)) {
+                        org.bukkit.GameMode gm = p.getGameMode();
+                        if (gm == org.bukkit.GameMode.SURVIVAL || gm == org.bukkit.GameMode.ADVENTURE) {
+                            playerNearby = true;
+                            break;
+                        }
+                    }
+                }
+                if (!playerNearby) continue;
+
+                // Giới hạn tần suất nếu spawn thất bại
+                if (System.currentTimeMillis() - vein.lastSpawnFailureTime < 60000) continue;
+
                 int active = countActiveGuardians(vein);
                 if (active < 3 && vein.guardiansOnCooldown == 0) {
-                    spawnGuardianInVein(vein);
+                    if (!spawnGuardianInVein(vein)) {
+                        vein.lastSpawnFailureTime = System.currentTimeMillis();
+                    }
                 }
             }
         }, 300L, 300L); // every 15 seconds
@@ -328,11 +369,11 @@ public class OreVeinManager implements CommandExecutor, org.bukkit.command.TabCo
         return count;
     }
 
-    public void spawnGuardianInVein(OreVein vein) {
-        if (vein.center.getWorld() == null) return;
+    public boolean spawnGuardianInVein(OreVein vein) {
+        if (vein.center.getWorld() == null) return false;
         
         // Strictly enforce cap of 5
-        if (countActiveGuardians(vein) >= 5) return;
+        if (countActiveGuardians(vein) >= 5) return false;
 
         // Find a random location within a 5 block horizontal offset from center
         double rx = vein.center.getX() + (random.nextDouble() * 10.0 - 5.0);
@@ -355,7 +396,7 @@ public class OreVeinManager implements CommandExecutor, org.bukkit.command.TabCo
             }
         }
         if (!found) {
-            finalY = centerY;
+            return false; // Trả về false luôn, không cố spawn vào đá ngộp chết
         }
 
         Location spawnLoc = new Location(vein.center.getWorld(), rx, finalY, rz);
@@ -363,8 +404,9 @@ public class OreVeinManager implements CommandExecutor, org.bukkit.command.TabCo
         // Delegate to BazaarMobDropListener's logic
         org.example.bazaar.BazaarMobDropListener listener = plugin.getServer().getServicesManager().load(org.example.bazaar.BazaarMobDropListener.class);
         if (listener != null) {
-            listener.spawnGuardianAt(spawnLoc, null, getMaterialFromType(vein.oreType), vein.id.toString());
+            return listener.spawnGuardianAt(spawnLoc, null, getMaterialFromType(vein.oreType), vein.id.toString());
         }
+        return false;
     }
 
     private Material getMaterialFromType(String type) {

@@ -35,6 +35,7 @@ public class VanillaItemUpdater implements Listener {
         ItemStack item = event.getCurrentItem();
         if (item != null) {
             updateItem(item, (Player) event.getWhoClicked());
+            event.setCurrentItem(item);
         }
     }
 
@@ -50,6 +51,16 @@ public class VanillaItemUpdater implements Listener {
         ItemStack item = event.getCurrentItem();
         if (item != null) {
             updateItem(item, (Player) event.getWhoClicked());
+            event.setCurrentItem(item);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onCreative(org.bukkit.event.inventory.InventoryCreativeEvent event) {
+        ItemStack item = event.getCursor();
+        if (item != null && !item.getType().isAir()) {
+            updateItem(item, (Player) event.getWhoClicked());
+            event.setCursor(item);
         }
     }
 
@@ -76,7 +87,7 @@ public class VanillaItemUpdater implements Listener {
 
         String name = item.getType().name();
         boolean isEquipment = name.contains("SWORD") || name.contains("AXE") || name.contains("BOW") || name.contains("CROSSBOW")
-                || name.contains("HELMET") || name.contains("CHESTPLATE") || name.contains("LEGGINGS") || name.contains("BOOTS")
+                || name.contains("HELMET") || name.contains("CHESTPLATE") || name.contains("LEGGINGS") || name.contains("BOOTS") || name.contains("SPEAR")
                 || item.getType() == Material.TRIDENT || item.getType() == Material.ELYTRA || item.getType() == Material.MACE || item.getType() == Material.SHIELD;
 
         if (!isEquipment) return;

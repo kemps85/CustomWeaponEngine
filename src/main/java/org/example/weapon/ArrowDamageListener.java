@@ -98,10 +98,16 @@ implements Listener {
             critChance = pdc.getOrDefault(new NamespacedKey(this.plugin, "stat_crit_chance"), PersistentDataType.DOUBLE, 0.0);
             critDamage = pdc.getOrDefault(new NamespacedKey(this.plugin, "stat_crit_damage"), PersistentDataType.DOUBLE, 0.0);
         }
+        boolean isSpear = weapon.getType().name().contains("SPEAR") || (weapon.hasItemMeta() && weapon.getItemMeta().hasDisplayName() && weapon.getItemMeta().getDisplayName().contains("Spear"));
+        double speed = player.getVelocity().length();
+
         proj.setMetadata("cwe_proj_damage", new FixedMetadataValue(this.plugin, dmg));
         proj.setMetadata("cwe_proj_strength", new FixedMetadataValue(this.plugin, strength));
         proj.setMetadata("cwe_proj_crit_chance", new FixedMetadataValue(this.plugin, critChance));
         proj.setMetadata("cwe_proj_crit_damage", new FixedMetadataValue(this.plugin, critDamage));
+        if (isSpear && proj instanceof Trident) {
+            proj.setMetadata("cwe_spear_speed", new FixedMetadataValue(this.plugin, speed));
+        }
     }
 
     @EventHandler(priority=EventPriority.LOW, ignoreCancelled=true)
@@ -117,8 +123,23 @@ implements Listener {
         double strength = proj.hasMetadata("cwe_proj_strength") ? ((MetadataValue)proj.getMetadata("cwe_proj_strength").get(0)).asDouble() : 0.0;
         double critChance = proj.hasMetadata("cwe_proj_crit_chance") ? ((MetadataValue)proj.getMetadata("cwe_proj_crit_chance").get(0)).asDouble() : 0.0;
         double critDamage = proj.hasMetadata("cwe_proj_crit_damage") ? ((MetadataValue)proj.getMetadata("cwe_proj_crit_damage").get(0)).asDouble() : 0.0;
+        
         double baseDamage = event.getDamage();
+        if (proj.hasMetadata("cwe_base_damage_calculated")) {
+            baseDamage = proj.getMetadata("cwe_base_damage_calculated").get(0).asDouble();
+        } else {
+            proj.setMetadata("cwe_base_damage_calculated", new FixedMetadataValue(this.plugin, baseDamage));
+        }
+        
         double totalBaseDamage = baseDamage + customDmg;
+
+        if (proj.hasMetadata("cwe_spear_speed")) {
+            double launchSpeed = proj.getMetadata("cwe_spear_speed").get(0).asDouble();
+            // Tăng sát thương dựa trên tốc độ lúc ném. (Tối đa x3 sát thương nếu bay cực nhanh)
+            double velocityMultiplier = 1.0 + (launchSpeed * 2.5);
+            totalBaseDamage *= velocityMultiplier;
+        }
+
         double strengthMultiplier = 1.0 + strength * 0.01;
         double damageAfterStrength = totalBaseDamage * strengthMultiplier;
         boolean isCrit = false;
@@ -138,6 +159,11 @@ implements Listener {
             finalDamage = damageAfterStrength * critMultiplier;
         }
         event.setDamage(finalDamage);
+
+        if (event.getEntity() instanceof org.bukkit.entity.LivingEntity) {
+            org.bukkit.entity.LivingEntity target = (org.bukkit.entity.LivingEntity) event.getEntity();
+            Bukkit.getScheduler().runTaskLater((Plugin)this.plugin, () -> target.setNoDamageTicks(0), 0L);
+        }
     }
 }
 

@@ -221,6 +221,10 @@ public class EnchantManager {
                 key = "wind_burst";
                 break;
             }
+            case LUNGE: {
+                key = "lunge";
+                break;
+            }
             default: {
                 return null;
             }

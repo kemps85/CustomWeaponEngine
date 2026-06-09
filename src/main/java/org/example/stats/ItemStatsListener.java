@@ -227,6 +227,9 @@ public class ItemStatsListener implements Listener {
     // key: UUID, value: double[8] = {strength, critChance, critDamage, health, defense, intelligence, speed, attackSpeed}
     private final Map<UUID, double[]> appliedCache = new HashMap<>();
 
+    // Track player velocity mỗi tick khi đang Charge (giữ chuột phải + cầm Spear)
+
+
     // PDC keys prefix (phải khớp với ItemStatsGUI)
     private static final String[] PDC_KEYS = {
         ItemStatsGUI.KEY_STRENGTH,
@@ -250,7 +253,26 @@ public class ItemStatsListener implements Listener {
                 fullResync(player);
             }
         }, 40L, 40L);
+
+        // Track khi người chơi kết thúc giữ chuột phải để detect charge
+        Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                boolean currentlyRaised = player.isHandRaised();
+                boolean previouslyRaised = handRaisedState.getOrDefault(player.getUniqueId(), false);
+
+                if (previouslyRaised && !currentlyRaised) {
+                    ItemStack held = player.getInventory().getItemInMainHand();
+                    if (held != null && held.getType().name().contains("SPEAR")) {
+                        lastSpearRelease.put(player.getUniqueId(), System.currentTimeMillis());
+                    }
+                }
+                handRaisedState.put(player.getUniqueId(), currentlyRaised);
+            }
+        }, 0L, 1L);
     }
+
+    private final Map<UUID, Boolean> handRaisedState = new HashMap<>();
+    private final Map<UUID, Long> lastSpearRelease = new HashMap<>();
 
     // ─── EVENTS ───────────────────────────────────────────────────────────────
 
@@ -862,6 +884,219 @@ public class ItemStatsListener implements Listener {
                     target.setMaximumNoDamageTicks(requiredTicks * 2);
                 }
             }
+        }
+    }
+
+    // ─── SPEAR CHARGE DAMAGE: PHASE 1 (LOWEST) ────────────────────────────────
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onSpearChargeDetect(org.bukkit.event.entity.EntityDamageByEntityEvent event) {
+        if (!(event.getDamager() instanceof Player)) return;
+        Player p = (Player) event.getDamager();
+        if (p.hasMetadata("cwe_spear_dash_ignore")) return; // Prevent infinite loop from our own target.damage()
+
+        ItemStack weapon = p.getInventory().getItemInMainHand();
+        if (weapon == null || !weapon.hasItemMeta()) return;
+        String name = weapon.getType().name();
+        boolean isSpear = name.contains("SPEAR");
+        
+        // Khuôn mở rộng: Ép toàn bộ custom spears (kể cả dùng model Trident/Kiếm) vào công thức này
+        org.bukkit.persistence.PersistentDataContainer pdc = weapon.getItemMeta().getPersistentDataContainer();
+        NamespacedKey cweIdKey = new NamespacedKey(plugin, "cwe_id");
+        if (!isSpear && pdc.has(cweIdKey, org.bukkit.persistence.PersistentDataType.STRING)) {
+            String cweId = pdc.get(cweIdKey, org.bukkit.persistence.PersistentDataType.STRING);
+            if (cweId != null && (cweId.toLowerCase().contains("spear") || cweId.toLowerCase().contains("gae_bolg"))) {
+                isSpear = true;
+            }
+        }
+        
+        if (!isSpear) return;
+
+        double eventDmg = event.getDamage();
+
+        // Base damage từ item PDC (đã gộp chung với Strength trong attribute)
+        double baseDmg = 1.0; 
+        org.bukkit.attribute.AttributeInstance atkAttr = p.getAttribute(org.bukkit.attribute.Attribute.GENERIC_ATTACK_DAMAGE);
+        if (atkAttr != null && atkAttr.getValue() > 0) {
+            baseDmg = atkAttr.getValue();
+        } else {
+            NamespacedKey dmgKey = new NamespacedKey(plugin, "stat_damage");
+            NamespacedKey dmgKey2 = new NamespacedKey(plugin, "cwe_damage");
+            if (pdc.has(dmgKey, org.bukkit.persistence.PersistentDataType.DOUBLE)) {
+                baseDmg = pdc.get(dmgKey, org.bukkit.persistence.PersistentDataType.DOUBLE);
+            } else if (pdc.has(dmgKey2, org.bukkit.persistence.PersistentDataType.DOUBLE)) {
+                baseDmg = pdc.get(dmgKey2, org.bukkit.persistence.PersistentDataType.DOUBLE);
+            }
+        }
+
+        // 1. CHẮC CHẮN KHÔNG PHẢI CHARGE nếu attack cooldown chưa hồi (spam left click)
+        float cooldown = p.getCooledAttackStrength(0.0f);
+        // if (cooldown < 0.95f) return;
+
+        // 2. CHẮC CHẮN KHÔNG PHẢI CHARGE nếu damage khớp với left click (kể cả crit)
+        // Vanilla Spear Charge BỎ QUA GENERIC_ATTACK_DAMAGE (baseDmg), tính hoàn toàn theo tốc độ!
+        boolean isLeftClick = Math.abs(eventDmg - baseDmg) <= 1.0 || Math.abs(eventDmg - baseDmg * 1.5) <= 1.0;
+        if (isLeftClick) return;
+
+        // 3. Phải được thực hiện sau khi vừa nhả chuột phải (dash) < 1 giây
+        long lastRelease = lastSpearRelease.getOrDefault(p.getUniqueId(), 0L);
+        long timeSinceRelease = System.currentTimeMillis() - lastRelease;
+        // if (timeSinceRelease > 1000) return;
+
+        // → Đây CHẮC CHẮN LÀ CHARGE HIT! eventDmg chính là vanilla charge damage (24 chẳng hạn).
+        
+        // Sát thương Click Trái (tự động cộng dồn với hệ số AuraSkills vì AuraSkills Vanilla sẽ bỏ qua lúc gồng)
+        double leftClickDmg = baseDmg;
+        double chargeRatio = 1.0;
+        
+        if (org.bukkit.Bukkit.getPluginManager().isPluginEnabled("AuraSkills")) {
+            dev.aurelium.auraskills.api.user.SkillsUser u = dev.aurelium.auraskills.api.AuraSkillsApi.get().getUser(p.getUniqueId());
+            if (u != null) {
+                double strength = u.getStatLevel(dev.aurelium.auraskills.api.stat.Stats.STRENGTH);
+                double critDamage = u.getStatLevel(dev.aurelium.auraskills.api.stat.Stats.CRIT_DAMAGE);
+                double critChance = u.getStatLevel(dev.aurelium.auraskills.api.stat.Stats.CRIT_CHANCE);
+                double speed = u.getStatLevel(dev.aurelium.auraskills.api.stat.Stats.SPEED);
+                
+                // Cộng thêm Speed từ hiệu ứng Potion (Gáe Bolg buff Speed 20 -> +400 Speed)
+                if (p.hasPotionEffect(org.bukkit.potion.PotionEffectType.SPEED)) {
+                    int amp = p.getPotionEffect(org.bukkit.potion.PotionEffectType.SPEED).getAmplifier();
+                    speed += (amp + 1) * 20.0;
+                }
+                
+                // Scale Charge Ratio theo Speed, cap ở 400. (400 speed = 5.0x multiplier)
+                double cappedSpeed = Math.min(speed, 400.0);
+                chargeRatio = 1.0 + (cappedSpeed / 100.0);
+                
+            }
+        }
+
+        // Tính Custom Damage của vũ khí (AuraSkills sẽ tự động cộng vào OriginalDamage ở event mới)
+        double customDmg = 0.0;
+        NamespacedKey dmgKey = new NamespacedKey(plugin, "stat_damage");
+        NamespacedKey dmgKey2 = new NamespacedKey(plugin, "cwe_damage");
+        if (pdc.has(dmgKey, org.bukkit.persistence.PersistentDataType.DOUBLE)) {
+            customDmg = pdc.get(dmgKey, org.bukkit.persistence.PersistentDataType.DOUBLE);
+        } else if (pdc.has(dmgKey2, org.bukkit.persistence.PersistentDataType.DOUBLE)) {
+            customDmg = pdc.get(dmgKey2, org.bukkit.persistence.PersistentDataType.DOUBLE);
+        }
+
+        // Kết hợp 2 hệ thống: Hệ số Cuối = Lớn nhất(Hệ số Stats, Hệ số Lực vật lý Vanilla), NHƯNG KHÓA TRẦN TỐI ĐA x5.0
+        double vanillaRatio = eventDmg / baseDmg;
+        double finalRatio = Math.min(Math.max(chargeRatio, vanillaRatio), 5.0);
+        
+        // Tích hợp: Sát thương gốc cần truyền = (Base + Custom) * Ratio - Custom. 
+        // Khi AuraSkills bắt được event mới này, nó sẽ tự động + Custom và nhân Strength/Crit chuẩn xác.
+        double finalBaseDamage = (baseDmg + customDmg) * finalRatio - customDmg;
+        if (finalBaseDamage < 1.0) finalBaseDamage = 1.0;
+
+        event.setCancelled(true);
+        if (!(event.getEntity() instanceof org.bukkit.entity.LivingEntity)) return;
+        org.bukkit.entity.LivingEntity target = (org.bukkit.entity.LivingEntity) event.getEntity();
+
+        // BÍ MẬT ĐƯỢC GIẢI MÃ:
+        // AuraSkills (và một số plugin khác) luôn đọc event.getOriginalDamage() làm gốc.
+        // Dù ta có setDamage() bằng bao nhiêu ở Phase 1, Original Damage (21.0) vẫn không đổi.
+        // Do đó, AuraSkills ghi đè toàn bộ nỗ lực của ta và trả về 27 damage.
+        // GIẢI PHÁP: Hủy event Vanilla (21.0) này, và TỰ PHÁT RA một event mới với Original Damage = finalBaseDamage.
+        
+        // Lấy CWE ID để kiểm tra vũ khí đặc biệt
+        String cweIdStr = null;
+        NamespacedKey idKey = new NamespacedKey(plugin, "cwe_id");
+        if (pdc.has(idKey, org.bukkit.persistence.PersistentDataType.STRING)) {
+            cweIdStr = pdc.get(idKey, org.bukkit.persistence.PersistentDataType.STRING);
+        }
+        final String finalCweId = cweIdStr;
+
+        // Đã move lên trên
+        final double dmgToDeal = finalBaseDamage;
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            if (target.isValid() && !target.isDead()) {
+                p.setMetadata("cwe_spear_dash_ignore", new org.bukkit.metadata.FixedMetadataValue(plugin, true));
+                
+                target.damage(dmgToDeal, p);
+                
+                // Hiển thị damage ra kênh chat
+                p.sendMessage("§c⚔ §lSPEAR CHARGE! §7Gây §e" + String.format("%.1f", dmgToDeal) + " §7sát thương!");
+                
+                // --- Kỹ năng Thần Thoại Gáe Bolg: Đâm Xuyên Tim ---
+                if (finalCweId != null && finalCweId.equalsIgnoreCase("gae_bolg")) {
+                    double maxHp = 100.0;
+                    if (target.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH) != null) {
+                        maxHp = target.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue();
+                    }
+                    
+                    // 15% máu tối đa, giới hạn truyền thuyết 49,000 (49 cái gai)
+                    double pierce = maxHp * 0.15;
+                    if (pierce > 49000.0) {
+                        pierce = 49000.0;
+                    }
+                    
+                    target.getWorld().spawnParticle(org.bukkit.Particle.DUST, target.getLocation().add(0, 1, 0), 50, 0.5, 0.5, 0.5, new org.bukkit.Particle.DustOptions(org.bukkit.Color.MAROON, 1.5f));
+                    target.getWorld().playSound(target.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_ATTACK_CRIT, 1.0f, 0.5f);
+                    
+                    // Trừ máu trực tiếp để bỏ qua toàn bộ giáp/khiên/AuraSkills
+                    double newHp = target.getHealth() - pierce;
+                    if (newHp <= 0) {
+                        target.damage(999999.0, p); // Đảm bảo tính Kill
+                    } else {
+                        target.setHealth(newHp);
+                    }
+                    
+                    p.sendMessage("§4§l[Gáe Bolg] §c☠ XUYÊN TIM!");
+                }
+                
+                p.removeMetadata("cwe_spear_dash_ignore", plugin);
+            }
+        });
+    }
+
+    // ─── RIPTIDE DAMAGE FIX ───────────────────────────────────────────────────
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onRiptideDamage(org.bukkit.event.entity.EntityDamageByEntityEvent event) {
+        if (event.getDamager() instanceof Player && event.getEntity() instanceof org.bukkit.entity.LivingEntity) {
+            Player p = (Player) event.getDamager();
+            if (p.isRiptiding()) {
+                // Mặc định Vanilla sát thương của Riptide (chuột phải đâm tới) rất thấp và không lấy theo Damage của vũ khí
+                // Nên ta cần set lại damage gốc của event bằng đúng Damage của vũ khí (thuộc tính GENERIC_ATTACK_DAMAGE)
+                double baseAtk = 1.0;
+                if (p.getAttribute(org.bukkit.attribute.Attribute.GENERIC_ATTACK_DAMAGE) != null) {
+                    baseAtk = p.getAttribute(org.bukkit.attribute.Attribute.GENERIC_ATTACK_DAMAGE).getValue();
+                }
+                event.setDamage(baseAtk);
+            }
+        }
+    }
+
+    // Prevent durability loss on custom items
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onItemDamage(org.bukkit.event.player.PlayerItemDamageEvent event) {
+        ItemStack item = event.getItem();
+        if (item != null && item.hasItemMeta()) {
+            org.bukkit.persistence.PersistentDataContainer pdc = item.getItemMeta().getPersistentDataContainer();
+            NamespacedKey keyId = new NamespacedKey(plugin, "cwe_id");
+            NamespacedKey keyStats = new NamespacedKey(plugin, "cwe_item_stats");
+            if (pdc.has(keyId, org.bukkit.persistence.PersistentDataType.STRING) ||
+                pdc.has(keyStats, org.bukkit.persistence.PersistentDataType.INTEGER)) {
+                event.setCancelled(true);
+            }
+        }
+    }
+
+    // Fix vanilla particle spam for high damage
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onParticleSpamFix(org.bukkit.event.entity.EntityDamageEvent event) {
+        if (!(event.getEntity() instanceof org.bukkit.entity.LivingEntity)) return;
+        org.bukkit.entity.LivingEntity target = (org.bukkit.entity.LivingEntity) event.getEntity();
+        
+        double dmg = event.getDamage();
+        if (dmg > 40.0) {
+            double remaining = dmg - 40.0;
+            double newHealth = target.getHealth() - remaining;
+            if (newHealth <= 0) {
+                target.setHealth(0.1);
+            } else {
+                target.setHealth(newHealth);
+            }
+            event.setDamage(40.0);
         }
     }
 }

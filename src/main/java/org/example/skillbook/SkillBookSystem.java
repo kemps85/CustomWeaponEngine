@@ -119,6 +119,13 @@ CommandExecutor {
                 }
             }
         }.runTaskTimer((Plugin)plugin, 100L, 100L);
+
+        org.bukkit.configuration.file.FileConfiguration lib = ((org.example.core.CustomWeaponEngine) plugin).getLibraryConfig();
+        for (java.util.Map.Entry<String, SkillBook> entry : BOOKS.entrySet()) {
+            String libKey = "items.skillbook_" + entry.getKey();
+            lib.set(libKey, createSkillBookItem(entry.getValue()));
+        }
+        ((org.example.core.CustomWeaponEngine) plugin).saveLibraryConfig();
     }
 
     public static ItemStack createSkillBookItem(SkillBook book) {
@@ -139,18 +146,19 @@ CommandExecutor {
                 }
             }
             lore.add("\u00a7f");
-            lore.add("\u00a76Hi\u1ec7u qu\u1ea3 k\u1ef9 n\u0103ng:");
-            lore.add("\u00a77" + book.desc1);
+            lore.add("\u00a76\u2726 Hi\u1ec7u qu\u1ea3 k\u1ef9 n\u0103ng:");
+            lore.add("  \u00a7f" + book.desc1);
             if (!book.desc2.isEmpty()) {
-                lore.add("\u00a77" + book.desc2);
+                lore.add("  \u00a7f" + book.desc2);
             }
             lore.add("\u00a7f");
             lore.add(book.rarity.color + "\u00a7l" + book.rarity.name() + " SKILL BOOK");
             meta.setLore(lore);
             PersistentDataContainer pdc = meta.getPersistentDataContainer();
-            pdc.set(new NamespacedKey((Plugin)CustomWeaponEngine.getInstance(), "cwe_skill_book"), PersistentDataType.INTEGER, 1);
-            pdc.set(new NamespacedKey((Plugin)CustomWeaponEngine.getInstance(), "cwe_book_type"), PersistentDataType.STRING, book.type.name());
-            pdc.set(new NamespacedKey((Plugin)CustomWeaponEngine.getInstance(), "cwe_skill_id"), PersistentDataType.STRING, book.id);
+            pdc.set(new NamespacedKey((org.bukkit.plugin.Plugin)CustomWeaponEngine.getInstance(), "cwe_skill_book"), PersistentDataType.INTEGER, 1);
+            pdc.set(new NamespacedKey((org.bukkit.plugin.Plugin)CustomWeaponEngine.getInstance(), "cwe_book_type"), PersistentDataType.STRING, book.type.name());
+            pdc.set(new NamespacedKey((org.bukkit.plugin.Plugin)CustomWeaponEngine.getInstance(), "cwe_skill_id"), PersistentDataType.STRING, book.id);
+            pdc.set(new NamespacedKey((org.bukkit.plugin.Plugin)CustomWeaponEngine.getInstance(), "cwe_id"), PersistentDataType.STRING, "skillbook_" + book.id);
             item.setItemMeta(meta);
         }
         return item;
@@ -501,11 +509,45 @@ CommandExecutor {
     }
 
     private void triggerPeriodicSetBonuses(Player p) {
+        SkillsUser u = AuraSkillsApi.get().getUser(p.getUniqueId());
+        if (u == null) return;
+
         if (this.isWearingSkillSet(p, "dragons_protection")) {
             double maxHp = p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
             double healAmount = maxHp * 0.02;
             p.setHealth(Math.min(maxHp, p.getHealth() + healAmount));
             p.spawnParticle(Particle.HEART, p.getLocation().add(0.0, 1.0, 0.0), 2, 0.3, 0.3, 0.3, 0.0);
+        }
+
+        // Magical Synergy: +50 Intelligence
+        if (this.isWearingSkillSet(p, "magical_synergy")) {
+            u.addStatModifier(new StatModifier("cwe_magical_synergy", Stats.WISDOM, 50.0, dev.aurelium.auraskills.api.util.AuraSkillsModifier.Operation.ADD));
+        } else {
+            u.removeStatModifier("cwe_magical_synergy");
+        }
+
+        // Cosmic Overlord: +15% all stats
+        if (this.isWearingSkillSet(p, "cosmic_overlord")) {
+            double str = u.getStatLevel(Stats.STRENGTH) * 0.15;
+            double crit = u.getStatLevel(Stats.CRIT_CHANCE) * 0.15;
+            double cd = u.getStatLevel(Stats.CRIT_DAMAGE) * 0.15;
+            double def = u.getStatLevel(Stats.TOUGHNESS) * 0.15;
+            double hp = u.getStatLevel(Stats.HEALTH) * 0.15;
+            double intel = u.getStatLevel(Stats.WISDOM) * 0.15;
+
+            u.addStatModifier(new StatModifier("cwe_cosmic_str", Stats.STRENGTH, str, dev.aurelium.auraskills.api.util.AuraSkillsModifier.Operation.ADD));
+            u.addStatModifier(new StatModifier("cwe_cosmic_crit", Stats.CRIT_CHANCE, crit, dev.aurelium.auraskills.api.util.AuraSkillsModifier.Operation.ADD));
+            u.addStatModifier(new StatModifier("cwe_cosmic_cd", Stats.CRIT_DAMAGE, cd, dev.aurelium.auraskills.api.util.AuraSkillsModifier.Operation.ADD));
+            u.addStatModifier(new StatModifier("cwe_cosmic_def", Stats.TOUGHNESS, def, dev.aurelium.auraskills.api.util.AuraSkillsModifier.Operation.ADD));
+            u.addStatModifier(new StatModifier("cwe_cosmic_hp", Stats.HEALTH, hp, dev.aurelium.auraskills.api.util.AuraSkillsModifier.Operation.ADD));
+            u.addStatModifier(new StatModifier("cwe_cosmic_int", Stats.WISDOM, intel, dev.aurelium.auraskills.api.util.AuraSkillsModifier.Operation.ADD));
+        } else {
+            u.removeStatModifier("cwe_cosmic_str");
+            u.removeStatModifier("cwe_cosmic_crit");
+            u.removeStatModifier("cwe_cosmic_cd");
+            u.removeStatModifier("cwe_cosmic_def");
+            u.removeStatModifier("cwe_cosmic_hp");
+            u.removeStatModifier("cwe_cosmic_int");
         }
     }
 
@@ -554,6 +596,15 @@ CommandExecutor {
             double maxHp = p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
             p.setHealth(Math.min(maxHp, p.getHealth() + heal));
             p.spawnParticle(Particle.DUST, p.getLocation().add(0.0, 1.0, 0.0), 5, 0.2, 0.2, 0.2, new Particle.DustOptions(Color.RED, 1.0f));
+        }
+        // Adrenaline Rush +30% Damage buff
+        if (this.isWearingSkillSet(p, "adrenaline_rush")) {
+            long cooldownEnd = this.setBonusCooldowns.getOrDefault(p.getUniqueId(), 0L).longValue();
+            long now = System.currentTimeMillis();
+            // Nếu buff 8s (8000ms) đang hoạt động (cooldown 45s => cooldownEnd là now + 45000, 8s là cooldownEnd - 45000 + 8000)
+            if (now < cooldownEnd - 45000L + 8000L) {
+                event.setDamage(event.getDamage() * 1.3);
+            }
         }
         this.handleLeftClickAbility(p, event);
     }
@@ -642,9 +693,10 @@ CommandExecutor {
                 player.playSound(loc, Sound.ENTITY_ENDER_DRAGON_FLAP, 1.0f, 1.2f);
                 player.spawnParticle(Particle.SWEEP_ATTACK, loc.add(0.0, 0.5, 0.0), 10, 1.5, 0.2, 1.5, 0.1);
                 for (Entity e : player.getNearbyEntities(4.0, 2.0, 4.0)) {
-                    if (!(e instanceof LivingEntity) || e instanceof Player) continue;
+                    if (!(e instanceof LivingEntity) || e instanceof org.bukkit.entity.ArmorStand || e.hasMetadata("NPC")) continue;
                     LivingEntity le = (LivingEntity)e;
-                    le.damage(150.0, (Entity)player);
+                    if (le.equals(player)) continue;
+                    this.dealSkillDamage(le, player, 150.0);
                     Vector vec = le.getLocation().toVector().subtract(player.getLocation().toVector()).normalize().multiply(1.5).setY(0.4);
                     le.setVelocity(vec);
                 }
@@ -665,7 +717,7 @@ CommandExecutor {
                 player.spawnParticle(Particle.PORTAL, player.getLocation(), 20, 0.3, 1.0, 0.3, 0.1);
                 player.teleport(behind);
                 player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
-                target.damage(200.0, (Entity)player);
+                this.dealSkillDamage(target, player, 200.0);
                 target.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 60, 0));
                 break;
             }
@@ -678,13 +730,16 @@ CommandExecutor {
             }
             case "blade_of_judgement": {
                 LivingEntity targetEntity = this.getClosestTarget(player, 15.0);
-                Location beamLoc = targetEntity != null ? targetEntity.getLocation() : player.getTargetBlock(null, 15).getLocation();
+                org.bukkit.block.Block b = player.getTargetBlockExact(15);
+                Location beamLoc = targetEntity != null ? targetEntity.getLocation() : (b != null ? b.getLocation() : player.getLocation());
                 player.playSound(beamLoc, Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 1.0f, 1.2f);
                 beamLoc.getWorld().spawnParticle(Particle.FLASH, beamLoc, 10, 0.5, 1.0, 0.5, 0.1);
                 for (Entity e : beamLoc.getWorld().getNearbyEntities(beamLoc, 5.0, 5.0, 5.0)) {
-                    if (!(e instanceof LivingEntity) || e instanceof Player) continue;
+                    if (!(e instanceof LivingEntity) || e instanceof org.bukkit.entity.ArmorStand || e.hasMetadata("NPC")) continue;
                     LivingEntity le = (LivingEntity)e;
-                    le.damage(1000.0, (Entity)player);
+                    if (le.equals(player)) continue;
+                    le.setNoDamageTicks(0);
+                    this.dealSkillDamage(le, player, 1000.0);
                     le.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 40, 4));
                 }
                 break;
@@ -693,9 +748,10 @@ CommandExecutor {
                 player.playSound(loc, Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 0.8f);
                 player.spawnParticle(Particle.EXPLOSION, loc, 15, 1.5, 0.2, 1.5, 0.1);
                 for (Entity e : player.getNearbyEntities(3.0, 2.0, 3.0)) {
-                    if (!(e instanceof LivingEntity) || e instanceof Player) continue;
+                    if (!(e instanceof LivingEntity) || e instanceof org.bukkit.entity.ArmorStand || e.hasMetadata("NPC")) continue;
                     LivingEntity le = (LivingEntity)e;
-                    le.damage(100.0, (Entity)player);
+                    if (le.equals(player)) continue;
+                    this.dealSkillDamage(le, player, 100.0);
                     le.setVelocity(new Vector(0.0, 0.8, 0.0));
                 }
                 break;
@@ -718,8 +774,9 @@ CommandExecutor {
                 player.playSound(loc, Sound.ENTITY_ENDERMAN_SCREAM, 1.0f, 0.8f);
                 player.spawnParticle(Particle.PORTAL, loc, 50, 2.0, 1.0, 2.0, 0.1);
                 for (Entity e : player.getNearbyEntities(8.0, 4.0, 8.0)) {
-                    if (!(e instanceof LivingEntity) || e instanceof Player) continue;
+                    if (!(e instanceof LivingEntity) || e instanceof org.bukkit.entity.ArmorStand || e.hasMetadata("NPC")) continue;
                     LivingEntity le = (LivingEntity)e;
+                    if (le.equals(player)) continue;
                     Vector pull = player.getLocation().toVector().subtract(le.getLocation().toVector()).normalize().multiply(1.2).setY(0.2);
                     le.setVelocity(pull);
                     le.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 60, 1));
@@ -739,9 +796,10 @@ CommandExecutor {
                             landing.getWorld().playSound(landing, Sound.ENTITY_GENERIC_EXPLODE, 1.5f, 0.8f);
                             landing.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, landing, 2, 2.0, 0.2, 2.0, 0.1);
                             for (Entity e : player.getNearbyEntities(6.0, 3.0, 6.0)) {
-                                if (!(e instanceof LivingEntity) || e instanceof Player) continue;
+                                if (!(e instanceof LivingEntity) || e instanceof org.bukkit.entity.ArmorStand || e.hasMetadata("NPC")) continue;
                                 LivingEntity le = (LivingEntity)e;
-                                le.damage(800.0, (Entity)player);
+                                if (le.equals(player)) continue;
+                                SkillBookSystem.this.dealSkillDamage(le, player, 800.0);
                                 le.setFireTicks(100);
                             }
                             this.cancel();
@@ -762,9 +820,10 @@ CommandExecutor {
                         this.current.add(dir);
                         this.current.getWorld().spawnParticle(Particle.SPLASH, this.current, 10, 0.1, 0.1, 0.1, 0.0);
                         for (Entity e : this.current.getWorld().getNearbyEntities(this.current, 1.5, 1.5, 1.5)) {
-                            if (!(e instanceof LivingEntity) || e instanceof Player) continue;
+                            if (!(e instanceof LivingEntity) || e instanceof org.bukkit.entity.ArmorStand || e.hasMetadata("NPC")) continue;
                             LivingEntity le = (LivingEntity)e;
-                            le.damage(120.0, (Entity)player);
+                            if (le.equals(player)) continue;
+                            SkillBookSystem.this.dealSkillDamage(le, player, 120.0);
                             le.setVelocity(dir.clone().multiply(1.2).setY(0.3));
                         }
                         if (this.steps >= 8 || !this.current.getBlock().getType().isAir()) {
@@ -813,9 +872,10 @@ CommandExecutor {
                         this.waveCenter.add(waveDir);
                         this.waveCenter.getWorld().spawnParticle(Particle.SPLASH, this.waveCenter, 30, 2.0, 0.5, 2.0, 0.05);
                         for (Entity e : this.waveCenter.getWorld().getNearbyEntities(this.waveCenter, 3.0, 2.0, 3.0)) {
-                            if (!(e instanceof LivingEntity) || e instanceof Player) continue;
+                            if (!(e instanceof LivingEntity) || e instanceof org.bukkit.entity.ArmorStand || e.hasMetadata("NPC")) continue;
                             LivingEntity le = (LivingEntity)e;
-                            le.damage(300.0, (Entity)player);
+                            if (le.equals(player)) continue;
+                            SkillBookSystem.this.dealSkillDamage(le, player, 300.0);
                             le.setVelocity(waveDir.clone().multiply(1.5).setY(0.4));
                         }
                         if (this.waveSteps >= 12) {
@@ -831,10 +891,11 @@ CommandExecutor {
                 java.util.List<org.bukkit.entity.Entity> list = player.getNearbyEntities(15.0, 5.0, 15.0);
                 int lightningCount = 0;
                 for (Entity e : list) {
-                    if (!(e instanceof LivingEntity) || e instanceof Player) continue;
+                    if (!(e instanceof LivingEntity) || e instanceof org.bukkit.entity.ArmorStand || e.hasMetadata("NPC")) continue;
                     LivingEntity le = (LivingEntity)e;
+                    if (le.equals(player)) continue;
                     le.getWorld().strikeLightningEffect(le.getLocation());
-                    le.damage(800.0, (Entity)player);
+                    this.dealSkillDamage(le, player, 800.0);
                     if (++lightningCount < 8) continue;
                     break block15;
                 }
@@ -854,8 +915,9 @@ CommandExecutor {
                 player.playSound(player.getLocation(), Sound.ENTITY_IRON_GOLEM_DAMAGE, 1.0f, 0.8f);
                 le.getWorld().spawnParticle(Particle.EXPLOSION, le.getLocation(), 10, 1.0, 0.2, 1.0, 0.1);
                 for (Entity e : le.getNearbyEntities(3.0, 2.0, 3.0)) {
-                    if (!(e instanceof LivingEntity) || e instanceof Player) continue;
-                    ((LivingEntity)e).damage(150.0, (Entity)player);
+                    if (!(e instanceof LivingEntity) || e instanceof org.bukkit.entity.ArmorStand || e.hasMetadata("NPC")) continue;
+                    if (e.equals(player)) continue;
+                    this.dealSkillDamage((LivingEntity)e, player, 150.0);
                 }
                 final SkillsUser targetSkills = AuraSkillsApi.get().getUser(le.getUniqueId());
                 if (targetSkills != null) {
@@ -888,7 +950,7 @@ CommandExecutor {
 
     private void triggerLightningChain(final Player player, final LivingEntity current, final int maxBounces) {
         current.getWorld().strikeLightningEffect(current.getLocation());
-        current.damage(250.0, (Entity)player);
+        this.dealSkillDamage(current, player, 250.0);
         if (maxBounces <= 1) {
             return;
         }
@@ -899,7 +961,7 @@ CommandExecutor {
                 double closest = 6.0;
                 for (Entity e : current.getNearbyEntities(6.0, 3.0, 6.0)) {
                     double dist;
-                    if (!(e instanceof LivingEntity) || e instanceof Player || e == current || !((dist = e.getLocation().distance(current.getLocation())) < closest)) continue;
+                    if (!(e instanceof LivingEntity) || e instanceof org.bukkit.entity.ArmorStand || e.hasMetadata("NPC") || e == current || e == player || !((dist = e.getLocation().distance(current.getLocation())) < closest)) continue;
                     closest = dist;
                     next = (LivingEntity)e;
                 }
@@ -910,14 +972,47 @@ CommandExecutor {
         }.runTaskLater((Plugin)this.plugin, 3L);
     }
 
+    private void dealSkillDamage(LivingEntity target, Player attacker, double baseDamage) {
+        if (target instanceof Player) {
+            double pvpDamage = baseDamage * 0.05;
+            double currentHp = target.getHealth();
+            if (currentHp <= pvpDamage) {
+                // Đảm bảo event Death ghi nhận đúng người giết
+                target.damage(currentHp * 10.0, attacker); 
+            } else {
+                target.setHealth(currentHp - pvpDamage);
+                target.damage(0.01, attacker); // Cho có hiệu ứng giật
+                org.example.system.DamageIndicatorManager.spawnHologram(target.getLocation().add(0, target.getHeight() / 2, 0), pvpDamage, target.hasMetadata("cwe_is_crit"));
+            }
+        } else {
+            target.damage(baseDamage, attacker);
+        }
+    }
+
     private LivingEntity getClosestTarget(Player player, double maxDist) {
         LivingEntity target = null;
+        
+        try {
+            org.bukkit.util.RayTraceResult rayResult = player.getWorld().rayTraceEntities(
+                    player.getEyeLocation(), 
+                    player.getLocation().getDirection(), 
+                    maxDist, 
+                    1.0, 
+                    e -> e instanceof LivingEntity && e != player && !(e instanceof org.bukkit.entity.ArmorStand) && !e.hasMetadata("NPC")
+            );
+            if (rayResult != null && rayResult.getHitEntity() != null) {
+                return (LivingEntity) rayResult.getHitEntity();
+            }
+        } catch (Exception ignored) {}
+
         double closest = maxDist;
-        for (Entity e : player.getNearbyEntities(maxDist, 4.0, maxDist)) {
+        for (Entity e : player.getNearbyEntities(maxDist, maxDist, maxDist)) {
             double dist;
-            if (!(e instanceof LivingEntity) || e instanceof Player || !((dist = e.getLocation().distance(player.getLocation())) < closest)) continue;
-            closest = dist;
-            target = (LivingEntity)e;
+            if (!(e instanceof LivingEntity) || e instanceof Player || e instanceof org.bukkit.entity.ArmorStand || e.hasMetadata("NPC")) continue;
+            if ((dist = e.getLocation().distance(player.getLocation())) < closest) {
+                closest = dist;
+                target = (LivingEntity)e;
+            }
         }
         return target;
     }

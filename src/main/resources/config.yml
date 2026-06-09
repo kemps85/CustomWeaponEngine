@@ -146,7 +146,15 @@ appraiser:
       RARE: 65
       EPIC: 30
       LEGENDARY: 5
+    NETHERITE_SPEAR:
+      RARE: 65
+      EPIC: 30
+      LEGENDARY: 5
     DIAMOND_SWORD:
+      RARE: 90
+      EPIC: 9
+      LEGENDARY: 1
+    DIAMOND_SPEAR:
       RARE: 90
       EPIC: 9
       LEGENDARY: 1
@@ -158,6 +166,19 @@ appraiser:
       RARE: 85
       EPIC: 14
       LEGENDARY: 1
+    IRON_SPEAR:
+      UNCOMMON: 70
+      RARE: 25
+      EPIC: 5
     default:
       COMMON: 70
-      UNCOMMON: 30
+      UNCOMMON: 30
+
+# =========================================================================
+#             CẤU HÌNH BOSS VÙNG (REGION BOSS SYSTEM)
+# =========================================================================
+bosses:
+  hologram-update-interval: 20
+  # Đặt thành true nếu bạn muốn tự viết kỹ năng của Boss trong MythicMobs YAML
+  # (khi đó code Java sẽ dừng chạy kỹ năng đè lên để tránh xung đột)
+  use-mythic-mobs-skills: false

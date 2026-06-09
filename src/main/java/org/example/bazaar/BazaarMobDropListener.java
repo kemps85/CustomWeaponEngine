@@ -33,13 +33,29 @@ import java.util.Random;
 import dev.aurelium.auraskills.api.AuraSkillsApi;
 import dev.aurelium.auraskills.api.user.SkillsUser;
 import dev.aurelium.auraskills.api.skill.Skills;
+import io.lumine.mythic.bukkit.MythicBukkit;
+import io.lumine.mythic.core.mobs.ActiveMob;
+import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.EventPriority;
 
 public class BazaarMobDropListener implements Listener {
     private final JavaPlugin plugin;
     private final Random random = new Random();
 
+    public static final ThreadLocal<Boolean> BYPASS_SPAWN = ThreadLocal.withInitial(() -> false);
+
     public BazaarMobDropListener(JavaPlugin plugin) {
         this.plugin = plugin;
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onCreatureSpawnBypass(CreatureSpawnEvent event) {
+        if (BYPASS_SPAWN.get()) {
+            if (event.isCancelled()) {
+                event.setCancelled(false);
+                plugin.getLogger().info("§e[Bypass] Phát hiện sự kiện sinh quái bị hủy bởi plugin khác! Đã khôi phục để sinh Hộ Vệ: §b" + event.getEntity().getType());
+            }
+        }
     }
 
     /**
@@ -91,13 +107,13 @@ public class BazaarMobDropListener implements Listener {
 
         org.example.system.OreVeinManager manager = getOreVeinManager();
         boolean inVein = false;
-        String veinId = null;
+        String veinIdStr = null;
 
         if (manager != null) {
             org.example.system.OreVeinManager.OreVein vein = manager.getVeinAt(loc);
             if (vein != null) {
                 inVein = true;
-                veinId = vein.id.toString();
+                veinIdStr = vein.id.toString();
                 if (manager.countActiveGuardians(vein) >= 5) {
                     return; // Vượt giới hạn, không spawn
                 }
@@ -106,33 +122,36 @@ public class BazaarMobDropListener implements Listener {
 
         if (!inVein && random.nextDouble() > 0.07) return; 
 
-        spawnGuardianAt(loc, player, type, veinId);
+        final String finalVeinId = veinIdStr;
+        // Chờ 1 tick để block chuyển thành AIR trước khi thực sinh quái, tránh bị cơ chế kẹt/ngộp của Bukkit/WorldGuard hủy bỏ
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            spawnGuardianAt(loc, player, type, finalVeinId);
+        }, 1L);
     }
 
-    public void spawnGuardianAt(Location loc, Player player, Material type, String veinId) {
+    public boolean spawnGuardianAt(Location loc, Player player, Material type, String veinId) {
         String guardianName = null;
         EntityType mobType = EntityType.ZOMBIE;
         String gType = "";
+        String mmMobId = "";
 
         if (type == Material.DIAMOND_ORE || type == Material.DEEPSLATE_DIAMOND_ORE) {
-            guardianName = "§6§lHỘ VỆ QUẶNG KIM CƯƠNG"; mobType = EntityType.ZOMBIE; gType = "DIAMOND";
+            guardianName = "§6§lHỘ VỆ QUẶNG KIM CƯƠNG"; mobType = EntityType.ZOMBIE; gType = "DIAMOND"; mmMobId = "DiamondGuardian";
         } else if (type == Material.IRON_ORE || type == Material.DEEPSLATE_IRON_ORE) {
-            guardianName = "§f§lHỘ VỆ QUẶNG SẮT MA THUẬT"; mobType = EntityType.CAVE_SPIDER; gType = "IRON";
+            guardianName = "§f§lHỘ VỆ QUẶNG SẮT MA THUẬT"; mobType = EntityType.CAVE_SPIDER; gType = "IRON"; mmMobId = "IronGuardian";
         } else if (type == Material.GOLD_ORE || type == Material.DEEPSLATE_GOLD_ORE) {
-            guardianName = "§e§lHỘ VỆ QUẶNG VÀNG THƯỢNG HẠNG"; mobType = EntityType.PIGLIN; gType = "GOLD";
+            guardianName = "§e§lHỘ VỆ QUẶNG VÀNG THƯỢNG HẠNG"; mobType = EntityType.PIGLIN; gType = "GOLD"; mmMobId = "GoldGuardian";
         } else if (type == Material.LAPIS_ORE || type == Material.DEEPSLATE_LAPIS_ORE) {
-            guardianName = "§9§lHỘ VỆ QUẶNG LAPIS LINH THẠCH"; mobType = EntityType.SKELETON; gType = "LAPIS";
+            guardianName = "§9§lHỘ VỆ QUẶNG LAPIS LINH THẠCH"; mobType = EntityType.SKELETON; gType = "LAPIS"; mmMobId = "LapisGuardian";
         } else if (type == Material.REDSTONE_ORE || type == Material.DEEPSLATE_REDSTONE_ORE) {
-            guardianName = "§c§lHỘ VỆ QUẶNG REDSTONE HUYẾT LONG"; mobType = EntityType.SPIDER; gType = "REDSTONE";
+            guardianName = "§c§lHỘ VỆ QUẶNG REDSTONE HUYẾT LONG"; mobType = EntityType.SPIDER; gType = "REDSTONE"; mmMobId = "RedstoneGuardian";
         } else if (type == Material.COPPER_ORE || type == Material.DEEPSLATE_COPPER_ORE) {
-            guardianName = "§4§lHỘ VỆ QUẶNG ĐỒNG THƯỢNG CỔ"; mobType = EntityType.HUSK; gType = "BRONZE";
+            guardianName = "§4§lHỘ VỆ QUẶNG ĐỒNG THƯỢNG CỔ"; mobType = EntityType.HUSK; gType = "BRONZE"; mmMobId = "BronzeGuardian";
         }
 
         if (guardianName != null) {
-            Monster guardian = (Monster) loc.getWorld().spawnEntity(loc, mobType);
-            
             int avgLevel = 0; int count = 0;
-            for (Entity e : guardian.getNearbyEntities(30, 30, 30)) {
+            for (Entity e : loc.getWorld().getNearbyEntities(loc, 30, 30, 30)) {
                 if (e instanceof Monster && !e.hasMetadata("cwe_guardian")) {
                     if (e.hasMetadata("leveledmobs:level")) { avgLevel += e.getMetadata("leveledmobs:level").get(0).asInt(); count++; }
                     else if (e.hasMetadata("lm-level")) { avgLevel += e.getMetadata("lm-level").get(0).asInt(); count++; }
@@ -158,47 +177,76 @@ public class BazaarMobDropListener implements Listener {
             double statMultiplier = 1.0;
 
             if (veinId != null) {
-                // TRƯỜNG HỢP TRONG OREVEIN
                 if (player != null) {
-                    // Cấp mining: 10 -> level hộ vệ: 40
-                    // Nếu mining level >= 10, cấp của hộ vệ tăng dần theo level mining: calculatedLevel = 40 + (miningLevel - 10)
-                    // Giới hạn max level hộ vệ là 60 (level mặc định)
                     calculatedLevel = 40 + (miningLevel - 10);
                     if (calculatedLevel < 40) calculatedLevel = 40;
                     if (calculatedLevel > 60) calculatedLevel = 60;
-
-                    // Giảm damage tương ứng với mức độ giảm level (ví dụ level 40 -> giảm xuống 40/60 = 66.7% sức mạnh ban đầu)
                     statMultiplier = (double) calculatedLevel / 60.0;
                 } else {
-                    // Spawn tự động từ vein (không do người chơi trực tiếp phá đá) -> Giữ nguyên lv60
                     calculatedLevel = 60;
                     statMultiplier = 1.0;
                 }
             } else {
-                // TRƯỜNG HỢP ĐÀO NGOÀI OREVEIN (Có xác suất thấp summon hộ vệ)
                 if (player != null) {
-                    // Giảm level và dmg của hộ vệ dựa trên cấp độ mining người chơi (bảo vệ newbie)
-                    // Sử dụng tỉ lệ tuyến tính từ cấp mining 1 (hộ vệ level 20, 30% dmg) đến cấp mining 60 (hộ vệ level 60, 100% dmg)
                     double ratio = Math.min(1.0, (double) miningLevel / 60.0);
                     int minLevel = 20;
                     calculatedLevel = minLevel + (int) ((baseNormalLevel - minLevel) * ratio);
                     if (calculatedLevel < minLevel) calculatedLevel = minLevel;
                     if (calculatedLevel > baseNormalLevel) calculatedLevel = baseNormalLevel;
-
-                    statMultiplier = 0.3 + 0.7 * ratio; // Giảm hp và dmg từ 30% đến 100%
+                    statMultiplier = 0.3 + 0.7 * ratio;
                 }
             }
 
-            double levelMultiplier = 1.0 + (calculatedLevel * 0.015); 
-            double baseHp = (150.0 + (calculatedLevel * 100.0)) * statMultiplier;
-            double baseDmg = (30.0 + (calculatedLevel * 5.0)) * statMultiplier;
+            LivingEntity guardian = null;
+            boolean isMythicMob = false;
 
-            if (guardian.getAttribute(Attribute.GENERIC_MAX_HEALTH) != null) {
-                guardian.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(baseHp);
-                guardian.setHealth(baseHp);
+            try {
+                BYPASS_SPAWN.set(true);
+                if (Bukkit.getPluginManager().isPluginEnabled("MythicMobs") && !mmMobId.isEmpty()) {
+                    try {
+                        io.lumine.mythic.core.mobs.ActiveMob am = io.lumine.mythic.bukkit.MythicBukkit.inst().getMobManager().spawnMob(mmMobId, loc, calculatedLevel);
+                        if (am != null && am.getEntity() != null) {
+                            Entity e = am.getEntity().getBukkitEntity();
+                            if (e instanceof LivingEntity) {
+                                guardian = (LivingEntity) e;
+                                isMythicMob = true;
+                            }
+                        }
+                    } catch (Throwable t) {
+                        plugin.getLogger().warning("Không thể spawn MythicMob " + mmMobId + " qua API, chuyển sang vanilla fallback: " + t.getMessage());
+                    }
+                }
+
+                if (guardian == null) {
+                    guardian = (LivingEntity) loc.getWorld().spawnEntity(loc, mobType);
+                }
+            } finally {
+                BYPASS_SPAWN.set(false);
             }
-            if (guardian.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE) != null) {
-                guardian.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE).setBaseValue(baseDmg);
+
+            if (!isMythicMob) {
+                double levelMultiplier = 1.0 + (calculatedLevel * 0.015); 
+                double baseHp = (150.0 + (calculatedLevel * 100.0)) * statMultiplier;
+                double baseDmg = (30.0 + (calculatedLevel * 5.0)) * statMultiplier;
+
+                if (guardian.getAttribute(Attribute.GENERIC_MAX_HEALTH) != null) {
+                    guardian.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(baseHp);
+                    guardian.setHealth(baseHp);
+                }
+                if (guardian.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE) != null) {
+                    guardian.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE).setBaseValue(baseDmg);
+                }
+                guardian.setCustomName(guardianName + " §7[Lv." + calculatedLevel + "]");
+                guardian.setCustomNameVisible(true);
+            }
+
+            // Kiểm tra xem thực thể có hợp lệ không (có bị WorldGuard hay Peaceful hủy không)
+            if (guardian == null || !guardian.isValid() || guardian.isDead()) {
+                if (guardian != null) {
+                    guardian.remove();
+                }
+                plugin.getLogger().warning(String.format("⚠ Không thể sinh Hộ Vệ tại X:%.1f Y:%.1f Z:%.1f. Thực thể không hợp lệ hoặc sự kiện sinh quái bị một plugin khác (như WorldGuard) hủy bỏ!", loc.getX(), loc.getY(), loc.getZ()));
+                return false;
             }
 
             guardian.setMetadata("cwe_guardian", new FixedMetadataValue(plugin, true));
@@ -209,11 +257,10 @@ public class BazaarMobDropListener implements Listener {
             }
             guardian.setMetadata("leveledmobs:level", new FixedMetadataValue(plugin, calculatedLevel));
 
-            guardian.setCustomName(guardianName + " §7[Lv." + calculatedLevel + "]");
-            guardian.setCustomNameVisible(true);
-
             if (player != null) {
-                guardian.setTarget(player);
+                if (guardian instanceof Mob) {
+                    ((Mob) guardian).setTarget(player);
+                }
                 player.sendMessage("§c⚠️ Long mạch chấn động! Bạn đã làm thức tỉnh " + guardianName + "!");
                 if (veinId != null) {
                     if (calculatedLevel < 60) {
@@ -226,7 +273,9 @@ public class BazaarMobDropListener implements Listener {
                 }
                 player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_ENDER_DRAGON_GROWL, 0.5f, 1.3f);
             }
+            return true;
         }
+        return false;
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

@@ -296,6 +296,14 @@ public class CombatEnchantListener implements Listener {
                     multiplier += (lvl * 0.08);
                 }
             }
+
+            NamespacedKey impalingKey = new NamespacedKey(plugin, "enchant_impaling_spear");
+            if (container.has(impalingKey, PersistentDataType.INTEGER)) {
+                int lvl = container.get(impalingKey, PersistentDataType.INTEGER);
+                if (target.getAttribute(Attribute.GENERIC_ARMOR) != null && target.getAttribute(Attribute.GENERIC_ARMOR).getValue() <= 0 && lvl > 0) {
+                    multiplier += (lvl * 0.15);
+                }
+            }
         }
 
         if (isBowAttack) {

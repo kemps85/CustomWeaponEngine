@@ -111,7 +111,7 @@ public class AppraiserGUI implements Listener, CommandExecutor {
         
         String name = item.getType().name();
         boolean isEquipment = name.contains("SWORD") || name.contains("AXE") || name.contains("BOW") || name.contains("CROSSBOW")
-                || name.contains("HELMET") || name.contains("CHESTPLATE") || name.contains("LEGGINGS") || name.contains("BOOTS")
+                || name.contains("HELMET") || name.contains("CHESTPLATE") || name.contains("LEGGINGS") || name.contains("BOOTS") || name.contains("SPEAR")
                 || item.getType() == Material.TRIDENT || item.getType() == Material.ELYTRA || item.getType() == Material.MACE || item.getType() == Material.SHIELD;
 
         if (!isEquipment) return false;
@@ -222,7 +222,7 @@ public class AppraiserGUI implements Listener, CommandExecutor {
                         if (itemType.contains("NETHERITE_")) base = 80.0;
                         if (itemType.contains("IRON_")) base = 30.0;
                         
-                        if (itemType.contains("SWORD") || itemType.contains("AXE") || itemType.contains("BOW") || itemType.contains("CROSSBOW")) {
+                        if (itemType.contains("SWORD") || itemType.contains("AXE") || itemType.contains("BOW") || itemType.contains("CROSSBOW") || itemType.contains("SPEAR") || itemType.contains("TRIDENT") || itemType.contains("MACE") || itemType.contains("SHOVEL")) {
                             pdc.set(dmgKey, PersistentDataType.DOUBLE, base);
                             pdc.set(strKey, PersistentDataType.DOUBLE, base / 2.0);
                         } else if (itemType.contains("HELMET") || itemType.contains("CHESTPLATE") || itemType.contains("LEGGINGS") || itemType.contains("BOOTS")) {

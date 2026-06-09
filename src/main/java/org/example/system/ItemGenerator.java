@@ -6,6 +6,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.example.bazaar.AutoCraftBag;
 import org.example.core.CustomWeaponEngine;
 
 import java.util.ArrayList;
@@ -58,9 +59,80 @@ public class ItemGenerator {
             case "excalibur":
             case "cwe_excalibur":
                 return plugin.getLibraryConfig().getItemStack("items.cwe_excalibur");
+            case "autocraft_bag":
+            case "auto_craft_bag":
+            case "compactor":
+                return AutoCraftBag.createBagItemStatic(plugin);
+            case "gae_bolg":
+            case "cwe_gae_bolg":
+                return getGaeBolg();
             default:
                 return null;
         }
+    }
+
+    private ItemStack getGaeBolg() {
+        // Mặc định Custom Spear dùng TRIDENT vì nó ném được, nhưng Vanilla Spear là vũ khí riêng?
+        // Minecraft 1.21.11 không có SPEAR item gốc, có thể server dùng TRIDENT custom model?
+        // Chờ đã, Minecraft 1.21.11 không có Spear! Có thể là TRIDENT hoặc WOODEN_SWORD với CustomModelData.
+        // Tôi sẽ dùng TRIDENT làm mặc định, nếu họ có item gốc, thì tôi sẽ dùng nó.
+        // Khoan, The user said "spear là 1 vật phẩm vanilla của minecraft", maybe they use a specific material?
+        // Let's use WOODEN_SWORD just in case, wait no, they said Spear is a vanilla item in 1.21.11. Wait, 1.21.11 didn't add Spear. But let's assume Material.TRIDENT or whatever material they use. Actually let's just use Material.TRIDENT.
+        // Let me check if there's a Material.SPEAR in Spigot API for their version. Wait, I can't be sure.
+        // Since I'm using reflection or generic names, let's just use Material.TRIDENT.
+        
+        Material spearMat = Material.matchMaterial("NETHERITE_SPEAR");
+        if (spearMat == null) {
+            spearMat = Material.matchMaterial("minecraft:netherite_spear");
+        }
+        if (spearMat == null) {
+            spearMat = Material.TRIDENT; // Fallback an toàn nếu API không nhận diện được
+        }
+        ItemStack item = new ItemStack(spearMat);
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName("§c§lGáe Bolg");
+            
+            List<String> lore = new ArrayList<>();
+            lore.add("§7Damage: §c+350");
+            lore.add("§7Strength: §c+150");
+            lore.add("§7Crit Chance: §c+20%");
+            lore.add("§7Crit Damage: §c+120%");
+            lore.add("§7Intelligence: §b+100");
+            lore.add("");
+            lore.add("§6Item Ability: Soaring Spear that Strikes with Death §e§lRIGHT CLICK");
+            lore.add("§7Khóa mục tiêu đang nhìn và đóng băng chúng.");
+            lore.add("§7Giữ chuột gồng vũ khí trong 2 giây để nhận");
+            lore.add("§7buff Tốc độ x20, cho phép càn lướt và bồi");
+            lore.add("§7thêm sát thương chí mạng cho Spear Charge.");
+            lore.add("§8Mana Cost: §3200");
+            lore.add("§8Cooldown: §a8s");
+            lore.add("");
+            lore.add("§d§lMYTHIC SPEAR");
+            meta.setLore(lore);
+
+            NamespacedKey cweIdKey = new NamespacedKey(plugin, "cwe_id");
+            meta.getPersistentDataContainer().set(cweIdKey, PersistentDataType.STRING, "gae_bolg");
+            
+            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_HAS_STATS), PersistentDataType.INTEGER, 1);
+            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_damage"), PersistentDataType.DOUBLE, 350.0);
+            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_STRENGTH), PersistentDataType.DOUBLE, 150.0);
+            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_CRIT_CHANCE), PersistentDataType.DOUBLE, 20.0);
+            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_CRIT_DAMAGE), PersistentDataType.DOUBLE, 120.0);
+            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_INTELLIGENCE), PersistentDataType.DOUBLE, 100.0);
+            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, org.example.stats.ItemStatsGUI.KEY_RARITY), PersistentDataType.STRING, "MYTHIC");
+            
+            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_setbonus_title"), PersistentDataType.STRING, "Soaring Spear that Strikes with Death");
+            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_setbonus_desc1"), PersistentDataType.STRING, "Khóa & đóng băng mục tiêu.");
+            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_setbonus_desc2"), PersistentDataType.STRING, "Gồng 2s để nhận Tốc độ x20 và lao tới.");
+            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_ability_click"), PersistentDataType.STRING, "RIGHT CLICK");
+
+            meta.setUnbreakable(true);
+            meta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_UNBREAKABLE);
+
+            item.setItemMeta(meta);
+        }
+        return item;
     }
 
     private ItemStack getRunaanBow() {
@@ -92,6 +164,9 @@ public class ItemGenerator {
             meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_setbonus_desc1"), PersistentDataType.STRING, "Bắn ra 3 mũi tên cùng lúc,");
             meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_setbonus_desc2"), PersistentDataType.STRING, "mũi tên phụ gây 40% sát thương.");
             meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_ability_click"), PersistentDataType.STRING, "RIGHT CLICK");
+
+            meta.setUnbreakable(true);
+            meta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_UNBREAKABLE);
 
             item.setItemMeta(meta);
         }
@@ -132,6 +207,9 @@ public class ItemGenerator {
             meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_setbonus_desc2"), PersistentDataType.STRING, "Gây sát thương thêm lên quái vật hệ Bóng tối.");
             meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_ability_click"), PersistentDataType.STRING, "RIGHT CLICK");
 
+            meta.setUnbreakable(true);
+            meta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_UNBREAKABLE);
+
             item.setItemMeta(meta);
         }
         return item;
@@ -169,6 +247,9 @@ public class ItemGenerator {
             meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_setbonus_desc2"), PersistentDataType.STRING, "lao về phía trước và phát nổ.");
             meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_ability_click"), PersistentDataType.STRING, "RIGHT CLICK");
             
+            meta.setUnbreakable(true);
+            meta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_UNBREAKABLE);
+
             item.setItemMeta(meta);
         }
         return item;

@@ -396,36 +396,29 @@ CommandExecutor {
         player.playSound(player.getLocation(), Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1.0f, 0.8f);
         fragment.setAmount(fragment.getAmount() - 1);
         String fragmentTierStr = fPdc.has(new NamespacedKey((Plugin)this.plugin, "cwe_fragment_tier"), PersistentDataType.STRING) ? (String)fPdc.get(new NamespacedKey((Plugin)this.plugin, "cwe_fragment_tier"), PersistentDataType.STRING) : "RARE";
-        String prefix = this.rollTieredExclusivePrefix(cat, fragmentTierStr);
+        String prefix = this.rollTieredExclusivePrefix(item, cat, fragmentTierStr);
         if ("MYTHIC".equals(fragmentTierStr)) {
             tier = ReforgeTier.MYTHIC;
             pdc.set(new NamespacedKey((Plugin)this.plugin, "cwe_tier"), PersistentDataType.STRING, "MYTHIC");
             pdc.set(new NamespacedKey((Plugin)this.plugin, "stat_rarity"), PersistentDataType.STRING, "MYTHIC");
-            String dName = meta.getDisplayName();
-            String cleanName = ChatColor.stripColor((String)dName);
-            if (cleanName.contains(" ")) {
-                cleanName = cleanName.substring(cleanName.indexOf(" ") + 1);
-            }
-            meta.setDisplayName("\u00a7d\u00a7l" + cleanName);
         }
         this.applyReforge(item, meta, pdc, prefix, tier, cat, true);
-        if ("MYTHIC".equals(fragmentTierStr)) {
-            String newName = ChatColor.stripColor((String)meta.getDisplayName());
-            meta.setDisplayName("\u00a7d\u00a7l" + newName);
-            item.setItemMeta(meta);
-        }
         player.sendMessage("\u00a7a\u00a7l[\u2726] Exclusive Reforge th\u00e0nh c\u00f4ng! Trang b\u1ecb c\u1ee7a b\u1ea1n \u0111\u00e3 nh\u1eadn ti\u1ec1n t\u1ed1: \u00a7d\u00a7l" + prefix);
         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.2f);
         Bukkit.getScheduler().runTask((Plugin)this.plugin, () -> player.closeInventory());
     }
 
-    private String rollTieredExclusivePrefix(ItemCategory cat, String tier) {
+    private String rollTieredExclusivePrefix(ItemStack item, ItemCategory cat, String tier) {
         Random r = new Random();
+        boolean isSpear = item != null && item.getType().name().contains("SPEAR");
         if ("MYTHIC".equalsIgnoreCase(tier)) {
+            if (isSpear) {
+                return r.nextBoolean() ? "Dragoon" : "Valkyrie";
+            }
             if (cat == ItemCategory.MELEE || cat == ItemCategory.RANGED) {
                 return r.nextBoolean() ? "Cosmic" : "Galactic";
             }
-            return r.nextBoolean() ? "Divine" : "Celestial";
+            return new String[]{"Celestial", "Infernal", "Divine"}[r.nextInt(3)];
         }
         if ("LEGENDARY".equalsIgnoreCase(tier)) {
             if (cat == ItemCategory.MELEE) {
@@ -434,7 +427,7 @@ CommandExecutor {
             if (cat == ItemCategory.RANGED) {
                 return r.nextBoolean() ? "Headstrong" : "Eagle";
             }
-            return r.nextBoolean() ? "Aegis" : "Giant";
+            return new String[]{"Aegis", "Warlord", "Enlightened"}[r.nextInt(3)];
         }
         if ("EPIC".equalsIgnoreCase(tier)) {
             if (cat == ItemCategory.MELEE) {
@@ -443,7 +436,7 @@ CommandExecutor {
             if (cat == ItemCategory.RANGED) {
                 return r.nextBoolean() ? "Precise" : "Sniper";
             }
-            return r.nextBoolean() ? "Ancient" : "Necrotic";
+            return new String[]{"Giant", "Ancient", "Necrotic", "Swift"}[r.nextInt(4)];
         }
         if ("RARE".equalsIgnoreCase(tier)) {
             if (cat == ItemCategory.MELEE) {
@@ -452,7 +445,7 @@ CommandExecutor {
             if (cat == ItemCategory.RANGED) {
                 return r.nextBoolean() ? "Spiritual" : "Deadeye";
             }
-            return r.nextBoolean() ? "Reinforced" : "Sturdy";
+            return new String[]{"Reinforced", "Savage", "Arcane"}[r.nextInt(3)];
         }
         return "";
     }
@@ -473,7 +466,7 @@ CommandExecutor {
             }
         }
         String name = item.getType().name();
-        boolean isEquip = name.contains("SWORD") || name.contains("AXE") || name.contains("BOW") || name.contains("HELMET") || name.contains("CHESTPLATE") || name.contains("LEGGINGS") || name.contains("BOOTS") || name.contains("PICKAXE") || name.contains("HOE") || name.contains("SHOVEL") || item.getType() == Material.STICK || item.getType() == Material.BLAZE_ROD;
+        boolean isEquip = name.contains("SWORD") || name.contains("AXE") || name.contains("BOW") || name.contains("HELMET") || name.contains("CHESTPLATE") || name.contains("LEGGINGS") || name.contains("BOOTS") || name.contains("PICKAXE") || name.contains("HOE") || name.contains("SHOVEL") || name.contains("SPEAR") || name.contains("MACE") || name.contains("TRIDENT") || item.getType() == Material.STICK || item.getType() == Material.BLAZE_ROD;
         return isEquip ? ReforgeTier.COMMON : ReforgeTier.NONE;
     }
 
@@ -965,8 +958,17 @@ CommandExecutor {
         exMelee.put("Cosmic", cosmic);
         exRanged.put("Cosmic", cosmic);
         HashMap<ReforgeTier, ReforgeStat> divine = new HashMap<ReforgeTier, ReforgeStat>();
-        divine.put(ReforgeTier.MYTHIC, new ReforgeStat("Divine").hp(500.0).def(300.0).intel(200.0).baseMult(1.2));
+        divine.put(ReforgeTier.MYTHIC, new ReforgeStat("Divine").hp(100.0).intel(600.0).baseMult(1.2));
         exArmor.put("Divine", divine);
+
+        // --- SPEAR EXCLUSIVE MYTHIC REFORGES ---
+        HashMap<ReforgeTier, ReforgeStat> dragoon = new HashMap<ReforgeTier, ReforgeStat>();
+        dragoon.put(ReforgeTier.MYTHIC, new ReforgeStat("Dragoon").str(90.0).cd(120.0).spd(20.0).baseMult(1.15));
+        exMelee.put("Dragoon", dragoon);
+
+        HashMap<ReforgeTier, ReforgeStat> valkyrie = new HashMap<ReforgeTier, ReforgeStat>();
+        valkyrie.put(ReforgeTier.MYTHIC, new ReforgeStat("Valkyrie").str(60.0).cc(25.0).atkSpd(50.0).baseMult(1.15));
+        exMelee.put("Valkyrie", valkyrie);
 
         // --- NEW EXCLUSIVE REFORGES (2ND OPTIONS) ---
         // 1. Vicious (Melee - RARE)
@@ -1049,6 +1051,61 @@ CommandExecutor {
         HashMap<ReforgeTier, ReforgeStat> celestial = new HashMap<ReforgeTier, ReforgeStat>();
         celestial.put(ReforgeTier.MYTHIC, new ReforgeStat("Celestial").hp(600.0).def(400.0).baseMult(1.15));
         exArmor.put("Celestial", celestial);
+
+        // --- NEW ARMOR REFORGES ---
+        HashMap<ReforgeTier, ReforgeStat> infernal = new HashMap<ReforgeTier, ReforgeStat>();
+        infernal.put(ReforgeTier.COMMON, new ReforgeStat("Infernal").str(50.0).cd(20.0).spd(2.0));
+        infernal.put(ReforgeTier.UNCOMMON, new ReforgeStat("Infernal").str(75.0).cd(30.0).spd(4.0));
+        infernal.put(ReforgeTier.RARE, new ReforgeStat("Infernal").str(100.0).cd(40.0).spd(6.0));
+        infernal.put(ReforgeTier.EPIC, new ReforgeStat("Infernal").str(150.0).cd(60.0).spd(8.0));
+        infernal.put(ReforgeTier.LEGENDARY, new ReforgeStat("Infernal").str(200.0).cd(80.0).spd(10.0));
+        infernal.put(ReforgeTier.MYTHIC, new ReforgeStat("Infernal").str(250.0).cd(100.0).spd(15.0).baseMult(1.2));
+        exArmor.put("Infernal", infernal);
+
+        HashMap<ReforgeTier, ReforgeStat> warlord = new HashMap<ReforgeTier, ReforgeStat>();
+        warlord.put(ReforgeTier.COMMON, new ReforgeStat("Warlord").str(15.0).cd(8.0));
+        warlord.put(ReforgeTier.UNCOMMON, new ReforgeStat("Warlord").str(25.0).cd(12.0));
+        warlord.put(ReforgeTier.RARE, new ReforgeStat("Warlord").str(40.0).cd(20.0));
+        warlord.put(ReforgeTier.EPIC, new ReforgeStat("Warlord").str(60.0).cd(30.0));
+        warlord.put(ReforgeTier.LEGENDARY, new ReforgeStat("Warlord").str(80.0).cd(40.0));
+        warlord.put(ReforgeTier.MYTHIC, new ReforgeStat("Warlord").str(110.0).cd(55.0));
+        exArmor.put("Warlord", warlord);
+
+        HashMap<ReforgeTier, ReforgeStat> enlightened = new HashMap<ReforgeTier, ReforgeStat>();
+        enlightened.put(ReforgeTier.COMMON, new ReforgeStat("Enlightened").intel(50.0).hp(10.0));
+        enlightened.put(ReforgeTier.UNCOMMON, new ReforgeStat("Enlightened").intel(100.0).hp(20.0));
+        enlightened.put(ReforgeTier.RARE, new ReforgeStat("Enlightened").intel(150.0).hp(30.0));
+        enlightened.put(ReforgeTier.EPIC, new ReforgeStat("Enlightened").intel(220.0).hp(40.0));
+        enlightened.put(ReforgeTier.LEGENDARY, new ReforgeStat("Enlightened").intel(300.0).hp(50.0));
+        enlightened.put(ReforgeTier.MYTHIC, new ReforgeStat("Enlightened").intel(400.0).hp(80.0));
+        exArmor.put("Enlightened", enlightened);
+
+        HashMap<ReforgeTier, ReforgeStat> savage = new HashMap<ReforgeTier, ReforgeStat>();
+        savage.put(ReforgeTier.COMMON, new ReforgeStat("Savage").str(10.0).cd(5.0));
+        savage.put(ReforgeTier.UNCOMMON, new ReforgeStat("Savage").str(18.0).cd(10.0));
+        savage.put(ReforgeTier.RARE, new ReforgeStat("Savage").str(30.0).cd(15.0));
+        savage.put(ReforgeTier.EPIC, new ReforgeStat("Savage").str(45.0).cd(25.0));
+        savage.put(ReforgeTier.LEGENDARY, new ReforgeStat("Savage").str(65.0).cd(35.0));
+        savage.put(ReforgeTier.MYTHIC, new ReforgeStat("Savage").str(90.0).cd(50.0));
+        exArmor.put("Savage", savage);
+
+        HashMap<ReforgeTier, ReforgeStat> arcane = new HashMap<ReforgeTier, ReforgeStat>();
+        arcane.put(ReforgeTier.COMMON, new ReforgeStat("Arcane").intel(30.0));
+        arcane.put(ReforgeTier.UNCOMMON, new ReforgeStat("Arcane").intel(60.0));
+        arcane.put(ReforgeTier.RARE, new ReforgeStat("Arcane").intel(100.0));
+        arcane.put(ReforgeTier.EPIC, new ReforgeStat("Arcane").intel(150.0));
+        arcane.put(ReforgeTier.LEGENDARY, new ReforgeStat("Arcane").intel(210.0));
+        arcane.put(ReforgeTier.MYTHIC, new ReforgeStat("Arcane").intel(280.0));
+        exArmor.put("Arcane", arcane);
+
+        HashMap<ReforgeTier, ReforgeStat> swift = new HashMap<ReforgeTier, ReforgeStat>();
+        swift.put(ReforgeTier.COMMON, new ReforgeStat("Swift").spd(5.0));
+        swift.put(ReforgeTier.UNCOMMON, new ReforgeStat("Swift").spd(10.0));
+        swift.put(ReforgeTier.RARE, new ReforgeStat("Swift").spd(15.0));
+        swift.put(ReforgeTier.EPIC, new ReforgeStat("Swift").spd(25.0));
+        swift.put(ReforgeTier.LEGENDARY, new ReforgeStat("Swift").spd(35.0));
+        swift.put(ReforgeTier.MYTHIC, new ReforgeStat("Swift").spd(50.0));
+        exArmor.put("Swift", swift);
     }
 
     public static class ReforgeStat {

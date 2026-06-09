@@ -122,31 +122,14 @@ public class MobDeathListener implements Listener {
         if (player == null) return;
 
         int mobLevel = 1;
-        if (mob.getPersistentDataContainer().has(lmLevelKey, PersistentDataType.INTEGER)) {
-            Integer level = mob.getPersistentDataContainer().get(lmLevelKey, PersistentDataType.INTEGER);
-            if (level != null) mobLevel = level;
-        }
-
-        
-        if (mobLevel >= 2 && random.nextDouble() < 0.15) { // 15% chance
-            ItemStack relic = null;
-            String biomeName = mob.getLocation().getBlock().getBiome().name();
-            if (biomeName.contains("DESERT") || biomeName.contains("BADLANDS") || biomeName.contains("NETHER")) {
-                relic = createCraftMaterial(Material.MAGMA_CREAM, "§9Lõi Dung Nham", "RARE");
-            } else if (biomeName.contains("ICE") || biomeName.contains("SNOW") || biomeName.contains("FROZEN") || biomeName.contains("TAIGA")) {
-                relic = createCraftMaterial(Material.DRAGON_BREATH, "§5Băng Tinh Cổ Đại", "EPIC");
-            } else if (biomeName.contains("DARK") || biomeName.contains("DEEP") || biomeName.contains("END")) {
-                relic = createCraftMaterial(Material.BEACON, "§6§lLõi Năng Lượng Cao Cấp", "LEGENDARY");
-            }
-
-            if (relic != null) {
-                event.getDrops().add(relic);
-            }
+        io.lumine.mythic.core.mobs.ActiveMob activeMob = io.lumine.mythic.bukkit.MythicBukkit.inst().getMobManager().getMythicMobInstance(mob);
+        if (activeMob != null) {
+            mobLevel = (int) activeMob.getLevel();
         }
 
         if (mobLevel > 1) {
-            // Đã giảm AuraSkills XP Requirement đi một nửa, nên tăng nhẹ XP này lên 6.0 để tạo cảm giác cày cuốc thỏa mãn
-            double bonusXp = mobLevel * 6.0;
+            // NERF: Đã giảm tỉ lệ XP xuống x1.5 (Thay vì x6.0) để chống lạm phát Level 150
+            double bonusXp = mobLevel * 1.5;
             AuraSkillsApi auraApi = AuraSkillsApi.get();
             SkillsUser user = auraApi.getUser(player.getUniqueId());
 
@@ -188,14 +171,14 @@ public class MobDeathListener implements Listener {
         if (mob == null || mob instanceof Player) return;
 
         int mobLevel = 1;
-        if (mob.getPersistentDataContainer().has(lmLevelKey, PersistentDataType.INTEGER)) {
-            Integer level = mob.getPersistentDataContainer().get(lmLevelKey, PersistentDataType.INTEGER);
-            if (level != null) mobLevel = level;
+        io.lumine.mythic.core.mobs.ActiveMob activeMob = io.lumine.mythic.bukkit.MythicBukkit.inst().getMobManager().getMythicMobInstance(mob);
+        if (activeMob != null) {
+            mobLevel = (int) activeMob.getLevel();
         }
 
         if (mobLevel > 1) {
-            // Tăng nhẹ lên 1.0 cho cân bằng
-            double defenseXp = mobLevel * 1.0;
+            // NERF: Giảm lượng Defense XP xuống x0.2 (Thay vì x1.0)
+            double defenseXp = mobLevel * 0.2;
             AuraSkillsApi auraApi = AuraSkillsApi.get();
             SkillsUser user = auraApi.getUser(player.getUniqueId());
 
@@ -205,17 +188,5 @@ public class MobDeathListener implements Listener {
             }
         }
     }
-    
-    private ItemStack createCraftMaterial(Material mat, String name, String rarity) {
-        ItemStack item = new ItemStack(mat);
-        ItemMeta meta = item.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName(name);
-            meta.setLore(Arrays.asList("§7Nguyên liệu chế tạo thần khí."));
-            org.bukkit.plugin.java.JavaPlugin plugin = org.example.core.CustomWeaponEngine.getPlugin(org.example.core.CustomWeaponEngine.class);
-            meta.getPersistentDataContainer().set(new org.bukkit.NamespacedKey(plugin, "cwe_tier"), PersistentDataType.STRING, rarity);
-            item.setItemMeta(meta);
-        }
-        return item;
-    }
+
 }

@@ -53,6 +53,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
@@ -71,7 +72,7 @@ implements Listener {
     private final Map<String, Long> cooldowns = new HashMap<String, Long>();
     private final Map<String, Boolean> activeBosses = new HashMap<String, Boolean>();
     private final List<Location> chestLocations = new ArrayList<Location>();
-    private final Map<UUID, Set<Integer>> claimedChests = new HashMap<UUID, Set<Integer>>();
+    private final Map<UUID, Set<UUID>> claimedChests = new HashMap<UUID, Set<UUID>>();
     private static final String[] BOSS_TYPES = new String[]{"ICE", "FIRE", "VOID"};
     private int hologramTask = -1;
     private final Map<String, ArmorStand> holograms = new HashMap<String, ArmorStand>();
@@ -102,6 +103,8 @@ implements Listener {
     }
 
     public void removeSpawn(String type) {
+        this.activeBosses.put(type, false);
+        this.cooldowns.remove(type);
         if (this.spawns.containsKey(type)) {
             Location loc = this.spawns.get(type);
             this.spawns.remove(type);
@@ -190,6 +193,14 @@ implements Listener {
         if (as != null && !((String)newName).equals(as.getCustomName())) {
             as.setCustomName((String)newName);
         }
+        
+        // Tự động khôi phục khối Beacon khi Boss không chiến đấu và rương đã biến mất
+        if (!this.activeBosses.getOrDefault(type, false) && !this.isChestLocation(spawnLoc)) {
+            Block block = spawnLoc.getBlock();
+            if (block.getType() != Material.BEACON) {
+                block.setType(Material.BEACON);
+            }
+        }
     }
 
     public void startEvent(String type) {
@@ -197,7 +208,6 @@ implements Listener {
             return;
         }
         this.activeBosses.put(type, true);
-        this.claimedChests.clear();
         Location loc = this.spawns.get(type);
         loc.getWorld().strikeLightningEffect(loc);
         Bukkit.broadcastMessage((String)("\u00a74\u00a7l[BOSS V\u00d9NG] \u00a7cBoss " + this.getElementColor(type) + type + " \u00a7c\u0111\u00e3 \u0111\u01b0\u1ee3c \u0111\u00e1nh th\u1ee9c t\u1ea1i khu v\u1ef1c c\u1ee7a n\u00f3!"));
@@ -209,7 +219,7 @@ implements Listener {
         this.activeBosses.put(type, false);
         this.cooldowns.put(type, System.currentTimeMillis() + 300000L);
         this.spawnChests(type);
-        Bukkit.getScheduler().runTaskLater((Plugin)this.plugin, this::cleanupChests, 6000L);
+        Bukkit.getScheduler().runTaskLater((Plugin)this.plugin, () -> this.cleanupChests(type), 6000L);
     }
 
     private void spawnChests(String type) {
@@ -217,12 +227,26 @@ implements Listener {
             return;
         }
         Location center = this.spawns.get(type).clone();
-        this.spawnChest(center.clone().add(2.0, 0.0, 0.0), Material.COAL_BLOCK, 1, 1000, "\u00a77R\u01b0\u01a1ng Th\u01b0\u1eddng (1,000$)");
-        this.spawnChest(center.clone().add(0.0, 0.0, 0.0), Material.IRON_BLOCK, 2, 5000, "\u00a7fR\u01b0\u01a1ng Trung B\u00ecnh (5,000$)");
-        this.spawnChest(center.clone().add(-2.0, 0.0, 0.0), Material.GOLD_BLOCK, 3, 10000, "\u00a7eR\u01b0\u01a1ng Cao C\u1ea5p (10,000$)");
+        
+        if ("VOID".equals(type)) {
+            // Void Boss (Chúa Tể Hư Không)
+            this.spawnChest(center.clone().add(2.0, 0.0, 0.0), Material.COAL_BLOCK, 1, 5000, "§5§lRương Hư Không Thường §7(5,000$)", type);
+            this.spawnChest(center.clone().add(0.0, 0.0, 0.0), Material.IRON_BLOCK, 2, 25000, "§5§lRương Hư Không Trung §f(25,000$)", type);
+            this.spawnChest(center.clone().add(-2.0, 0.0, 0.0), Material.GOLD_BLOCK, 3, 50000, "§5§lRương Hư Không Cao Cấp §e(50,000$)", type);
+        } else if ("ICE".equals(type)) {
+            // Ice Boss (Băng Giá Cổ Thần)
+            this.spawnChest(center.clone().add(2.0, 0.0, 0.0), Material.COAL_BLOCK, 1, 2000, "§b§lRương Băng Giá Thường §7(2,000$)", type);
+            this.spawnChest(center.clone().add(0.0, 0.0, 0.0), Material.IRON_BLOCK, 2, 10000, "§b§lRương Băng Giá Trung §f(10,000$)", type);
+            this.spawnChest(center.clone().add(-2.0, 0.0, 0.0), Material.GOLD_BLOCK, 3, 20000, "§b§lRương Băng Giá Cao Cấp §e(20,000$)", type);
+        } else {
+            // Fire Boss (Hỏa Diệm Ma Vương)
+            this.spawnChest(center.clone().add(2.0, 0.0, 0.0), Material.COAL_BLOCK, 1, 1000, "§c§lRương Hỏa Diệm Thường §7(1,000$)", type);
+            this.spawnChest(center.clone().add(0.0, 0.0, 0.0), Material.IRON_BLOCK, 2, 5000, "§c§lRương Hỏa Diệm Trung §f(5,000$)", type);
+            this.spawnChest(center.clone().add(-2.0, 0.0, 0.0), Material.GOLD_BLOCK, 3, 10000, "§c§lRương Hỏa Diệm Cao Cấp §e(10,000$)", type);
+        }
     }
 
-    private void spawnChest(Location loc, Material mat, int chestType, int price, String title) {
+    private void spawnChest(Location loc, Material mat, int chestType, int price, String title, String bossType) {
         Block b = loc.getBlock();
         b.setType(mat);
         this.chestLocations.add(loc);
@@ -233,26 +257,115 @@ implements Listener {
         as.setCustomNameVisible(true);
         as.setMarker(true);
         as.getPersistentDataContainer().set(new NamespacedKey((Plugin)this.plugin, "cwe_meteor_chest"), PersistentDataType.INTEGER, chestType);
+        as.getPersistentDataContainer().set(new NamespacedKey((Plugin)this.plugin, "cwe_meteor_chest_price"), PersistentDataType.INTEGER, price);
+        as.getPersistentDataContainer().set(new NamespacedKey((Plugin)this.plugin, "cwe_meteor_chest_boss"), PersistentDataType.STRING, bossType);
     }
 
-    public void cleanupChests() {
-        for (Location loc : this.chestLocations) {
-            loc.getBlock().setType(Material.AIR);
-            for (Entity e : loc.getWorld().getNearbyEntities(loc, 1.0, 3.0, 1.0)) {
-                if (!(e instanceof ArmorStand) || !e.getPersistentDataContainer().has(new NamespacedKey((Plugin)this.plugin, "cwe_meteor_chest"), PersistentDataType.INTEGER)) continue;
-                e.remove();
+    private boolean isChestLocation(Location loc) {
+        for (Location chestLoc : this.chestLocations) {
+            if (chestLoc.getWorld() != null && chestLoc.getWorld().equals(loc.getWorld())
+                && chestLoc.getBlockX() == loc.getBlockX()
+                && chestLoc.getBlockY() == loc.getBlockY()
+                && chestLoc.getBlockZ() == loc.getBlockZ()) {
+                return true;
             }
         }
-        this.chestLocations.clear();
-        this.claimedChests.clear();
+        return false;
+    }
+
+    public void cleanupChests(String bossType) {
+        Location center = this.spawns.get(bossType);
+        if (center == null || center.getWorld() == null) {
+            return;
+        }
+        
+        List<Location> targets = Arrays.asList(
+            center.clone().add(2.0, 0.0, 0.0),
+            center.clone(),
+            center.clone().add(-2.0, 0.0, 0.0)
+        );
+        
+        List<Location> toRemove = new ArrayList<Location>();
+        for (Location loc : this.chestLocations) {
+            boolean matches = false;
+            for (Location target : targets) {
+                if (target.getWorld().equals(loc.getWorld())
+                    && target.getBlockX() == loc.getBlockX()
+                    && target.getBlockY() == loc.getBlockY()
+                    && target.getBlockZ() == loc.getBlockZ()) {
+                    matches = true;
+                    break;
+                }
+            }
+            if (!matches) {
+                continue;
+            }
+            
+            // Load chunk if needed to ensure entity cleanup is successful
+            boolean chunkWasLoaded = loc.getChunk().isLoaded();
+            if (!chunkWasLoaded) {
+                loc.getChunk().load();
+            }
+            
+            // Remove ArmorStand
+            ArmorStand as = null;
+            for (Entity e : loc.getWorld().getNearbyEntities(loc.clone().add(0.5, 1.2, 0.5), 0.5, 0.5, 0.5)) {
+                if (e instanceof ArmorStand && e.getPersistentDataContainer().has(new NamespacedKey((Plugin)this.plugin, "cwe_meteor_chest"), PersistentDataType.INTEGER)) {
+                    as = (ArmorStand) e;
+                    break;
+                }
+            }
+            if (as != null) {
+                UUID asId = as.getUniqueId();
+                for (Set<UUID> claimed : this.claimedChests.values()) {
+                    claimed.remove(asId);
+                }
+                as.remove();
+            }
+            
+            // Restore block
+            boolean isSpawnLoc = (center.getBlockX() == loc.getBlockX() 
+                && center.getBlockY() == loc.getBlockY() 
+                && center.getBlockZ() == loc.getBlockZ());
+            if (isSpawnLoc) {
+                loc.getBlock().setType(Material.BEACON);
+            } else {
+                loc.getBlock().setType(Material.AIR);
+            }
+            
+            toRemove.add(loc);
+            
+            if (!chunkWasLoaded) {
+                loc.getChunk().unload();
+            }
+        }
+        this.chestLocations.removeAll(toRemove);
     }
 
     public void cleanupOnDisable() {
-        this.cleanupChests();
+        for (String type : BOSS_TYPES) {
+            this.cleanupChests(type);
+        }
         for (ArmorStand as : this.holograms.values()) {
             if (as == null || as.isDead()) continue;
             as.remove();
         }
+    }
+
+    public void resetBossState(String type) {
+        this.activeBosses.put(type, false);
+        this.cooldowns.remove(type);
+    }
+
+    public void forceResetAll() {
+        for (String type : BOSS_TYPES) {
+            this.cleanupChests(type);
+        }
+        for (String type : BOSS_TYPES) {
+            this.activeBosses.put(type, false);
+            this.cooldowns.remove(type);
+        }
+        this.claimedChests.clear();
     }
 
     @EventHandler
@@ -277,10 +390,35 @@ implements Listener {
         }
     }
 
+    @EventHandler(priority=EventPriority.LOWEST)
+    public void onBlockBreak(BlockBreakEvent event) {
+        Location brokenLoc = event.getBlock().getLocation();
+        for (Location loc : this.spawns.values()) {
+            if (loc.getWorld() != null && loc.getWorld().equals(brokenLoc.getWorld()) && loc.getBlockX() == brokenLoc.getBlockX() && loc.getBlockY() == brokenLoc.getBlockY() && loc.getBlockZ() == brokenLoc.getBlockZ()) {
+                event.setCancelled(true);
+                event.getPlayer().sendMessage("§cKhông thể phá hủy bệ phóng triệu hồi Boss!");
+                return;
+            }
+        }
+        for (Location loc : this.chestLocations) {
+            if (loc.getWorld() != null && loc.getWorld().equals(brokenLoc.getWorld()) && loc.getBlockX() == brokenLoc.getBlockX() && loc.getBlockY() == brokenLoc.getBlockY() && loc.getBlockZ() == brokenLoc.getBlockZ()) {
+                event.setCancelled(true);
+                event.getPlayer().sendMessage("§cKhông thể phá hủy rương sự kiện! Hãy click chuột phải để mở.");
+                return;
+            }
+        }
+    }
+
     private void handleBossSummonClick(Player p, String type) {
         if (this.activeBosses.getOrDefault(type, false).booleanValue()) {
             p.sendMessage("\u00a7cBoss \u0111ang chi\u1ebfn \u0111\u1ea5u, kh\u00f4ng th\u1ec3 tri\u1ec7u h\u1ed3i th\u00eam!");
             return;
+        }
+        for (Map.Entry<String, Boolean> entry : this.activeBosses.entrySet()) {
+            if (entry.getValue()) {
+                p.sendMessage("§cMột Boss Vùng khác (" + entry.getKey() + ") đang được khiêu chiến! Vui lòng chờ họ kết thúc.");
+                return;
+            }
         }
         long cd = this.cooldowns.getOrDefault(type, 0L);
         long now = System.currentTimeMillis();
@@ -301,112 +439,236 @@ implements Listener {
         if (b == null) {
             return;
         }
-        boolean isChest = false;
-        int chestType = 0;
-        int price = 0;
-        for (Location loc : this.chestLocations) {
-            if (loc.getBlockX() != b.getX() || loc.getBlockY() != b.getY() || loc.getBlockZ() != b.getZ()) continue;
-            isChest = true;
-            if (b.getType() == Material.COAL_BLOCK) {
-                chestType = 1;
-                price = 1000;
+        
+        ArmorStand armorStand = null;
+        for (Entity e : b.getWorld().getNearbyEntities(b.getLocation().add(0.5, 1.2, 0.5), 0.5, 0.5, 0.5)) {
+            if (e instanceof ArmorStand && e.getPersistentDataContainer().has(new NamespacedKey((Plugin)this.plugin, "cwe_meteor_chest"), PersistentDataType.INTEGER)) {
+                armorStand = (ArmorStand) e;
                 break;
             }
-            if (b.getType() == Material.IRON_BLOCK) {
-                chestType = 2;
-                price = 5000;
-                break;
-            }
-            if (b.getType() != Material.GOLD_BLOCK) break;
-            chestType = 3;
-            price = 10000;
-            break;
         }
-        if (!isChest) {
+        
+        if (armorStand == null) {
             return;
         }
-        event.setCancelled(true);
+
         Player p = event.getPlayer();
-        Set claimed = this.claimedChests.computeIfAbsent(p.getUniqueId(), k -> new HashSet());
-        if (claimed.contains(chestType)) {
-            p.sendMessage("\u00a7cB\u1ea1n \u0111\u00e3 m\u1edf r\u01b0\u01a1ng n\u00e0y r\u1ed3i!");
+        MeteorBossManager mgr = CustomWeaponEngine.getMeteorBossManager();
+        if (mgr != null && !mgr.isParticipant(p.getUniqueId())) {
+            event.setCancelled(true);
+            p.sendMessage("§cBạn không phải là người tham gia khiêu chiến Boss, không thể mở rương này!");
             return;
         }
+        
+        event.setCancelled(true);
+        
+        int chestType = armorStand.getPersistentDataContainer().get(new NamespacedKey((Plugin)this.plugin, "cwe_meteor_chest"), PersistentDataType.INTEGER);
+        int price = armorStand.getPersistentDataContainer().getOrDefault(new NamespacedKey((Plugin)this.plugin, "cwe_meteor_chest_price"), PersistentDataType.INTEGER, 1000);
+        String bossType = armorStand.getPersistentDataContainer().getOrDefault(new NamespacedKey((Plugin)this.plugin, "cwe_meteor_chest_boss"), PersistentDataType.STRING, "FIRE");
+        UUID asUuid = armorStand.getUniqueId();
+        
+        Set<UUID> claimed = this.claimedChests.computeIfAbsent(p.getUniqueId(), k -> new HashSet<UUID>());
+        if (claimed.contains(asUuid)) {
+            p.sendMessage("§cBạn đã mở rương này rồi!");
+            return;
+        }
+        
         if (CustomWeaponEngine.getEconomy() != null) {
             if (CustomWeaponEngine.getEconomy().getBalance((OfflinePlayer)p) < (double)price) {
-                p.sendMessage("\u00a7cB\u1ea1n kh\u00f4ng c\u00f3 \u0111\u1ee7 " + price + "$ \u0111\u1ec3 m\u1edf r\u01b0\u01a1ng n\u00e0y!");
+                p.sendMessage("§cBạn không có đủ " + price + "$ để mở rương này!");
                 return;
             }
             CustomWeaponEngine.getEconomy().withdrawPlayer((OfflinePlayer)p, (double)price);
         }
-        claimed.add(chestType);
+        
+        claimed.add(asUuid);
         p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
-        p.sendMessage("\u00a7aB\u1ea1n \u0111\u00e3 m\u1edf r\u01b0\u01a1ng v\u00e0 nh\u1eadn ph\u1ea7n th\u01b0\u1edfng!");
-        ItemStack reward = this.generateGachaReward(chestType, p);
+        p.sendMessage("§aBạn đã mở rương và nhận phần thưởng!");
+        
+        ItemStack reward = this.generateGachaReward(bossType, chestType, p);
         if (reward != null && !(leftover = p.getInventory().addItem(new ItemStack[]{reward})).isEmpty()) {
             for (ItemStack item : leftover.values()) {
                 p.getWorld().dropItem(p.getLocation(), item);
             }
-            p.sendMessage("\u00a7eT\u00fai c\u1ee7a b\u1ea1n \u0111\u00e3 \u0111\u1ea7y! Ph\u1ea7n th\u01b0\u1edfng b\u1ecb r\u1edbt ra \u0111\u1ea5t!");
+            p.sendMessage("§eTúi của bạn đã đầy! Phần thưởng bị rớt ra đất!");
         }
     }
 
-    private ItemStack generateGachaReward(int chestType, Player p) {
+    private ItemStack generateGachaReward(String bossType, int chestType, Player p) {
         Random r = new Random();
-        if (r.nextDouble() < 0.05) {
-            p.sendMessage("\u00a7d\u00a7l[MAY M\u1eaeN] \u00a7aB\u1ea1n \u0111\u00e3 tr\u00fang B\u00ed K\u00edp T\u1ed1i Th\u01b0\u1ee3ng t\u1eeb r\u01b0\u01a1ng!");
-            Bukkit.broadcastMessage((String)("\u00a7d\u00a7l[JACKPOT] \u00a7fNg\u01b0\u1eddi ch\u01a1i \u00a7e" + p.getName() + " \u00a7fv\u1eeba quay tr\u00fang \u00a7d\u00a7lS\u00c1CH T\u1ed0I TH\u01af\u1ee2NG \u00a7ft\u1eeb s\u1ef1 ki\u1ec7n Boss V\u00f9ng!"));
+        
+        double bookChance = 0.05;
+        if ("VOID".equals(bossType) && chestType == 3) {
+            bookChance = 0.15;
+        }
+        if (r.nextDouble() < bookChance) {
+            p.sendMessage("§d§l[MAY MẮN] §aBạn đã trúng Bí Kíp Tối Thượng từ rương!");
+            Bukkit.broadcastMessage((String)("§d§l[JACKPOT] §fNgười chơi §e" + p.getName() + " §fvừa quay trúng §d§lSÁCH TỐI THƯỢNG §ftừ sự kiện Boss Vùng!"));
             return this.createUltimateEnchantBook();
         }
+        
         double roll = r.nextDouble();
-        if (chestType == 3) {
-            if (roll < 0.001) {
-                return this.createFragment("MYTHIC", "\u00a7d\u00a7lM\u1ea3nh V\u1ee1 V\u0169 Tr\u1ee5 (MYTHIC)");
+        
+        if ("VOID".equals(bossType)) {
+            if (chestType == 3) { // Rương Cao Cấp (50,000$)
+                if (roll < 0.01) { // 1% cơ hội trúng Enchanted Block of Diamond
+                    return this.createEnchantedBazaarItem(Material.DIAMOND_BLOCK, "§5Enchanted Block of Diamond", "ENCHANTED_DIAMOND_BLOCK");
+                }
+                if (roll < 0.06) { // 5% cơ hội trúng Mảnh Vỡ Vũ Trụ (MYTHIC)
+                    return this.createFragment("MYTHIC", "§d§lMảnh Vỡ Vũ Trụ (MYTHIC)");
+                }
+                if (roll < 0.26) { // 20% cơ hội trúng Lõi Năng Lượng Cao Cấp hoặc Mảnh Vỡ Ánh Sáng (LEGENDARY)
+                    return r.nextBoolean() ? this.createFragment("LEGENDARY", "§6§lMảnh Vỡ Ánh Sáng (LEGENDARY)") : this.createCraftMaterial(Material.BEACON, "§6§lLõi Năng Lượng Cao Cấp", "LEGENDARY");
+                }
+                if (r.nextBoolean()) {
+                    int bonusMoney = 15000 + r.nextInt(45000);
+                    if (CustomWeaponEngine.getEconomy() != null) {
+                        CustomWeaponEngine.getEconomy().depositPlayer((OfflinePlayer)p, (double)bonusMoney);
+                        p.sendMessage("§eBạn nhận được " + bonusMoney + "$ từ rương!");
+                    }
+                    return null;
+                }
+                return new ItemStack(Material.NETHERITE_BLOCK, 1 + r.nextInt(2));
             }
-            if (roll < 0.051) {
-                return r.nextBoolean() ? this.createFragment("LEGENDARY", "\u00a76\u00a7lM\u1ea3nh V\u1ee1 \u00c1nh S\u00e1ng (LEGENDARY)") : this.createCraftMaterial(Material.BEACON, "\u00a76\u00a7lL\u00f5i N\u0103ng L\u01b0\u1ee3ng Cao C\u1ea5p", "LEGENDARY");
+            if (chestType == 2) { // Rương Trung Bình (25,000$)
+                if (roll < 0.02) { // 2% trúng Mảnh Vỡ Vũ Trụ
+                    return this.createFragment("MYTHIC", "§d§lMảnh Vỡ Vũ Trụ (MYTHIC)");
+                }
+                if (roll < 0.17) { // 15% trúng Lõi Năng Lượng hoặc Mảnh Vỡ Ánh Sáng (LEGENDARY)
+                    return r.nextBoolean() ? this.createFragment("LEGENDARY", "§6§lMảnh Vỡ Ánh Sáng (LEGENDARY)") : this.createCraftMaterial(Material.BEACON, "§6§lLõi Năng Lượng Cao Cấp", "LEGENDARY");
+                }
+                if (r.nextBoolean()) {
+                    int bonusMoney = 8000 + r.nextInt(20000);
+                    if (CustomWeaponEngine.getEconomy() != null) {
+                        CustomWeaponEngine.getEconomy().depositPlayer((OfflinePlayer)p, (double)bonusMoney);
+                        p.sendMessage("§eBạn nhận được " + bonusMoney + "$ từ rương!");
+                    }
+                    return null;
+                }
+                ItemStack ed = this.createEnchantedBazaarItem(Material.DIAMOND, "§9Enchanted Diamond", "ENCHANTED_DIAMOND");
+                ed.setAmount(1 + r.nextInt(2));
+                return ed;
             }
-            if (roll < 0.251) {
-                return r.nextBoolean() ? this.createFragment("EPIC", "\u00a75M\u1ea3nh V\u1ee1 H\u1ed7n Mang (EPIC)") : this.createCraftMaterial(Material.DRAGON_BREATH, "\u00a75B\u0103ng Tinh C\u1ed5 \u0110\u1ea1i", "EPIC");
+            // Rương Thường (5,000$)
+            if (roll < 0.05) { // 5% trúng Mảnh Vỡ Hỗn Mang hoặc Băng Tinh Cổ Đại (EPIC)
+                return r.nextBoolean() ? this.createFragment("EPIC", "§5Mảnh Vỡ Hỗn Mang (EPIC)") : this.createCraftMaterial(Material.DRAGON_BREATH, "§5Băng Tinh Cổ Đại", "EPIC");
             }
-            if (roll < 0.551) {
-                return r.nextBoolean() ? this.createFragment("RARE", "\u00a79M\u1ea3nh V\u1ee1 Tinh T\u00fa (RARE)") : this.createCraftMaterial(Material.MAGMA_CREAM, "\u00a79L\u00f5i Dung Nham", "RARE");
+            if (r.nextBoolean()) {
+                int bonusMoney = 2000 + r.nextInt(5000);
+                if (CustomWeaponEngine.getEconomy() != null) {
+                    CustomWeaponEngine.getEconomy().depositPlayer((OfflinePlayer)p, (double)bonusMoney);
+                    p.sendMessage("§eBạn nhận được " + bonusMoney + "$ từ rương!");
+                }
+                return null;
+            }
+            return this.createEnchantedBazaarItem(Material.DIAMOND, "§9Enchanted Diamond", "ENCHANTED_DIAMOND");
+        }
+        
+        if ("ICE".equals(bossType)) {
+            if (chestType == 3) { // Rương Cao Cấp (20,000$)
+                if (roll < 0.005) { // 0.5% Mảnh Vỡ Vũ Trụ
+                    return this.createFragment("MYTHIC", "§d§lMảnh Vỡ Vũ Trụ (MYTHIC)");
+                }
+                if (roll < 0.105) { // 10% Lõi Năng Lượng Cao Cấp hoặc Mảnh Vỡ Ánh Sáng (LEGENDARY)
+                    return r.nextBoolean() ? this.createFragment("LEGENDARY", "§6§lMảnh Vỡ Ánh Sáng (LEGENDARY)") : this.createCraftMaterial(Material.BEACON, "§6§lLõi Năng Lượng Cao Cấp", "LEGENDARY");
+                }
+                if (roll < 0.355) { // 25% Băng Tinh Cổ Đại hoặc Mảnh Vỡ Hỗn Mang (EPIC)
+                    return r.nextBoolean() ? this.createFragment("EPIC", "§5Mảnh Vỡ Hỗn Mang (EPIC)") : this.createCraftMaterial(Material.DRAGON_BREATH, "§5Băng Tinh Cổ Đại", "EPIC");
+                }
+                if (r.nextBoolean()) {
+                    int bonusMoney = 5000 + r.nextInt(15000);
+                    if (CustomWeaponEngine.getEconomy() != null) {
+                        CustomWeaponEngine.getEconomy().depositPlayer((OfflinePlayer)p, (double)bonusMoney);
+                        p.sendMessage("§eBạn nhận được " + bonusMoney + "$ từ rương!");
+                    }
+                    return null;
+                }
+                return new ItemStack(Material.DIAMOND_BLOCK, 1 + r.nextInt(2));
+            }
+            if (chestType == 2) { // Rương Trung Bình (10,000$)
+                if (roll < 0.02) { // 2% Lõi Năng Lượng Cao Cấp hoặc Mảnh Vỡ Ánh Sáng (LEGENDARY)
+                    return r.nextBoolean() ? this.createFragment("LEGENDARY", "§6§lMảnh Vỡ Ánh Sáng (LEGENDARY)") : this.createCraftMaterial(Material.BEACON, "§6§lLõi Năng Lượng Cao Cấp", "LEGENDARY");
+                }
+                if (roll < 0.12) { // 10% Băng Tinh Cổ Đại hoặc Mảnh Vỡ Hỗn Mang (EPIC)
+                    return r.nextBoolean() ? this.createFragment("EPIC", "§5Mảnh Vỡ Hỗn Mang (EPIC)") : this.createCraftMaterial(Material.DRAGON_BREATH, "§5Băng Tinh Cổ Đại", "EPIC");
+                }
+                if (r.nextBoolean()) {
+                    int bonusMoney = 2000 + r.nextInt(8000);
+                    if (CustomWeaponEngine.getEconomy() != null) {
+                        CustomWeaponEngine.getEconomy().depositPlayer((OfflinePlayer)p, (double)bonusMoney);
+                        p.sendMessage("§eBạn nhận được " + bonusMoney + "$ từ rương!");
+                    }
+                    return null;
+                }
+                return new ItemStack(Material.GOLD_BLOCK, 1 + r.nextInt(2));
+            }
+            // Rương Thường (2,000$)
+            if (roll < 0.05) { // 5% Lõi Dung Nham hoặc Mảnh Vỡ Tinh Tú (RARE)
+                return r.nextBoolean() ? this.createFragment("RARE", "§9Mảnh Vỡ Tinh Tú (RARE)") : this.createCraftMaterial(Material.MAGMA_CREAM, "§9Lõi Dung Nham", "RARE");
+            }
+            if (r.nextBoolean()) {
+                int bonusMoney = 1000 + r.nextInt(3000);
+                if (CustomWeaponEngine.getEconomy() != null) {
+                    CustomWeaponEngine.getEconomy().depositPlayer((OfflinePlayer)p, (double)bonusMoney);
+                    p.sendMessage("§eBạn nhận được " + bonusMoney + "$ từ rương!");
+                }
+                return null;
+            }
+            return new ItemStack(Material.IRON_BLOCK, 1 + r.nextInt(2));
+        }
+        
+        // ==========================================
+        // PHẦN THƯỞNG CHO FIRE BOSS (HỎA DIỆM MA VƯƠNG) (Gốc)
+        // ==========================================
+        if (chestType == 3) { // Rương Cao Cấp (10,000$)
+            if (roll < 0.0005) { // 0.05% Mảnh Vỡ Vũ Trụ
+                return this.createFragment("MYTHIC", "§d§lMảnh Vỡ Vũ Trụ (MYTHIC)");
+            }
+            if (roll < 0.0205) { // 2% Lõi Năng Lượng Cao Cấp hoặc Mảnh Vỡ Ánh Sáng (LEGENDARY)
+                return r.nextBoolean() ? this.createFragment("LEGENDARY", "§6§lMảnh Vỡ Ánh Sáng (LEGENDARY)") : this.createCraftMaterial(Material.BEACON, "§6§lLõi Năng Lượng Cao Cấp", "LEGENDARY");
+            }
+            if (roll < 0.1205) { // 10% Băng Tinh Cổ Đại hoặc Mảnh Vỡ Hỗn Mang (EPIC)
+                return r.nextBoolean() ? this.createFragment("EPIC", "§5Mảnh Vỡ Hỗn Mang (EPIC)") : this.createCraftMaterial(Material.DRAGON_BREATH, "§5Băng Tinh Cổ Đại", "EPIC");
+            }
+            if (roll < 0.2705) { // 15% Lõi Dung Nham hoặc Mảnh Vỡ Tinh Tú (RARE)
+                return r.nextBoolean() ? this.createFragment("RARE", "§9Mảnh Vỡ Tinh Tú (RARE)") : this.createCraftMaterial(Material.MAGMA_CREAM, "§9Lõi Dung Nham", "RARE");
             }
             if (r.nextBoolean()) {
                 int bonusMoney = 2000 + r.nextInt(10000);
                 if (CustomWeaponEngine.getEconomy() != null) {
                     CustomWeaponEngine.getEconomy().depositPlayer((OfflinePlayer)p, (double)bonusMoney);
-                    p.sendMessage("\u00a7eB\u1ea1n nh\u1eadn \u0111\u01b0\u1ee3c " + bonusMoney + "$ t\u1eeb r\u01b0\u01a1ng!");
+                    p.sendMessage("§eBạn nhận được " + bonusMoney + "$ từ rương!");
                 }
                 return null;
             }
             return new ItemStack(Material.DIAMOND_BLOCK, 1 + r.nextInt(3));
         }
-        if (chestType == 2) {
-            if (roll < 0.02) {
-                return r.nextBoolean() ? this.createFragment("EPIC", "\u00a75M\u1ea3nh V\u1ee1 H\u1ed7n Mang (EPIC)") : this.createCraftMaterial(Material.DRAGON_BREATH, "\u00a75B\u0103ng Tinh C\u1ed5 \u0110\u1ea1i", "EPIC");
+        if (chestType == 2) { // Rương Trung Bình (5,000$)
+            if (roll < 0.01) { // 1% Epic
+                return r.nextBoolean() ? this.createFragment("EPIC", "§5Mảnh Vỡ Hỗn Mang (EPIC)") : this.createCraftMaterial(Material.DRAGON_BREATH, "§5Băng Tinh Cổ Đại", "EPIC");
             }
-            if (roll < 0.15) {
-                return r.nextBoolean() ? this.createFragment("RARE", "\u00a79M\u1ea3nh V\u1ee1 Tinh T\u00fa (RARE)") : this.createCraftMaterial(Material.MAGMA_CREAM, "\u00a79L\u00f5i Dung Nham", "RARE");
+            if (roll < 0.06) { // 5% Rare
+                return r.nextBoolean() ? this.createFragment("RARE", "§9Mảnh Vỡ Tinh Tú (RARE)") : this.createCraftMaterial(Material.MAGMA_CREAM, "§9Lõi Dung Nham", "RARE");
             }
             if (r.nextBoolean()) {
                 int bonusMoney = 1000 + r.nextInt(5000);
                 if (CustomWeaponEngine.getEconomy() != null) {
                     CustomWeaponEngine.getEconomy().depositPlayer((OfflinePlayer)p, (double)bonusMoney);
-                    p.sendMessage("\u00a7eB\u1ea1n nh\u1eadn \u0111\u01b0\u1ee3c " + bonusMoney + "$ t\u1eeb r\u01b0\u01a1ng!");
+                    p.sendMessage("§eBạn nhận được " + bonusMoney + "$ từ rương!");
                 }
                 return null;
             }
             return new ItemStack(Material.GOLD_BLOCK, 1 + r.nextInt(3));
         }
-        if (roll < 0.05) {
-            return r.nextBoolean() ? this.createFragment("RARE", "\u00a79M\u1ea3nh V\u1ee1 Tinh T\u00fa (RARE)") : this.createCraftMaterial(Material.MAGMA_CREAM, "\u00a79L\u00f5i Dung Nham", "RARE");
+        // Rương Thường (1,000$)
+        if (roll < 0.02) { // 2% Rare
+            return r.nextBoolean() ? this.createFragment("RARE", "§9Mảnh Vỡ Tinh Tú (RARE)") : this.createCraftMaterial(Material.MAGMA_CREAM, "§9Lõi Dung Nham", "RARE");
         }
         if (r.nextBoolean()) {
             int bonusMoney = 500 + r.nextInt(1500);
             if (CustomWeaponEngine.getEconomy() != null) {
                 CustomWeaponEngine.getEconomy().depositPlayer((OfflinePlayer)p, (double)bonusMoney);
-                p.sendMessage("\u00a7eB\u1ea1n nh\u1eadn \u0111\u01b0\u1ee3c " + bonusMoney + "$ t\u1eeb r\u01b0\u01a1ng!");
+                p.sendMessage("§eBạn nhận được " + bonusMoney + "$ từ rương!");
             }
             return null;
         }
@@ -467,6 +729,23 @@ implements Listener {
             meta.setLore(Arrays.asList("\u00a77Nguy\u00ean li\u1ec7u ch\u1ebf t\u1ea1o th\u1ea7n kh\u00ed."));
             PersistentDataContainer pdc = meta.getPersistentDataContainer();
             pdc.set(new NamespacedKey((Plugin)this.plugin, "cwe_tier"), PersistentDataType.STRING, rarity);
+            item.setItemMeta(meta);
+        }
+        return item;
+    }
+
+    private ItemStack createEnchantedBazaarItem(Material mat, String name, String bazaarId) {
+        ItemStack item = new ItemStack(mat);
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName(name);
+            meta.setLore(Arrays.asList("§7Vật phẩm ma thuật nén cao cấp", "§7chuyên dụng giao dịch tại Chợ Bazaar.", "", "§cKhông thể ăn hay sử dụng thô!"));
+            PersistentDataContainer pdc = meta.getPersistentDataContainer();
+            pdc.set(new NamespacedKey((Plugin)this.plugin, "bazaar_id"), PersistentDataType.STRING, bazaarId);
+            try {
+                meta.addEnchant(org.bukkit.enchantments.Enchantment.getByKey(NamespacedKey.minecraft("luck_of_the_sea")), 1, true);
+            } catch (Throwable ignored) {}
+            meta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ENCHANTS);
             item.setItemMeta(meta);
         }
         return item;

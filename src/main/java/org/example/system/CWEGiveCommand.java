@@ -95,7 +95,8 @@ public class CWEGiveCommand implements CommandExecutor, TabCompleter {
                 "loi_dung_nham", "lava", "lava_core", "bang_tinh_co_dai", "ice", "ice_crystal",
                 "loi_nang_luong", "energy", "energy_core", "fragment_rare", "manh_vo_tinh_tu",
                 "fragment_epic", "manh_vo_hon_mang", "fragment_legendary", "manh_vo_anh_sang",
-                "fragment_mythic", "manh_vo_vu_tru", "excalibur", "cwe_excalibur"
+                "fragment_mythic", "manh_vo_vu_tru", "excalibur", "cwe_excalibur",
+                "autocraft_bag", "compactor"
             };
             for (String h : hardcoded) {
                 if (h.startsWith(query) && !completions.contains(h)) {

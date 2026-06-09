@@ -226,7 +226,7 @@ public class ItemStatsGUI implements Listener, CommandExecutor {
         RARE("§9RARE", "§9"),
         EPIC("§5EPIC", "§5"),
         LEGENDARY("§6LEGENDARY", "§6"),
-        MYTHIC("§dMYTHIC", "§d");
+        MYTHIC("§d§lMYTHIC", "§d§l");
 
         public final String display;
         public final String color;

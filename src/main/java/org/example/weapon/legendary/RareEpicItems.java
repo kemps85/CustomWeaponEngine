@@ -67,6 +67,7 @@ public class RareEpicItems {
         lib.set("items.runaan_bow", generator.generateItem("runaan_bow"));
         lib.set("items.shortbow", generator.generateItem("juju_shortbow"));
         lib.set("items.cwe_astral_shepherd_wand", generator.generateItem("astral_shepherd_wand"));
+        lib.set("items.gae_bolg", generator.generateItem("gae_bolg"));
 
         plugin.saveLibraryConfig();
     }
@@ -109,6 +110,10 @@ public class RareEpicItems {
             if (defense > 0) meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_defense"), PersistentDataType.DOUBLE, (double) defense);
             if (health > 0) meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_health"), PersistentDataType.DOUBLE, (double) health);
             if (intel > 0) meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_intelligence"), PersistentDataType.DOUBLE, (double) intel);
+            
+            meta.setUnbreakable(true);
+            meta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_UNBREAKABLE);
+
             item.setItemMeta(meta);
         }
         if (!lib.contains("items." + id)) lib.set("items." + id, item);
@@ -161,6 +166,10 @@ public class RareEpicItems {
             if (defense > 0) meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_defense"), PersistentDataType.DOUBLE, (double) defense);
             if (health > 0) meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_health"), PersistentDataType.DOUBLE, (double) health);
             if (intel > 0) meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "stat_intelligence"), PersistentDataType.DOUBLE, (double) intel);
+            
+            meta.setUnbreakable(true);
+            meta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_UNBREAKABLE);
+
             item.setItemMeta(meta);
         }
         if (!lib.contains("items." + id)) lib.set("items." + id, item);

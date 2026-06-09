@@ -89,14 +89,31 @@ public class CustomBookCommand implements CommandExecutor, TabCompleter {
             NamespacedKey key = new NamespacedKey(plugin, "enchant_" + customEnchant.getId());
             meta.getPersistentDataContainer().set(key, PersistentDataType.INTEGER, level);
             meta.setDisplayName("§eEnchanted Book");
+
+            List<String> lore = new ArrayList<>();
+            lore.add("§7Nhóm: §e" + customEnchant.getItemGroup().name());
+            lore.add("§7Cấp được ép: §c" + level + "/" + customEnchant.getMaxLevel());
+            lore.add("");
+            lore.add("§eHiệu quả: §f" + customEnchant.getDescription());
+            lore.add("");
+            lore.add("§7Dùng đe (Anvil) để ép vào trang bị.");
+            meta.setLore(lore);
         } else {
             NamespacedKey key = new NamespacedKey(plugin, "ult_enchant_" + ultimateEnchant.getId());
             meta.getPersistentDataContainer().set(key, PersistentDataType.INTEGER, level);
             meta.setDisplayName("§d§lUltimate Enchanted Book");
+
+            List<String> lore = new ArrayList<>();
+            lore.add("§7Nhóm: §dULTIMATE " + ultimateEnchant.getGroup().name());
+            lore.add("§7Cấp được ép: §c" + level + "/" + ultimateEnchant.getMaxLevel());
+            lore.add("");
+            lore.add("§eHiệu quả: §f" + ultimateEnchant.getDescription());
+            lore.add("");
+            lore.add("§7Dùng đe (Anvil) để ép vào trang bị.");
+            meta.setLore(lore);
         }
 
         book.setItemMeta(meta);
-        ItemBuilder.updateItem(book);
 
         player.getInventory().addItem(book);
         player.sendMessage(ChatColor.GREEN + "Đã nhận được sách enchant!");

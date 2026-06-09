@@ -54,6 +54,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -145,6 +146,12 @@ CommandExecutor {
         this.register(new Commodity("ENCHANTED_BIRCH_LOG", Material.BIRCH_LOG, "\u00a7aEnchanted Birch Wood", 2400, 640, 12800, 1000));
         this.register(new Commodity("DARK_OAK_LOG", Material.DARK_OAK_LOG, "\u00a7aG\u1ed7 S\u1ed3i S\u1eabm Th\u00f4", 15, 4, 80, 10000));
         this.register(new Commodity("ENCHANTED_DARK_OAK_LOG", Material.DARK_OAK_LOG, "\u00a7aEnchanted Dark Oak Wood", 2400, 640, 12800, 1000));
+        this.register(new Commodity("COBBLESTONE", Material.COBBLESTONE, "\u00a77\u0110\u00e1 Cu\u1ed9i Th\u00f4", 3, 1, 15, 50000));
+        this.register(new Commodity("ENCHANTED_COBBLESTONE", Material.COBBLESTONE, "\u00a79Enchanted Cobblestone", 480, 100, 2400, 5000));
+        this.register(new Commodity("ENCHANTED_COBBLESTONE_BLOCK", Material.COBBLESTONE, "\u00a75Enchanted Cobblestone Block", 4320, 900, 21600, 500));
+        this.register(new Commodity("COBBLED_DEEPSLATE", Material.COBBLED_DEEPSLATE, "\u00a77\u0110\u00e1 Kh\u1ea3m Th\u00f4", 5, 1, 25, 40000));
+        this.register(new Commodity("ENCHANTED_COBBLED_DEEPSLATE", Material.COBBLED_DEEPSLATE, "\u00a79Enchanted Cobbled Deepslate", 800, 160, 4000, 4000));
+        this.register(new Commodity("ENCHANTED_COBBLED_DEEPSLATE_BLOCK", Material.COBBLED_DEEPSLATE, "\u00a75Enchanted Cobbled Deepslate Block", 7200, 1440, 36000, 400));
     }
 
     private void register(Commodity com) {
@@ -230,6 +237,16 @@ CommandExecutor {
         gui.setItem(21, this.createMenuIcon(Material.DIAMOND_PICKAXE, "\u00a79Khai Kho\u00e1ng (Mining)", "\u00a77Bao g\u1ed3m: Than, S\u1eaft, V\u00e0ng, Kim c\u01b0\u01a1ng, Ng\u1ecdc..."));
         gui.setItem(23, this.createMenuIcon(Material.ROTTEN_FLESH, "\u00a7cChi\u1ebfn \u0110\u1ea5u / S\u0103n B\u1eafn (Combat)", "\u00a77Bao g\u1ed3m: V\u1eadt ph\u1ea9m thu th\u1eadp t\u1eeb qu\u00e1i v\u1eadt..."));
         gui.setItem(25, this.createMenuIcon(Material.OAK_LOG, "\u00a76L\u00e2m Nghi\u1ec7p (Wood/Foraging)", "\u00a77Bao g\u1ed3m: C\u00e1c lo\u1ea1i g\u1ed7 th\u00f4 v\u00e0 g\u1ed7 Enchanted..."));
+        
+        // Nút Bán Tất Cả ở ô 40
+        gui.setItem(40, this.createActionButton(Material.HOPPER, "§c§lBán Tất Cả Vật Phẩm Hợp Lệ", Arrays.asList(
+            "§7Tự động quét toàn bộ hành trang cá nhân,",
+            "§7bán tất cả vật phẩm có thể giao dịch",
+            "§7trên chợ Bazaar lập tức.",
+            "",
+            "§eClick để đại thanh lý vật phẩm!"
+        )));
+        
         player.openInventory(gui);
     }
 
@@ -330,13 +347,16 @@ CommandExecutor {
                 this.openCategoryMenu(player, "Farming", new String[]{"L\u00faa M\u00ec", "C\u00e0 R\u1ed1t", "Khoai T\u00e2y"}, new Material[]{Material.WHEAT, Material.CARROT, Material.POTATO});
             }
             if (slot == 21) {
-                this.openCategoryMenu(player, "Mining", new String[]{"Than \u0110\u00e1", "S\u1eaft Ma Thu\u1eadt", "V\u00e0ng R\u00f2ng", "Kim C\u01b0\u01a1ng", "Ng\u1ecdc L\u1ee5c B\u1ea3o", "Lapis Lazuli", "\u0110\u00e1 \u0110\u1ecf", "Th\u1ea1ch Anh", "B\u00ecnh Kinh Nghi\u1ec7m"}, new Material[]{Material.COAL, Material.IRON_INGOT, Material.GOLD_INGOT, Material.DIAMOND, Material.EMERALD, Material.LAPIS_LAZULI, Material.REDSTONE, Material.QUARTZ, Material.EXPERIENCE_BOTTLE});
+                this.openCategoryMenu(player, "Mining", new String[]{"Đá Cuội", "Đá Khảm", "Than Đá", "Sắt Ma Thuật", "Vàng Ròng", "Kim Cương", "Ngọc Lục Bảo", "Lapis Lazuli", "Đá Đỏ", "Thạch Anh", "Bình Kinh Nghiệm"}, new Material[]{Material.COBBLESTONE, Material.COBBLED_DEEPSLATE, Material.COAL, Material.IRON_INGOT, Material.GOLD_INGOT, Material.DIAMOND, Material.EMERALD, Material.LAPIS_LAZULI, Material.REDSTONE, Material.QUARTZ, Material.EXPERIENCE_BOTTLE});
             }
             if (slot == 23) {
                 this.openCategoryMenu(player, "Combat", new String[]{"Th\u1ecbt Th\u1ed1i", "Th\u1ecbt B\u00f2", "Th\u1ecbt Heo", "Th\u1ecbt G\u00e0", "Th\u1ecbt C\u1eebu", "Th\u1ecbt Th\u1ecf", "Kh\u00fac X\u01b0\u01a1ng", "Thu\u1ed1c S\u00fang", "Ng\u1ecdc Ender", "T\u01a1 Nh\u1ec7n", "M\u1eaft Nh\u1ec7n", "B\u00f3ng Nh\u1ea7y"}, new Material[]{Material.ROTTEN_FLESH, Material.BEEF, Material.PORKCHOP, Material.CHICKEN, Material.MUTTON, Material.RABBIT, Material.BONE, Material.GUNPOWDER, Material.ENDER_PEARL, Material.STRING, Material.SPIDER_EYE, Material.SLIME_BALL});
             }
             if (slot == 25) {
                 this.openCategoryMenu(player, "Foraging", new String[]{"G\u1ed7 S\u1ed3i", "G\u1ed7 Th\u00f4ng", "G\u1ed7 B\u1ea1ch D\u01b0\u01a1ng", "G\u1ed7 S\u1ed3i S\u1eabm"}, new Material[]{Material.OAK_LOG, Material.SPRUCE_LOG, Material.BIRCH_LOG, Material.DARK_OAK_LOG});
+            }
+            if (slot == 40) {
+                this.handleGlobalSellAll(player);
             }
         } else if (title.startsWith("\u00a78Bazaar > Category: ")) {
             ItemMeta meta = clicked.getItemMeta();
@@ -356,7 +376,13 @@ CommandExecutor {
             if (base.equals("Khoai T\u00e2y")) {
                 this.openProductVariantsMenu(player, "Khoai T\u00e2y", new String[]{"POTATO", "ENCHANTED_POTATO"});
             }
-            if (base.equals("Than \u0110\u00e1")) {
+            if (base.equals("Đá Cuội")) {
+                this.openProductVariantsMenu(player, "Đá Cuội", new String[]{"COBBLESTONE", "ENCHANTED_COBBLESTONE", "ENCHANTED_COBBLESTONE_BLOCK"});
+            }
+            if (base.equals("Đá Khảm")) {
+                this.openProductVariantsMenu(player, "Đá Khảm", new String[]{"COBBLED_DEEPSLATE", "ENCHANTED_COBBLED_DEEPSLATE", "ENCHANTED_COBBLED_DEEPSLATE_BLOCK"});
+            }
+            if (base.equals("Than Đá")) {
                 this.openProductVariantsMenu(player, "Than \u0110\u00e1", new String[]{"COAL", "ENCHANTED_COAL", "ENCHANTED_COAL_BLOCK"});
             }
             if (base.equals("S\u1eaft Ma Thu\u1eadt")) {
@@ -594,6 +620,89 @@ CommandExecutor {
             item.setItemMeta(meta);
         }
         return item;
+    }
+
+    private Commodity findCommodityMatch(ItemStack item) {
+        if (item == null || item.getType() == Material.AIR) return null;
+        NamespacedKey key = new NamespacedKey((Plugin)this.plugin, "bazaar_id");
+        ItemMeta meta = item.getItemMeta();
+        
+        if (meta != null) {
+            PersistentDataContainer pdc = meta.getPersistentDataContainer();
+            if (pdc.has(key, PersistentDataType.STRING)) {
+                String bazaarId = pdc.get(key, PersistentDataType.STRING);
+                return this.market.get(bazaarId);
+            }
+        }
+        
+        for (Commodity com : this.market.values()) {
+            if (com.mat == item.getType() && !com.id.startsWith("ENCHANTED_") && !com.id.startsWith("CWE_XP_BOTTLE_")) {
+                if (meta != null) {
+                    PersistentDataContainer pdc = meta.getPersistentDataContainer();
+                    if (pdc.has(new NamespacedKey((Plugin)this.plugin, "cwe_id"), PersistentDataType.STRING) 
+                        || pdc.has(new NamespacedKey((Plugin)this.plugin, "cwe_autocraft_bag"), PersistentDataType.INTEGER)) {
+                        continue;
+                    }
+                }
+                return com;
+            }
+        }
+        return null;
+    }
+
+    private void handleGlobalSellAll(Player player) {
+        java.util.Map<String, Integer> itemsToSell = new java.util.HashMap<>();
+        
+        for (ItemStack item : player.getInventory().getContents()) {
+            Commodity com = this.findCommodityMatch(item);
+            if (com != null) {
+                itemsToSell.put(com.id, itemsToSell.getOrDefault(com.id, 0) + item.getAmount());
+            }
+        }
+        
+        if (itemsToSell.isEmpty()) {
+            player.sendMessage("§cKhông tìm thấy vật phẩm nào hợp lệ trên Bazaar trong hành trang của bạn để bán!");
+            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
+            return;
+        }
+        
+        int totalRevenue = 0;
+        java.util.List<String> details = new java.util.ArrayList<>();
+        
+        for (java.util.Map.Entry<String, Integer> entry : itemsToSell.entrySet()) {
+            String id = entry.getKey();
+            int amount = entry.getValue();
+            
+            int revenue = this.getBulkSellRevenue(id, amount);
+            totalRevenue += revenue;
+            
+            int currentStock = this.currentStocks.getOrDefault(id, 1000);
+            this.currentStocks.put(id, currentStock + amount);
+            
+            Commodity com = this.market.get(id);
+            details.add("§a- x" + amount + " " + com.name + " §8» §e+$" + revenue);
+        }
+        
+        for (int i = 0; i < player.getInventory().getSize(); i++) {
+            ItemStack item = player.getInventory().getItem(i);
+            Commodity com = this.findCommodityMatch(item);
+            if (com != null) {
+                player.getInventory().setItem(i, null);
+            }
+        }
+        
+        this.saveStockDataFile();
+        this.econ.depositPlayer((OfflinePlayer)player, (double)totalRevenue);
+        
+        player.sendMessage("§a§l[Bazaar] ĐẠI THANH LÝ HÀNH TRANG THÀNH CÔNG!");
+        for (String line : details) {
+            player.sendMessage(line);
+        }
+        player.sendMessage("§d§lTổng thu nhập: §a+$" + totalRevenue);
+        player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_CELEBRATE, 1.0f, 1.0f);
+        player.updateInventory();
+        
+        this.openMainMenu(player); // Re-open main menu to refresh
     }
 
     private static class Commodity {

@@ -73,15 +73,17 @@ public class ItemBuilder {
                         }
                     }
                     
-                    // Copy cả Ability nếu bị mất (Juju Shortbow cũ)
-                    if (libPdc.has(new NamespacedKey(plugin, "stat_setbonus_title"), PersistentDataType.STRING)) {
-                        pdc.set(new NamespacedKey(plugin, "stat_setbonus_title"), PersistentDataType.STRING, libPdc.get(new NamespacedKey(plugin, "stat_setbonus_title"), PersistentDataType.STRING));
-                        if (libPdc.has(new NamespacedKey(plugin, "stat_setbonus_desc1"), PersistentDataType.STRING))
-                            pdc.set(new NamespacedKey(plugin, "stat_setbonus_desc1"), PersistentDataType.STRING, libPdc.get(new NamespacedKey(plugin, "stat_setbonus_desc1"), PersistentDataType.STRING));
-                        if (libPdc.has(new NamespacedKey(plugin, "stat_setbonus_desc2"), PersistentDataType.STRING))
-                            pdc.set(new NamespacedKey(plugin, "stat_setbonus_desc2"), PersistentDataType.STRING, libPdc.get(new NamespacedKey(plugin, "stat_setbonus_desc2"), PersistentDataType.STRING));
-                        if (libPdc.has(new NamespacedKey(plugin, "stat_ability_click"), PersistentDataType.STRING))
-                            pdc.set(new NamespacedKey(plugin, "stat_ability_click"), PersistentDataType.STRING, libPdc.get(new NamespacedKey(plugin, "stat_ability_click"), PersistentDataType.STRING));
+                    // Copy cả Ability nếu bị mất (Juju Shortbow cũ) và nếu chưa có skill được add vào
+                    if (!pdc.has(new NamespacedKey(plugin, "stat_setbonus_title"), PersistentDataType.STRING)) {
+                        if (libPdc.has(new NamespacedKey(plugin, "stat_setbonus_title"), PersistentDataType.STRING)) {
+                            pdc.set(new NamespacedKey(plugin, "stat_setbonus_title"), PersistentDataType.STRING, libPdc.get(new NamespacedKey(plugin, "stat_setbonus_title"), PersistentDataType.STRING));
+                            if (libPdc.has(new NamespacedKey(plugin, "stat_setbonus_desc1"), PersistentDataType.STRING))
+                                pdc.set(new NamespacedKey(plugin, "stat_setbonus_desc1"), PersistentDataType.STRING, libPdc.get(new NamespacedKey(plugin, "stat_setbonus_desc1"), PersistentDataType.STRING));
+                            if (libPdc.has(new NamespacedKey(plugin, "stat_setbonus_desc2"), PersistentDataType.STRING))
+                                pdc.set(new NamespacedKey(plugin, "stat_setbonus_desc2"), PersistentDataType.STRING, libPdc.get(new NamespacedKey(plugin, "stat_setbonus_desc2"), PersistentDataType.STRING));
+                            if (libPdc.has(new NamespacedKey(plugin, "stat_ability_click"), PersistentDataType.STRING))
+                                pdc.set(new NamespacedKey(plugin, "stat_ability_click"), PersistentDataType.STRING, libPdc.get(new NamespacedKey(plugin, "stat_ability_click"), PersistentDataType.STRING));
+                        }
                     }
                 }
             }
@@ -269,6 +271,27 @@ public class ItemBuilder {
             meta.addAttributeModifier(org.bukkit.attribute.Attribute.GENERIC_ATTACK_SPEED, spdMod);
         }
 
+        if (meta.hasAttributeModifiers()) {
+            try {
+                meta.removeAttributeModifier(org.bukkit.attribute.Attribute.PLAYER_ENTITY_INTERACTION_RANGE);
+            } catch (Exception ignored) {}
+        }
+        NamespacedKey reachKey = new NamespacedKey(plugin, "enchant_reach");
+        if (meta.getPersistentDataContainer().has(reachKey, org.bukkit.persistence.PersistentDataType.INTEGER)) {
+            int reachLvl = meta.getPersistentDataContainer().get(reachKey, org.bukkit.persistence.PersistentDataType.INTEGER);
+            if (reachLvl > 0) {
+                try {
+                    org.bukkit.attribute.AttributeModifier reachMod = new org.bukkit.attribute.AttributeModifier(
+                        new NamespacedKey(plugin, "cwe_enchant_reach"),
+                        reachLvl * 0.5,
+                        org.bukkit.attribute.AttributeModifier.Operation.ADD_NUMBER,
+                        org.bukkit.inventory.EquipmentSlotGroup.ANY
+                    );
+                    meta.addAttributeModifier(org.bukkit.attribute.Attribute.PLAYER_ENTITY_INTERACTION_RANGE, reachMod);
+                } catch (Exception ignored) {}
+            }
+        }
+
         meta.setLore(lore);
         item.setItemMeta(meta);
     }
@@ -434,7 +457,7 @@ public class ItemBuilder {
         if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) {
             if (item.getItemMeta().getDisplayName().contains("Wand")) return true;
         }
-        return name.contains("SWORD") || name.contains("AXE") || name.contains("BOW") || name.contains("CROSSBOW")
+        return name.contains("SWORD") || name.contains("AXE") || name.contains("BOW") || name.contains("CROSSBOW") || name.contains("SPEAR")
                 || mat == Material.STICK || mat == Material.BLAZE_ROD
                 || mat == Material.TRIDENT || mat == Material.MACE;
     }
@@ -448,6 +471,7 @@ public class ItemBuilder {
         }
         if (name.contains("SWORD")) return "SWORD";
         if (name.contains("AXE")) return "AXE";
+        if (name.contains("SPEAR")) return "SPEAR";
         if (name.contains("BOW")) return "BOW";
         if (name.contains("CROSSBOW")) return "CROSSBOW";
         if (mat == Material.TRIDENT) return "TRIDENT";

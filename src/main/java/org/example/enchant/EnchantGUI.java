@@ -102,7 +102,7 @@ CommandExecutor {
         if (item.hasItemMeta() && item.getItemMeta().hasDisplayName() && item.getItemMeta().getDisplayName().contains("Wand")) {
             return true;
         }
-        return name.contains("SWORD") || name.contains("AXE") || name.contains("PICKAXE") || name.contains("SHOVEL") || name.contains("HOE") || name.contains("BOW") || name.contains("CROSSBOW") || name.contains("HELMET") || name.contains("CHESTPLATE") || name.contains("LEGGINGS") || name.contains("BOOTS") || name.contains("FISHING_ROD") || mat == Material.STICK || mat == Material.BLAZE_ROD || mat == Material.TRIDENT || mat == Material.MACE;
+        return name.contains("SWORD") || name.contains("AXE") || name.contains("PICKAXE") || name.contains("SHOVEL") || name.contains("HOE") || name.contains("BOW") || name.contains("CROSSBOW") || name.contains("HELMET") || name.contains("CHESTPLATE") || name.contains("LEGGINGS") || name.contains("BOOTS") || name.contains("FISHING_ROD") || name.contains("SPEAR") || mat == Material.STICK || mat == Material.BLAZE_ROD || mat == Material.TRIDENT || mat == Material.MACE;
     }
 
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -149,7 +149,8 @@ CommandExecutor {
                 lore = new ArrayList<>();
                 lore.add("\u00a77Nh\u00f3m: \u00a7e" + customEnchant.getItemGroup().name());
                 lore.add("\u00a77Max C\u1ea5p: \u00a7c" + customEnchant.getMaxLevel());
-                lore.add("\u00a77" + customEnchant.getDescription());
+                lore.add("");
+                lore.add("\u00a7eHi\u1ec7u qu\u1ea3: \u00a7f" + customEnchant.getDescription());
                 lore.add("");
                 lore.add("\u00a7a\u25b6 Chu\u1ed9t Tr\u00e1i: \u00a7fC\u1ed9ng +1 C\u1ea5p v\u00e0o trang b\u1ecb");
                 lore.add("\u00a76\u25b6 Chu\u1ed9t Ph\u1ea3i: \u00a7f\u00c9p th\u1eb3ng C\u1ea5p T\u1ed0I \u0110A (" + customEnchant.getMaxLevel() + ")");
@@ -171,6 +172,8 @@ CommandExecutor {
                 lore = new java.util.ArrayList<>();
                 lore.add("\u00a77Nh\u00f3m: \u00a7dULTIMATE " + ((UltimateEnchant)enum_).getGroup().name());
                 lore.add("\u00a77Max C\u1ea5p: \u00a7c" + ((UltimateEnchant)enum_).getMaxLevel());
+                lore.add("");
+                lore.add("\u00a7eHi\u1ec7u qu\u1ea3: \u00a7f" + ((UltimateEnchant)enum_).getDescription());
                 lore.add("");
                 lore.add("\u00a7a\u25b6 Chu\u1ed9t Tr\u00e1i: \u00a7fC\u1ed9ng +1 C\u1ea5p v\u00e0o trang b\u1ecb");
                 lore.add("\u00a76\u25b6 Chu\u1ed9t Ph\u1ea3i: \u00a7f\u00c9p th\u1eb3ng C\u1ea5p T\u1ed0I \u0110A (" + ((UltimateEnchant)enum_).getMaxLevel() + ")");
@@ -532,6 +535,8 @@ CommandExecutor {
             meta.getPersistentDataContainer().remove(flagKey);
             for (CustomEnchant enc : CustomEnchant.values()) {
                 meta.getPersistentDataContainer().remove(new NamespacedKey((Plugin)this.plugin, "enchant_" + enc.getId()));
+                // Xóa cả key charges để không còn dữ liệu thừa
+                meta.getPersistentDataContainer().remove(new NamespacedKey((Plugin)this.plugin, "cwe_charges_" + enc.getId()));
                 Enchantment vanillaMatch = this.enchantManager.getVanillaEquivalent(enc);
                 if (vanillaMatch == null) continue;
                 meta.removeEnchant(vanillaMatch);
@@ -552,7 +557,8 @@ CommandExecutor {
                     String cleanedLine = line = (String)iterator.next();
                     boolean isEnchantComponentRemoved = false;
                     for (CustomEnchant enc : CustomEnchant.values()) {
-                        String regex = "\u00a79" + Pattern.quote(enc.getDisplayName()) + "(?: [IVX0-9]+)?";
+                        // Khớp cả phần §b(charge⚡) của bùa có pin (Telekinesis, Life Steal...)
+                        String regex = "\u00a79" + Pattern.quote(enc.getDisplayName()) + "(?: [IVX0-9]+)?(?:\\s*\u00a7b\\([^)]+\u26a1\\))?";
                         String afterReplace = cleanedLine.replaceAll(regex, "");
                         if (afterReplace.equals(cleanedLine)) continue;
                         cleanedLine = afterReplace;
@@ -592,6 +598,8 @@ CommandExecutor {
             meta.getPersistentDataContainer().remove(flagKey);
             for (CustomEnchant enc : CustomEnchant.values()) {
                 meta.getPersistentDataContainer().remove(new NamespacedKey((Plugin)this.plugin, "enchant_" + enc.getId()));
+                // Xóa cả key charges để không còn dữ liệu thừa
+                meta.getPersistentDataContainer().remove(new NamespacedKey((Plugin)this.plugin, "cwe_charges_" + enc.getId()));
                 Enchantment vanillaMatch = this.enchantManager.getVanillaEquivalent(enc);
                 if (vanillaMatch == null) continue;
                 meta.removeEnchant(vanillaMatch);
@@ -612,7 +620,8 @@ CommandExecutor {
                     String cleanedLine = line = (String)iterator.next();
                     boolean isEnchantComponentRemoved = false;
                     for (CustomEnchant enc : CustomEnchant.values()) {
-                        String regex = "\u00a79" + Pattern.quote(enc.getDisplayName()) + "(?: [IVX0-9]+)?";
+                        // Khớp cả phần §b(charge⚡) của bùa có pin (Telekinesis, Life Steal...)
+                        String regex = "\u00a79" + Pattern.quote(enc.getDisplayName()) + "(?: [IVX0-9]+)?(?:\\s*\u00a7b\\([^)]+\u26a1\\))?";
                         String afterReplace = cleanedLine.replaceAll(regex, "");
                         if (afterReplace.equals(cleanedLine)) continue;
                         cleanedLine = afterReplace;

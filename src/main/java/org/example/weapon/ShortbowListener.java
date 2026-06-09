@@ -38,6 +38,7 @@ public class ShortbowListener implements Listener {
     public void onInteract(PlayerInteractEvent event) {
         if (event.getHand() != org.bukkit.inventory.EquipmentSlot.HAND) return;
         Action action = event.getAction();
+        // Cho phép cả Left Click và Right Click
         if (action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK || action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK) {
             Player player = event.getPlayer();
             ItemStack item = player.getInventory().getItemInMainHand();
@@ -48,17 +49,16 @@ public class ShortbowListener implements Listener {
             if (container.has(cweIdKey, PersistentDataType.STRING)) {
                 String id = container.get(cweIdKey, PersistentDataType.STRING);
                 if ("cwe_juju_shortbow".equalsIgnoreCase(id) || "juju_shortbow".equalsIgnoreCase(id) || "shortbow".equalsIgnoreCase(id)) {
-                    event.setCancelled(true);
-                    
-                    long now = System.currentTimeMillis();
-                    long cd = cooldowns.getOrDefault(player.getUniqueId(), 0L);
-                    if (now < cd) return; // 0.5s cooldown
+                    event.setCancelled(true); // Luôn luôn cancel để chặn gồng cung Vanilla
 
-                    cooldowns.put(player.getUniqueId(), now + 500L);
-                    
-                    // Thêm Cooldown vật phẩm ở Client để Client không giật (jitter) khi cố kéo cung
-                    player.setCooldown(Material.BOW, 10);
+                    // Sử dụng hệ thống Cooldown của Bukkit để đồng bộ với Client
+                    if (player.hasCooldown(item.getType())) {
+                        return;
+                    }
 
+                    // Đặt cooldown 10 tick (0.5s). Client sẽ tự động gửi lại packet sau 10 tick nếu người chơi vẫn đè chuột phải.
+                    player.setCooldown(item.getType(), 10);
+                    
                     // Shoot arrow
                     Arrow arrow = player.launchProjectile(Arrow.class);
                     arrow.setVelocity(player.getLocation().getDirection().normalize().multiply(3.0));
@@ -119,6 +119,7 @@ public class ShortbowListener implements Listener {
             case ENDER_DRAGON:
             case WARDEN:
             case ENDERMITE:
+            case SHULKER:
             case ZOMBIE:
             case SKELETON:
                 return true;

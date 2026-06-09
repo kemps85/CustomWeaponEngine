@@ -175,7 +175,9 @@ public class LegendaryArmor {
             meta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_UNBREAKABLE);
 
             item.setItemMeta(meta);
-            lib.set("items." + id, item);
+            if (!lib.contains("items." + id)) {
+                lib.set("items." + id, item);
+            }
         }
     }
 }

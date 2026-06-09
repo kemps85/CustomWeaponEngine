@@ -182,6 +182,9 @@ public class BazaarRecipeListener implements Listener {
     private final Map<Material, String[]> crossRecipes = new HashMap<>();
     private final Map<String, String[]> blockRecipes = new HashMap<>();
 
+    /** Expose crossRecipes for AutoCraftBag to use */
+    public Map<Material, String[]> getCrossRecipes() { return crossRecipes; }
+
     public BazaarRecipeListener(JavaPlugin plugin) {
         this.plugin = plugin;
         setupAutomatedRecipes();
@@ -221,6 +224,9 @@ public class BazaarRecipeListener implements Listener {
         registerCross(Material.LAPIS_LAZULI, "ENCHANTED_LAPIS", "§9Enchanted Lapis Lazuli", Material.LAPIS_LAZULI);
         registerCross(Material.REDSTONE, "ENCHANTED_REDSTONE", "§9Enchanted Redstone", Material.REDSTONE);
         registerCross(Material.QUARTZ, "ENCHANTED_QUARTZ", "§9Enchanted Quartz", Material.QUARTZ);
+        // Cobblestone & Deepslate
+        registerCross(Material.COBBLESTONE, "ENCHANTED_COBBLESTONE", "§9Enchanted Cobblestone", Material.COBBLESTONE);
+        registerCross(Material.COBBLED_DEEPSLATE, "ENCHANTED_COBBLED_DEEPSLATE", "§9Enchanted Cobbled Deepslate", Material.COBBLED_DEEPSLATE);
 
         registerBlock("ENCHANTED_COAL", "ENCHANTED_COAL_BLOCK", "§5Enchanted Block of Coal", Material.COAL_BLOCK);
         registerBlock("ENCHANTED_IRON", "ENCHANTED_IRON_BLOCK", "§5Enchanted Block of Iron", Material.IRON_BLOCK);
@@ -230,6 +236,8 @@ public class BazaarRecipeListener implements Listener {
         registerBlock("ENCHANTED_LAPIS", "ENCHANTED_LAPIS_BLOCK", "§5Enchanted Block of Lapis Lazuli", Material.LAPIS_BLOCK);
         registerBlock("ENCHANTED_REDSTONE", "ENCHANTED_REDSTONE_BLOCK", "§5Enchanted Block of Redstone", Material.REDSTONE_BLOCK);
         registerBlock("ENCHANTED_QUARTZ", "ENCHANTED_QUARTZ_BLOCK", "§5Enchanted Block of Quartz", Material.QUARTZ_BLOCK);
+        registerBlock("ENCHANTED_COBBLESTONE", "ENCHANTED_COBBLESTONE_BLOCK", "§5Enchanted Cobblestone Block", Material.COBBLESTONE);
+        registerBlock("ENCHANTED_COBBLED_DEEPSLATE", "ENCHANTED_COBBLED_DEEPSLATE_BLOCK", "§5Enchanted Cobbled Deepslate Block", Material.COBBLED_DEEPSLATE);
     }
 
     private void registerCross(Material input, String id, String displayName, Material outputMat) { crossRecipes.put(input, new String[]{id, displayName, outputMat.name()}); }

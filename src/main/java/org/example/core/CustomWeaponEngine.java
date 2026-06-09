@@ -136,8 +136,13 @@ public final class CustomWeaponEngine extends JavaPlugin implements CommandExecu
         getCommand("recipes").setExecutor(recipeGui);
         getServer().getPluginManager().registerEvents(recipeGui, this);
         
-        getServer().getPluginManager().registerEvents(new org.example.bazaar.BazaarRecipeListener(this), this);
+        org.example.bazaar.BazaarRecipeListener bazaarRecipeListener = new org.example.bazaar.BazaarRecipeListener(this);
+        getServer().getPluginManager().registerEvents(bazaarRecipeListener, this);
         getServer().getPluginManager().registerEvents(new org.example.bazaar.BazaarMobDropListener(this), this);
+        
+        // 🟩 Đăng ký AutoCraft Bag (Túi Nén Tự Động)
+        org.example.bazaar.AutoCraftBag autoCraftBag = new org.example.bazaar.AutoCraftBag(this, bazaarRecipeListener.getCrossRecipes());
+        getServer().getPluginManager().registerEvents(autoCraftBag, this);
 
         // 🟩 Đăng ký OreVeinManager
         org.example.system.OreVeinManager oreVeinManager = new org.example.system.OreVeinManager(this);
@@ -146,6 +151,14 @@ public final class CustomWeaponEngine extends JavaPlugin implements CommandExecu
             getCommand("orevein").setExecutor(oreVeinManager);
             getCommand("orevein").setTabCompleter(oreVeinManager);
         }
+
+        // 🟩 Đăng ký ForagingRegenManager
+        org.example.system.ForagingRegenManager foragingRegenManager = new org.example.system.ForagingRegenManager(this);
+        getServer().getPluginManager().registerEvents(foragingRegenManager, this);
+        getServer().getServicesManager().register(org.example.system.ForagingRegenManager.class, foragingRegenManager, this, org.bukkit.plugin.ServicePriority.Normal);
+        
+        // 🟩 Đăng ký DamageIndicator
+        getServer().getPluginManager().registerEvents(new org.example.system.DamageIndicatorManager(this), this);
     
         if (getCommand("bazaar") != null) {
             getCommand("bazaar").setExecutor(bazaarEngine);
@@ -221,6 +234,8 @@ public final class CustomWeaponEngine extends JavaPlugin implements CommandExecu
 
         assassinEngine = new ShadowAssassinListener();
         getServer().getPluginManager().registerEvents(assassinEngine, this);
+        getServer().getPluginManager().registerEvents(new org.example.system.MobLevelListener(this), this);
+        getServer().getPluginManager().registerEvents(new org.example.system.AntiMacroListener(this), this);
     
         if (getCommand("cst") != null) {
             getCommand("cst").setExecutor(this);
@@ -251,6 +266,7 @@ public final class CustomWeaponEngine extends JavaPlugin implements CommandExecu
         getServer().getPluginManager().registerEvents(weaponEngine, this);
         
         getServer().getPluginManager().registerEvents(new org.example.weapon.RunaanBowListener(this), this);
+        getServer().getPluginManager().registerEvents(new org.example.weapon.GaeBolgListener(this), this);
         getServer().getPluginManager().registerEvents(new ArrowDamageListener(this), this);
 
         getServer().getPluginManager().registerEvents(new org.example.weapon.BerserkListener(), this);
@@ -413,6 +429,7 @@ public final class CustomWeaponEngine extends JavaPlugin implements CommandExecu
 
     @Override
     public void onDisable() {
+        getServer().getScheduler().cancelTasks(this);
         org.bukkit.event.HandlerList.unregisterAll(this);
         if (weaponEngine != null) weaponEngine.clearCooldowns();
         if (assassinEngine != null) assassinEngine.clearCooldowns();
@@ -425,6 +442,11 @@ public final class CustomWeaponEngine extends JavaPlugin implements CommandExecu
         }
         if (meteorBossManager != null) {
             meteorBossManager.cleanupOnDisable();
+        }
+        
+        org.bukkit.plugin.RegisteredServiceProvider<org.example.system.ForagingRegenManager> frmProvider = getServer().getServicesManager().getRegistration(org.example.system.ForagingRegenManager.class);
+        if (frmProvider != null && frmProvider.getProvider() != null) {
+            frmProvider.getProvider().cleanupOnDisable();
         }
         
         getLogger().info("§c CustomWeaponEngine đã giải phóng RAM thành công!");

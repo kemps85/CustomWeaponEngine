@@ -110,8 +110,13 @@ TabCompleter {
             return true;
         }
         if (args.length == 1 && args[0].equalsIgnoreCase("cleanup")) {
+            CustomWeaponEngine.regionBossManager.forceResetAll();
+            MeteorBossManager mbm = CustomWeaponEngine.getMeteorBossManager();
+            if (mbm != null) {
+                mbm.cleanupOnDisable();
+            }
             if (!(sender instanceof Player)) {
-                sender.sendMessage("\u00a7cCh\u1ec9 ng\u01b0\u1eddi ch\u01a1i m\u1edbi c\u00f3 th\u1ec3 d\u00f9ng l\u1ec7nh n\u00e0y!");
+                sender.sendMessage("§a[CWE] Đã dọn dẹp và reset trạng thái tất cả Boss vùng!");
                 return true;
             }
             Player p = (Player)sender;
@@ -132,7 +137,36 @@ TabCompleter {
                 as.remove();
                 ++count;
             }
-            p.sendMessage("\u00a7a\u0110\u00e3 d\u1ecdn d\u1eb9p th\u00e0nh c\u00f4ng " + count + " hologram c\u1ee7a CustomWeaponEngine xung quanh b\u1ea1n!");
+            p.sendMessage("\u00a7a\u0110\u00e3 d\u1ecdn d\u1eb9p th\u00e0nh c\u00f4ng " + count + " hologram c\u1ee7a CustomWeaponEngine xung quanh b\u1ea1n và reset trạng thái chiến đấu!");
+            return true;
+        }
+        if (args.length == 3 && args[0].equalsIgnoreCase("rollbackfighting")) {
+            int threshold;
+            double targetLevel;
+            try {
+                threshold = Integer.parseInt(args[1]);
+                targetLevel = Double.parseDouble(args[2]);
+            } catch (NumberFormatException e) {
+                sender.sendMessage("§cSử dụng: /cweboss rollbackfighting <threshold> <target_level>");
+                return true;
+            }
+            int rolledBack = 0;
+            if (Bukkit.getPluginManager().isPluginEnabled("AuraSkills")) {
+                for (org.bukkit.OfflinePlayer op : Bukkit.getOfflinePlayers()) {
+                    dev.aurelium.auraskills.api.user.SkillsUser user = dev.aurelium.auraskills.api.AuraSkillsApi.get().getUser(op.getUniqueId());
+                    if (user != null) {
+                        int level = user.getSkillLevel(dev.aurelium.auraskills.api.skill.Skills.FIGHTING);
+                        if (level >= threshold) {
+                            user.setSkillLevel(dev.aurelium.auraskills.api.skill.Skills.FIGHTING, (int)targetLevel);
+                            user.setSkillXp(dev.aurelium.auraskills.api.skill.Skills.FIGHTING, 0.0);
+                            rolledBack++;
+                        }
+                    }
+                }
+                sender.sendMessage("§aĐã rollback kỹ năng Fighting của " + rolledBack + " người chơi (từ cấp " + threshold + " trở lên) về cấp " + (int)targetLevel + ".");
+            } else {
+                sender.sendMessage("§cAuraSkills chưa được cài đặt hoặc kích hoạt!");
+            }
             return true;
         }
         sender.sendMessage("\u00a76\u00a7l\u2550\u2550\u2550\u2550\u2550\u2550 BOSS V\u00d9NG \u2550\u2550\u2550\u2550\u2550\u2550");
@@ -141,6 +175,7 @@ TabCompleter {
         sender.sendMessage("\u00a7e/cweboss spawn <FIRE|ICE|VOID> \u00a77- \u00c9p Boss xu\u1ea5t hi\u1ec7n l\u1eadp t\u1ee9c");
         sender.sendMessage("\u00a7e/cweboss cleanup \u00a77- D\u1ecdn d\u1eb9p hologram l\u1ed7i l\u00e2n c\u1eadn");
         sender.sendMessage("\u00a7e/cweboss givefragment <player> <RARE|EPIC|LEGENDARY|MYTHIC> [amount] \u00a77- C\u1ea5p m\u1ea3nh v\u1ee1");
+        sender.sendMessage("\u00a7e/cweboss rollbackfighting <threshold> <target_level> \u00a77- Rollback level Fighting");
         return true;
     }
 
@@ -154,7 +189,7 @@ TabCompleter {
                         completions = new ArrayList<String>();
                         if (args.length != 1) break block5;
                         String input2 = args[0].toLowerCase();
-                        for (String sub : Arrays.asList("setspawn", "removespawn", "spawn", "cleanup", "givefragment")) {
+                        for (String sub : Arrays.asList("setspawn", "removespawn", "spawn", "cleanup", "givefragment", "rollbackfighting")) {
                             if (!sub.startsWith(input2)) continue;
                             completions.add(sub);
                         }

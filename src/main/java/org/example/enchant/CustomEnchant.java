@@ -45,6 +45,9 @@ public enum CustomEnchant {
     PRISTINE("pristine", "Pristine", 5, ItemGroup.TOOL, "Ch\u1ea1m tay v\u00e0o \u0111\u00e1 t\u1ea3ng, \u0111\u00e1nh th\u1ee9c x\u00e1c su\u1ea5t r\u01a1i ra \u0110\u00e1 Qu\u00fd Tinh T\u00fa si\u00eau c\u1ea5p hi\u1ebfm."),
     REPLENISH("replenish", "Replenish", 1, ItemGroup.FARMING, "Ban ph\u01b0\u1edbc cho \u0111\u1ea5t r\u1eefa, t\u1ef1 \u0111\u1ed9ng gieo m\u1ea7m h\u1ea1t gi\u1ed1ng sau m\u1ed7i l\u1ea7n thu ho\u1ea1ch."),
     TELEKINESIS("telekinesis", "Telekinesis", 1, ItemGroup.ALL, "Thao t\u00fang kh\u00f4ng gian, \u0111i\u1ec1u khi\u1ec3n chi\u1ebfn l\u1ee3i ph\u1ea9m bay th\u1eb3ng v\u00e0o trong t\u00fai \u0111\u1ed3."),
+    LUNGE("lunge", "Lunge", 3, ItemGroup.SPEAR, "M\u00e3nh h\u1ed5 v\u1ed3 m\u1ed3i, ph\u00f3ng l\u01b0\u1edbt t\u1edbi tr\u01b0\u1edbc m\u1ed7i khi ch\u1ecdc tr\u00fang \u0111\u00edch."),
+    REACH("reach", "Reach", 3, ItemGroup.SPEAR, "Tay d\u00e0i ch\u1ecdc xa, gia t\u0103ng t\u1ea7m v\u01b0\u01a1n c\u1ee7a v\u0169 kh\u00ed."),
+    IMPALING_SPEAR("impaling_spear", "Impaling", 5, ItemGroup.SPEAR, "Xi\u00ean t\u00e2m \u0111o\u1ea1t m\u1ec7nh, g\u00e2y th\u00eam s\u00e1t th\u01b0\u01a1ng l\u00ean k\u1ebb th\u00f9 kh\u00f4ng m\u1eb7c gi\u00e1p."),
     MENDING("mending", "Mending", 1, ItemGroup.ALL, "H\u1ea5p th\u1ee5 linh kh\u00ed c\u1ee7a tr\u1eddi \u0111\u1ea5t, chuy\u1ec3n h\u00f3a kinh nghi\u1ec7m th\u00e0nh \u0111\u1ed9 b\u1ec1n trang b\u1ecb.");
 
     private final String id;
@@ -93,6 +96,7 @@ public enum CustomEnchant {
         FARMING,
         TRIDENT,
         MACE,
+        SPEAR,
         ALL;
 
 
@@ -104,7 +108,7 @@ public enum CustomEnchant {
             boolean isActualAxe = (name.endsWith("_AXE") || name.equals("AXE")) && !name.contains("PICKAXE");
             switch (this.ordinal()) {
                 case 0: {
-                    return name.contains("SWORD") || isActualAxe || material == Material.STICK || material == Material.BLAZE_ROD;
+                    return name.contains("SWORD") || name.contains("SPEAR") || isActualAxe || material == Material.STICK || material == Material.BLAZE_ROD;
                 }
                 case 1: {
                     return name.equals("BOW") || name.equals("CROSSBOW");
@@ -137,6 +141,9 @@ public enum CustomEnchant {
                     return material == Material.MACE;
                 }
                 case 11: {
+                    return name.contains("SPEAR");
+                }
+                case 12: {
                     return true;
                 }
             }

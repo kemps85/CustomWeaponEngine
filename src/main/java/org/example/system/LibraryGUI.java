@@ -33,9 +33,11 @@ public class LibraryGUI implements Listener {
         
         ItemStack weapon = createGuiItem(Material.DIAMOND_SWORD, "§c§lVũ Khí (Weapons)", "§7Nhấn để xem kho vũ khí.");
         ItemStack armor = createGuiItem(Material.DIAMOND_CHESTPLATE, "§b§lGiáp (Armors)", "§7Nhấn để xem kho giáp.", "§7(Chỉ hiển thị Mũ, lấy được cả set)");
+        ItemStack skillbook = createGuiItem(Material.ENCHANTED_BOOK, "§a§lSách Kỹ Năng", "§7Nhấn để xem các loại Sách Kỹ Năng.");
         
-        inv.setItem(11, weapon);
-        inv.setItem(15, armor);
+        inv.setItem(10, weapon);
+        inv.setItem(13, armor);
+        inv.setItem(16, skillbook);
         
         player.openInventory(inv);
         player.playSound(player.getLocation(), Sound.BLOCK_CHEST_OPEN, 1, 1);
@@ -57,6 +59,7 @@ public class LibraryGUI implements Listener {
             if (item == null) continue;
             
             boolean isArmor = key.contains("helmet") || key.contains("chestplate") || key.contains("leggings") || key.contains("boots") || key.contains("armor");
+            boolean isSkillBook = key.startsWith("skillbook_");
             
             if (category.equals("Armor")) {
                 if (isArmor && (key.contains("helmet") || key.equals("cwe_hardened_diamond_helmet") || key.equals("cwe_golem_armor_helmet"))) {
@@ -65,8 +68,12 @@ public class LibraryGUI implements Listener {
                     // Fallback for non-standard armor names
                     if (!key.contains("_")) itemsToShow.add(item.clone()); 
                 }
+            } else if (category.equals("SkillBook")) {
+                if (isSkillBook) {
+                    itemsToShow.add(item.clone());
+                }
             } else { // Weapon
-                if (!isArmor) {
+                if (!isArmor && !isSkillBook) {
                     itemsToShow.add(item.clone());
                 }
             }
@@ -124,6 +131,8 @@ public class LibraryGUI implements Listener {
                 openCategoryGUI(player, "Weapon", 1);
             } else if (clickedItem.getType() == Material.DIAMOND_CHESTPLATE) {
                 openCategoryGUI(player, "Armor", 1);
+            } else if (clickedItem.getType() == Material.ENCHANTED_BOOK) {
+                openCategoryGUI(player, "SkillBook", 1);
             }
             return;
         }
